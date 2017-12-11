@@ -5,8 +5,8 @@ module.exports = {
                "type": "string",
                "enum": ["stripe", "authdotnet"]
            },
-           "cardNumber": {
-               "description": "card Nunber"
+           "Name": {
+               "description": "name"
            },
            "expMonth": {
                "description": "card expiry month"
@@ -27,7 +27,7 @@ module.exports = {
                "type": "string"
            }
        },
-       "required": ["cardNumber", "gateway", "expMonth", "expYear", "cvc"],
+       "required": ["Name"],
         "additionalProperties": false
    },
 

@@ -28,6 +28,21 @@ class Xero1 {
         })
     }
 
+    createNewContact(data , xeroClient) {
+        return new Promise((resolve, reject) => {
+            console.log(data)
+            xeroClient.core.contacts.newContact(data).save()
+            .then(function(contacts) {
+                console.log(contacts)
+                resolve(contacts)
+            })
+            .catch(function(err) {
+                console.log("Error", err);
+                data = {err:'Authentication error!!! Check your connection and credentials.'};
+            })
+        })
+    }
+
 }
 
 module.exports = function(options) {

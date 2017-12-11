@@ -18,6 +18,8 @@ const appHooks = require('./app.hooks');
 const auth = require('feathers-authentication');
 const jwt = require('feathers-authentication-jwt');
 
+const rethinkdb = require('./rethinkdb');
+
 const app = feathers();
 
 // Load app configuration
@@ -34,12 +36,13 @@ app.use('/', feathers.static(app.get('public')));
 
 // Set up Plugins and providers
 app.configure(hooks());
+app.configure(rethinkdb);
 app.configure(rest());
 app.configure(socketio());
 
 
-app.configure(auth({ secret: 'abcdefgabcdefg' }))
-app.configure(jwt({service : "contacts"}))
+// app.configure(auth({ secret: 'abcdefgabcdefg' }))
+// app.configure(jwt({service : "contacts"}))
 
 
 // Set up our services (see `services/index.js`)
