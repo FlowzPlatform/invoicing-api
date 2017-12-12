@@ -42,6 +42,7 @@
     "feathers-rethinkdb": "^0.4.3",
     "feathers-socketio": "^2.0.1",
     "helmet": "^3.8.2",
+    "lodash": "^4.17.4",
     "rethinkdbdash": "^2.3.31",
     "serve-favicon": "^2.4.5",
     "winston": "^2.4.0",
