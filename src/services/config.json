@@ -1,6 +1,6 @@
 {
   "userAgent" : "Xero Sample App - Krishna",
-  "consumerKey": "SM1FXHCD8PDNOYNW3WDQAR63NMQQOI",
-  "consumerSecret": "A3EDT3H5CE4C5DJKK28OSEMFNY60LB",
+"consumerKey": "",
+"consumerSecret": "",
   "privateKeyPath": "./src/services/privatekey.pem"
 }
