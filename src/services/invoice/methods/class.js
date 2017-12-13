@@ -15,6 +15,24 @@ class Xero1 {
      * @param {*} data
      */
 
+    invoiceStatistics(filter, xeroClient) {
+      var invoice_arr = [];
+      return new Promise((resolve, reject) => {
+        xeroClient.core.invoices.getInvoices({where : filter})
+        .then(function(invoices) {
+          // console.log("@@@@@@@@@@arr",invoices);
+            invoices.forEach(function(invoice) {
+              invoice_arr.push(invoice);
+            })
+            resolve(invoice_arr)
+        })
+        .catch(function(err) {
+            console.log("Error", typeof(err));
+            data = {err:'Authentication error!!! Check your connection and credentials.'};
+        })
+      })
+    }
+
     getInvoiceById(id , xeroClient) {
         return new Promise((resolve, reject) => {
             xeroClient.core.invoices.getInvoice(id)
@@ -160,6 +178,7 @@ class Xero1 {
             })
         })
     }
+
 }
 
 module.exports = function(options) {
