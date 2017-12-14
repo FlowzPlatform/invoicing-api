@@ -11,9 +11,9 @@ let schema = require("./methods/schema.js")
 let Xero1 = require("./methods/class.js")
 let obj = new Xero1();
 
-if (config.privateKeyPath && !config.privateKey) 
-config.privateKey = fs.readFileSync(config.privateKeyPath);
-const xeroClient = new xero.PrivateApplication(config);
+if (config.credentials.privateKeyPath && !config.credentials.privateKey) 
+config.credentials.privateKey = fs.readFileSync(config.credentials.privateKeyPath);
+const xeroClient = new xero.PrivateApplication(config.credentials);
 
 class Service {
   constructor (options) {
