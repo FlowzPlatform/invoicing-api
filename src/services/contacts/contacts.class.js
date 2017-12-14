@@ -11,6 +11,10 @@ let schema = require("./methods/schema.js")
 let Xero1 = require("./methods/class.js")
 let obj = new Xero1();
 
+if (config.credentials.privateKeyPath && !config.credentials.privateKey) 
+config.credentials.privateKey = fs.readFileSync(config.credentials.privateKeyPath);
+const xeroClient = new xero.PrivateApplication(config.credentials);
+
 class Service {
   constructor (options) {
     this.options = options || {};
@@ -19,9 +23,6 @@ class Service {
   async find (params) {
     let schemaName = schema.get ;
     this.validateSchema(params.query, schemaName)
-    if (config.privateKeyPath && !config.privateKey) 
-    config.privateKey = fs.readFileSync(config.privateKeyPath);
-    const xeroClient = new xero.PrivateApplication(config);
     let response = await obj.getAllContacts(params.query , xeroClient);
     return(response);
   }
@@ -32,9 +33,11 @@ class Service {
     });
   }
 
-  create (data, params) {
-
-    return Promise.resolve([data]);
+  async create (data, params) {
+    let schemaName = schema.create ;
+    this.validateSchema(data , schemaName);
+    let response = await obj.createNewContact(data , xeroClient);
+    return Promise.resolve(response);
   }
 
   update (id, data, params) {

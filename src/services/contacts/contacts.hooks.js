@@ -7,7 +7,7 @@ module.exports = {
     find: [],
     get: [],
     create: [
-      auth.hooks.authenticate(['jwt'])
+      //auth.hooks.authenticate(['jwt'])
     ],
     update: [],
     patch: [],
