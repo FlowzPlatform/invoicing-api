@@ -1,0 +1,27 @@
+2017-12-10T12:31:10.276633972 0.296552s notice: Recursively removing directory /var/www/R&D/GO/All_OBpayment/5_GITHUBOB/INVOICE-API/rethinkdb_data/tmp
+2017-12-10T12:31:10.287657585 0.307575s notice: Initializing directory /var/www/R&D/GO/All_OBpayment/5_GITHUBOB/INVOICE-API/rethinkdb_data
+2017-12-10T12:31:10.287924344 0.307841s info: Creating a default database for your convenience. (This is because you ran 'rethinkdb' without 'create', 'serve', or '--join', and the directory '/var/www/R&D/GO/All_OBpayment/5_GITHUBOB/INVOICE-API/rethinkdb_data' did not already exist or is empty.)
+2017-12-10T12:31:10.288102066 0.308018s notice: Running rethinkdb 2.3.5~0xenial (GCC 5.3.1)...
+2017-12-10T12:31:10.294953181 0.314875s notice: Running on Linux 4.4.0-103-generic x86_64
+2017-12-10T12:31:10.295082785 0.314999s notice: Loading data from directory /var/www/R&D/GO/All_OBpayment/5_GITHUBOB/INVOICE-API/rethinkdb_data
+2017-12-10T12:31:10.338931304 0.358848s info: Automatically using cache size of 5212 MB
+2017-12-10T12:31:10.367629606 0.387546s notice: Listening for intracluster connections on port 29015
+2017-12-10T12:31:10.374849178 0.394766s notice: Listening for client driver connections on port 28015
+2017-12-10T12:31:10.381448742 0.401365s error: Could not bind to http port: The address at localhost:8080 is reserved or already in use.
+2017-12-10T12:31:33.233968478 0.126075s notice: Running rethinkdb 2.3.5~0xenial (GCC 5.3.1)...
+2017-12-10T12:31:33.241083836 0.133195s notice: Running on Linux 4.4.0-103-generic x86_64
+2017-12-10T12:31:33.241202361 0.133308s notice: Loading data from directory /var/www/R&D/GO/All_OBpayment/5_GITHUBOB/INVOICE-API/rethinkdb_data
+2017-12-10T12:31:33.265019325 0.157125s info: Automatically using cache size of 5268 MB
+2017-12-10T12:31:33.294584680 0.186691s notice: Listening for intracluster connections on port 29015
+2017-12-10T12:31:33.296132991 0.188239s notice: Listening for client driver connections on port 28015
+2017-12-10T12:31:33.297024792 0.189130s notice: Listening for administrative HTTP connections on port 8080
+2017-12-10T12:31:33.324196041 0.216302s notice: Listening on cluster addresses: 127.0.0.1, 172.17.0.1, 172.18.0.1, 192.168.0.4, ::1, fe80::d087:a799:b012:53a4%3
+2017-12-10T12:31:33.348845505 0.240952s notice: Listening on driver addresses: 127.0.0.1, 172.17.0.1, 172.18.0.1, 192.168.0.4, ::1, fe80::d087:a799:b012:53a4%3
+2017-12-10T12:31:33.381782738 0.273889s notice: Listening on http addresses: 127.0.0.1, 172.17.0.1, 172.18.0.1, 192.168.0.4, ::1, fe80::d087:a799:b012:53a4%3
+2017-12-10T12:31:33.381806838 0.273912s notice: Server ready, "OBLAP29_lmp" 065a4ecd-a907-4246-990e-62c6852f6baf
+2017-12-10T12:31:35.057664209 1.949770s notice: A newer version of the RethinkDB server is available: 2.3.6. You can read the changelog at <https://github.com/rethinkdb/rethinkdb/releases>.
+2017-12-10T12:31:39.440462892 6.332568s info: Table 1219fa34-d261-49ea-857b-93c8294ad470: Starting a new Raft election for term 1.
+2017-12-10T12:31:39.441402604 6.333508s info: Table 1219fa34-d261-49ea-857b-93c8294ad470: Added replica on this server.
+2017-12-10T12:31:39.445382282 6.337487s info: Table 1219fa34-d261-49ea-857b-93c8294ad470: This server is Raft leader for term 1. Latest log index is 0.
+2017-12-11T02:29:40.417884371 50287.309990s notice: Server got SIGTERM from pid 1, uid 0; shutting down...
+2017-12-11T02:29:40.417934343 50287.310040s notice: Shutting down client connections...
