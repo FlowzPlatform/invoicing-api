@@ -1,4 +1,18 @@
 {
-  "host": "invoicing-api-app.feathersjs.com",
-  "port": "PORT"
+  "host": "localhost",
+  "port": 3037,
+  "public": "../public/",
+  "paginate": {
+    "default": 10,
+    "max": 50
+  },
+  "rethinkdb": {
+    "db": "invoicing_api",
+    "servers": [
+      {
+        "host": "localhost",
+        "port": "28015"
+      }
+    ]
+  }
 }
