@@ -39,8 +39,11 @@
     "feathers-hooks": "^2.1.2",
     "feathers-hooks-common": "^3.7.3",
     "feathers-rest": "^1.8.0",
+    "feathers-rethinkdb": "^0.4.3",
     "feathers-socketio": "^2.0.1",
     "helmet": "^3.8.2",
+    "lodash": "^4.17.4",
+    "rethinkdbdash": "^2.3.31",
     "serve-favicon": "^2.4.5",
     "winston": "^2.4.0",
     "xero-node": "^2.12.0"

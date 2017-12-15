@@ -1,9 +1,18 @@
 {
   "host": "localhost",
-  "port": 3030,
+  "port": 3037,
   "public": "../public/",
   "paginate": {
     "default": 10,
     "max": 50
+  },
+  "rethinkdb": {
+    "db": "invoicing_api",
+    "servers": [
+      {
+        "host": "localhost",
+        "port": "28015"
+      }
+    ]
   }
 }
