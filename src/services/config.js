@@ -1,4 +1,5 @@
 module.exports = {
+<<<<<<< HEAD
   credentials: {
     "userAgent" : "Xero Sample App - Krishna",
     "consumerKey": process.env.consumerKey,
@@ -14,3 +15,14 @@ module.exports = {
     "realmId" : "193514591409719"
   }
 };
+=======
+
+    credentials: {
+      "userAgent" : "Xero Sample App - Krishna",
+      "consumerKey": process.env.consumerKey,
+      "consumerSecret": process.env.consumerSecret,
+      "privateKeyPath": "./src/services/privatekey.pem"
+    }
+  };
+
+>>>>>>> 9e86e00ddf4d12fc3a928a86b6647d3b27249554
