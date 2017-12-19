@@ -1,4 +1,7 @@
-
+let async = require('asyncawait/async');
+let await = require('asyncawait/await');
+let config = require('config')
+var r = require('rethinkdbdash')
 
 module.exports = {
   before: {
@@ -6,7 +9,9 @@ module.exports = {
     find: [],
     get: [],
     create: [],
-    update: [],
+    update: [
+	hook => beforeUpdate(hook)
+	],
     patch: [],
     remove: []
   },
@@ -31,3 +36,8 @@ module.exports = {
     remove: []
   }
 };
+
+
+var beforeUpdate = async ( function(hook) {
+  console.log('hook.data..........', hook.data)
+})
