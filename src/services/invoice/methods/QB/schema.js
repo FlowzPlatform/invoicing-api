@@ -1,36 +1,27 @@
 module.exports = {
     create : {
        "properties": {
-           "gateway": {
+           "domain": {
                "type": "string",
-               "enum": ["stripe", "authdotnet"]
+               "enum": ["QB", "Xero"]
            },
-           "cardNumber": {
-               "description": "card Nunber"
+           "name": {
+               "description": "Customer name"
            },
-           "expMonth": {
-               "description": "card expiry month"
-           },
-           "expYear": {
-               "description": "card expiry year"
-           },
-           "cvc": {
-               "description": "CVC in Number",
-               "type": "number"
+           "qty": {
+               "description": "Quantity"
            },
            "description": {
-               "description": "Customer description in String",
-               "type": "string"
+               "description": "Description of product"
            },
-           "email": {
-               "description": "email  in String",
-               "type": "string"
+           "amount": {
+               "description": "Amount of product",
+               "type": "number"
            }
        },
-       "required": ["cardNumber", "gateway", "expMonth", "expYear", "cvc"],
+       "required": ["domain", "amount"],
         "additionalProperties": false
    },
-
 
     delete : {
        "properties": {
@@ -45,8 +36,6 @@ module.exports = {
        "required": ["id", "gateway"],
         "additionalProperties": false
    },
-
-
 
     update : {
        "properties":{
@@ -91,48 +80,54 @@ module.exports = {
 
    find : {
      "properties" : {
-       "Type" : {
+       "domain" : {
+         "type" : "string",
+         "enum" : ["QB", "Xero"]
+       },
+       "Invoiceid" : {
          "type" : "string"
        },
-       "Date" : {
+       "CustomerRef" : {
+         "type" : "string"
+       },
+       "TxnDate" : {
+         "type" : "string"
+       },
+       "minTxnDate" : {
+         "type" : "string"
+       },
+       "maxTxnDate" : {
          "type" : "string"
        },
        "DueDate" : {
          "type" : "string"
        },
-       "InvoiceNumber" : {
+       "minDueDate" : {
          "type" : "string"
        },
-       "CurrencyCode" : {
+       "maxDueDate" : {
          "type" : "string"
        },
-       "CurrencyRate" : {
+       "TotalAmt" : {
          "type" : "string"
        },
-       "Status" : {
-         "type" : "string",
-         "enum" : ["PAID" , "AUTHORISED" , "DRAFT"]
-       },
-       "SubTotal" : {
+       "minTotalAmt" : {
          "type" : "string"
        },
-       "TotalTax" : {
+       "maxTotalAmt" : {
          "type" : "string"
        },
-       "Total" : {
+       "Balance" : {
          "type" : "string"
        },
-       "InvoiceID" : {
+       "minBalance" : {
          "type" : "string"
        },
-       "AmountDue" : {
-         "type" : "string"
-       },
-       "AmountPaid" : {
+       "maxBalance" : {
          "type" : "string"
        }
      },
-    "required": [],
-    "additionalProperties": true
+    "required": ["domain"],
+    "additionalProperties": false
    }
 }

@@ -41,6 +41,7 @@
     "feathers-rest": "^1.8.0",
     "feathers-socketio": "^2.0.1",
     "helmet": "^3.8.2",
+    "refresh-token": "^1.0.0",
     "serve-favicon": "^2.4.5",
     "winston": "^2.4.0",
     "xero-node": "^2.12.0"
