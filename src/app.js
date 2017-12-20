@@ -23,7 +23,7 @@ const rethinkdb = require('./rethinkdb');
 const app = feathers();
 
 app.use(function(req, res, next) {
-    this.something = app;
+    this.app = app;
     this.apiHeaders = req.headers ;
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");

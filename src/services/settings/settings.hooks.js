@@ -41,6 +41,7 @@ module.exports = {
 
 beforecreate = async hook => {
   let res = await validateUser(hook);
+  let response = await checkDefaultConfig(hook , res)
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
@@ -51,7 +52,7 @@ beforecreate = async hook => {
 }
 
 beforeGet =async  hook => {
-  hook.result = "any data"
+  //hook.result = "any data"
 }
 
 beforeFind =async hook =>{
@@ -79,4 +80,15 @@ validateUser =data =>{
       resolve({"code" : 401 })
     });
   })
+}
+
+checkDefaultConfig = (data , res) => {
+  console.log(res)
+  
+  let findUser = JSON.parse(res).data._id;
+  console.log(app.service('settings'))
+  // app.service('settings').find({userId : findUser}).then(settings => {
+  //   console.log(settings)
+  // })
+  return true;
 }
