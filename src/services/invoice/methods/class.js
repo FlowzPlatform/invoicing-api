@@ -16,6 +16,7 @@ class Xero1 {
      */
 
     invoiceStatistics(filter, xeroClient) {
+     
       var invoice_arr = [];
       return new Promise((resolve, reject) => {
         xeroClient.core.invoices.getInvoices({where : filter})
@@ -34,6 +35,7 @@ class Xero1 {
     }
 
     getInvoiceById(id , xeroClient) {
+      
         return new Promise((resolve, reject) => {
             xeroClient.core.invoices.getInvoice(id)
             .then(function(invoices) {
@@ -47,6 +49,7 @@ class Xero1 {
     }
 
     getInvoicesByFilter(data, xeroClient) {
+        console.log(xeroClient)
         // console.log("inside filter")
         var data_arr = [];
         var condition = '';
@@ -139,10 +142,11 @@ class Xero1 {
         return new Promise((resolve, reject) => {
             xeroClient.core.invoices.getInvoices({ where : final_filter})
             .then(function(invoices) {
+                console.log(invoices)
                 resolve(invoices)
             })
             .catch(function(err) {
-                console.log("Error", typeof(err));
+                console.log("Error");
                 data = {err:'Authentication error!!! Check your connection and credentials.'};
             })
         })
