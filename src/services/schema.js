@@ -15,6 +15,6 @@ module.exports = {
       }
     },
     "required": ["domain"],
-     "additionalProperties": false
+     "additionalProperties": true
   }
 }
