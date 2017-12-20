@@ -20,9 +20,11 @@ class Service {
   async find (params) {
     let schemaName = schema.find ;
     this.validateSchema(params.query, schemaName)
-    // if (config.credentials.privateKeyPath && !config.credentials.privateKey)
-    // config.credentials.privateKey = fs.readFileSync(config.credentials.privateKeyPath);
-    console.log(config)
+
+    console.log("#################config",config);
+    if (config.credentials.privateKeyPath && !config.credentials.privateKey)
+    config.credentials.privateKey = fs.readFileSync(config.credentials.privateKeyPath);
+
     const xeroClient = new xero.PrivateApplication(config.credentials);
     let response;
     if (params.query.InvoiceID) {
