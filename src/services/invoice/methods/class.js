@@ -1,4 +1,3 @@
-var moment = require('moment');
 class Xero1 {
     /**
      * constructor
@@ -14,6 +13,7 @@ class Xero1 {
      * do direct charge
      * @param {*} data
      */
+
 
     invoiceStatistics(filter, xeroClient) {
      
@@ -52,13 +52,10 @@ class Xero1 {
         console.log(xeroClient)
         // console.log("inside filter")
         var data_arr = [];
-        var condition = '';
         data_arr.push(data);
-        var keys = Object.keys(data_arr[0]);
-        // console.log("keys",keys);
-        // console.log("data_arr[0].keys[0]",data_arr[0][keys[0]]);
         var filterContact = '';
         var filter = '';
+
         var array = {"ContactID" : "", "ContactStatus": "", "Name": "", "EmailAddress": ""};
         // console.log("params data inside function",data_arr[0].amt_gt);
         for (var i = 0; i < keys.length; i++) {
@@ -149,32 +146,12 @@ class Xero1 {
                 console.log("Error");
                 data = {err:'Authentication error!!! Check your connection and credentials.'};
             })
+
         })
-    }
-
-    createInvoice(data , xeroClient) {
-      var sampleInvoice = {
-        Type: 'ACCREC',
-        Contact: {
-          Name: data.name
-        },
-        Status: 'AUTHORISED',
-        DueDate: new Date().toISOString().split("T")[0],
-        LineItems: [{
-          Description: data.description,
-          Quantity: data.qty,
-          UnitAmount: data.amount,
-          AccountCode: '200'
-        }]
-      };
-
         return new Promise((resolve, reject) => {
-          var invoiceObj = xeroClient.core.invoices.newInvoice(sampleInvoice);
-          var myInvoice;
-          invoiceObj.save()
+            xesroClient.core.invoices.getInvoices({ where : filter})
             .then(function(invoices) {
-                myInvoice = invoices.entities[0];
-                resolve(myInvoice);
+                resolve(invoices)
             })
             .catch(function(err) {
                 console.log("Error", typeof(err));
