@@ -42,12 +42,9 @@
     "feathers-rethinkdb": "^0.4.3",
     "feathers-socketio": "^2.0.1",
     "helmet": "^3.8.2",
-<<<<<<< HEAD
-    "refresh-token": "^1.0.0",
-=======
     "lodash": "^4.17.4",
+    "refresh-token": "^1.0.0",
     "rethinkdbdash": "^2.3.31",
->>>>>>> 9e86e00ddf4d12fc3a928a86b6647d3b27249554
     "serve-favicon": "^2.4.5",
     "winston": "^2.4.0",
     "xero-node": "^2.12.0"
