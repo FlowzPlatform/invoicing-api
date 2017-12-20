@@ -28,6 +28,16 @@ class Service {
   }
 
   async find (params) {
+
+    let schemaName = schema.find ;
+    this.validateSchema(params.query, schemaName)
+
+    console.log("#################config",config);
+    if (config.credentials.privateKeyPath && !config.credentials.privateKey)
+    config.credentials.privateKey = fs.readFileSync(config.credentials.privateKeyPath);
+
+    const xeroClient = new xero.PrivateApplication(config.credentials);
+
     let response;
     let schema1 = require("../schema.js")
     let schemaName1 = schema1.find ;
