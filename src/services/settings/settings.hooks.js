@@ -14,7 +14,9 @@ module.exports = {
       hook => beforecreate(hook)
     ],
     update: [],
-    patch: [],
+    patch: [
+      hook => beforepatch(hook)
+    ],
     remove: []
   },
 
@@ -60,7 +62,21 @@ beforeFind =async hook =>{
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
-    hook.params.query.userId = JSON.parse(res).data._id
+    hook.params.query.userId = JSON.parse(res).data._id;
+    hook.params.query.isDeleated = false;
+    if(hook.params.query.isActive == "true"){
+      hook.params.query.isActive = true;
+    }
+  }
+}
+beforepatch = async hook =>{
+  console.log(hook)
+  let res = await validateUser(hook);
+  if(res.code == 401){
+    throw new errors.NotAuthenticated('Invalid token');
+  }else{
+    hook.data.updatedAt = new Date();
+    hook.data.updatedBy = JSON.parse(res).data.email
   }
 }
 
