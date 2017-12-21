@@ -64,6 +64,9 @@ beforeFind =async hook =>{
   }else{
     hook.params.query.userId = JSON.parse(res).data._id;
     hook.params.query.isDeleated = false;
+    if(hook.params.query.isActive == "true"){
+      hook.params.query.isActive = true;
+    }
   }
 }
 beforepatch = async hook =>{
