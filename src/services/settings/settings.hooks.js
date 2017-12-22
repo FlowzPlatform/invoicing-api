@@ -77,6 +77,8 @@ beforeFind =async hook =>{
     }
 
     console.log(hook.params.query);
+
+    
     
   }
 }
