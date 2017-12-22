@@ -89,8 +89,7 @@ module.exports = {
          "enum" : ["bar","pie","line","cashflow"]
        },
        "stats" : {
-         "type" : "string",
-         "enum" : [true, false]
+         "type" : "string"
        },
        "Invoiceid" : {
          "type" : "string"
@@ -135,7 +134,7 @@ module.exports = {
          "type" : "string"
        }
      },
-    "required": ["domain"],
+    "required": [],
     "additionalProperties": true
    }
 }

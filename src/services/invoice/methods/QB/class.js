@@ -1,5 +1,5 @@
 var moment = require('moment');
-const config = require("../../../config.js");
+// const config = require("../../../config.js");
 const paymentConfig = require("../../../payment-plugin.json");
 
 //For quickbook
@@ -23,13 +23,19 @@ class QB1 {
      */
 
     //Qb functions
-    getToken() {
+    getToken(config) {
       console.log("inside get token");
-      var tokenProvider = new TokenProvider(config.qbcredentials.tokenUrl, {
-        refresh_token: config.qbcredentials.refresh_token,
-        client_id:     config.qbcredentials.client_id,
-        client_secret: config.qbcredentials.client_secret
+      // var tokenProvider = new TokenProvider(config.qbcredentials.tokenUrl, {
+      //   refresh_token: config.qbcredentials.refresh_token,
+      //   client_id:     config.qbcredentials.client_id,
+      //   client_secret: config.qbcredentials.client_secret
+      // });
+      var tokenProvider = new TokenProvider('https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer', {
+        refresh_token: config.refresh_token,
+        client_id:     config.client_id,
+        client_secret: config.client_secret
       });
+      console.log("tokenProvider",tokenProvider);
       return new Promise(function(resolve, reject) {
         tokenProvider.getToken(function (err, newToken) {
           resolve(newToken)
@@ -81,7 +87,7 @@ class QB1 {
       return new Date(year, month, 0).getDate();
     }
 
-    async getAllInvoice(data) {
+    async getAllInvoice(config,data) {
       return new Promise(async function(resolve, reject) {
         // console.log("@@@@@@@@@@@inside get invoice method");
         var token = await this.getToken();
@@ -106,11 +112,11 @@ class QB1 {
       })
     }
 
-    async getInvoiceById(id) {
-      var token = await this.getToken();
+    async getInvoiceById(config,id) {
+      var token = await this.getToken(config);
       // console.log("token",token);
 
-      var url = config.qbcredentials.api_uri + config.qbcredentials.realmId + "/query?query=select * from Invoice where Id='" + id + "'"
+      var url = 'https://sandbox-quickbooks.api.intuit.com/v3/company/' + config.realmId + "/query?query=select * from Invoice where Id='" + id + "'"
       console.log('Making API call to: ' + url)
 
       var requestObj = await this.getRequestObj (url, token)
@@ -121,18 +127,23 @@ class QB1 {
         console.log("@@@@@@@@@@@inside get invoice by id",id);
 
         var jsondata = JSON.parse(result.body);
-        var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
-        console.log("Length of Invoice",len);
-        var arr = [];
-        for (var i=0; i<len; i++) {
-          var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[i], null, 2);
-          arr.push(JSON.parse(data1));
+        if (jsondata.QueryResponse == undefined) {
+
+        }
+        else {
+          var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
+          console.log("Length of Invoice",len);
+          var arr = [];
+          for (var i=0; i<len; i++) {
+            var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[i], null, 2);
+            arr.push(JSON.parse(data1));
+          }
         }
         resolve(arr);
       })
     }
 
-    async createInvoice(data) {
+    async createInvoice(config,data) {
       var token = await this.getToken();
       var value = '59';             //customer ref value
       var line = [
@@ -162,13 +173,13 @@ class QB1 {
       return arr;
     }
 
-    async getInvoicesByFilter(data) {
+    async getInvoicesByFilter(config,data) {
 
       var data_arr = [];
       var condition = '';
       data_arr.push(data);
       var keys = Object.keys(data_arr[0]);
-      var url = config.qbcredentials.api_uri + config.qbcredentials.realmId + "/query?query=select * from Invoice "
+      var url = 'https://sandbox-quickbooks.api.intuit.com/v3/company/' + config.realmId + "/query?query=select * from Invoice "
 
       for (var i = 0; i < keys.length; i++) {
         if ( i == 1) {
@@ -178,7 +189,7 @@ class QB1 {
           // console.log("inside key else ");
           condition = ' && '
         }
-        if (keys[i] == 'domain' || keys[i] == 'chart') {
+        if (keys[i] == 'domain' || keys[i] == 'chart' || keys[i] == 'stats' || keys[i] == 'settingId') {
 
         }
         else {
@@ -196,8 +207,8 @@ class QB1 {
       // console.log("############filter url",url);
       console.log('Making API call to: ', url)
 
-      var token = await this.getToken();
-      // console.log("token",token);
+      var token = await this.getToken(config);
+      console.log("@@@@@@@@@2token",token);
       var requestObj = await this.getRequestObj (url,token)
       // console.log("requestObj",requestObj);
       // Make API call
@@ -218,7 +229,7 @@ class QB1 {
       })
     }
 
-    async invoiceStatistics(data) {
+    async invoiceStatistics(config,data) {
       var token = await this.getToken();
       var date1 = moment(data.date1,'YYYY-MM-DD')
       var date2 = moment(data.date2,'YYYY-MM-DD')
@@ -346,7 +357,7 @@ class QB1 {
       return(amt_data);
     }
 
-    async invoiceStatisticsPieData(data) {
+    async invoiceStatisticsPieData(config,data) {
       var token = await this.getToken();
       var date1 = moment(data.date1).format('YYYY-MM-DD')
       var date2 = moment(data.date2).format('YYYY-MM-DD')
@@ -392,7 +403,7 @@ class QB1 {
       return(pie_data);
     }
 
-    async invoiceStatisticsCashflow(data) {
+    async invoiceStatisticsCashflow(config,data) {
       var token = await this.getToken();
       var date1 = moment(data.date1,'YYYY-MM-DD')
       var date2 = moment(data.date2,'YYYY-MM-DD')
@@ -501,7 +512,7 @@ class QB1 {
       return(cashflow_arr);
     }
 
-    async invoiceStats(data) {
+    async invoiceStats(config,data) {
       var token = await this.getToken();
       var date1 = moment(data.date1).format('YYYY-MM-DD')
       var date2 = moment(data.date2).format('YYYY-MM-DD')

@@ -10,8 +10,7 @@ module.exports = {
         "enum" : ["bar","pie","line","cashflow"]
       },
       "stats" : {
-        "type" : "string",
-        "enum" : [true, false]
+        "type" : "string"
       }
     },
     "required": ["domain"],
