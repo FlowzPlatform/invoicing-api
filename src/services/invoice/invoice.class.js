@@ -115,7 +115,7 @@ class Service {
 
   //to get config from settings
   async getConfig(params) {
-    await axios.get("http://localhost:3037/settings", {
+    await axios.get("http://localhost:3037/settings?isActive=true", {
       params: {
         settingId : params.settingId
       },
