@@ -27,8 +27,9 @@ class Service {
       throw new errors.NotAuthenticated('Invalid token');
     }
     else {
+      
       let configdata = await this.getConfig(params);
-      // console.log("response----------->",configdata);
+       console.log("response----------->",configdata);
       let response =  await this.getInvoice(configdata.data,params);
       return(response);
     }
@@ -111,9 +112,10 @@ class Service {
   //to get config from settings
   async getConfig(params) {
     var resp;
+    
     await axios.get("http://localhost:3037/settings?isActive=true", {
       params: {
-        settingId : params.settingId
+        id : params.query.settingId
       },
       headers: {
         Authorization : apiHeaders.authorization
@@ -121,6 +123,7 @@ class Service {
     })
     .then(function (response) {
       resp = response;
+
     })
     .catch(function (error) {
       console.log("error",error);
