@@ -1,5 +1,5 @@
 var moment = require('moment');
-const config = require("../../../config.js");
+// const config = require("../../../config.js");
 const paymentConfig = require("../../../payment-plugin.json");
 
 //For quickbook
@@ -23,13 +23,20 @@ class QB1 {
      */
 
     //Qb functions
-    getToken() {
+    getToken(config) {
       console.log("inside get token");
-      var tokenProvider = new TokenProvider(config.qbcredentials.tokenUrl, {
-        refresh_token: config.qbcredentials.refresh_token,
-        client_id:     config.qbcredentials.client_id,
-        client_secret: config.qbcredentials.client_secret
+      // var tokenProvider = new TokenProvider(config.qbcredentials.tokenUrl, {
+      //   refresh_token: config.qbcredentials.refresh_token,
+      //   client_id:     config.qbcredentials.client_id,
+      //   client_secret: config.qbcredentials.client_secret
+      // });
+      var tokenProvider = new TokenProvider('https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer', {
+        refresh_token: 'L011522779074I2ZKFr34whZbYozDs0hrVx7hANti49VmAAh5B',
+        // refresh_token: config.refresh_token,
+        client_id:     config.client_id,
+        client_secret: config.client_secret
       });
+      // console.log("tokenProvider",tokenProvider);
       return new Promise(function(resolve, reject) {
         tokenProvider.getToken(function (err, newToken) {
           resolve(newToken)
@@ -81,36 +88,36 @@ class QB1 {
       return new Date(year, month, 0).getDate();
     }
 
-    async getAllInvoice(data) {
-      return new Promise(async function(resolve, reject) {
-        // console.log("@@@@@@@@@@@inside get invoice method");
-        var token = await this.getToken();
-        // console.log("token",token);
+    // async getAllInvoice(config,data) {
+    //   return new Promise(async function(resolve, reject) {
+    //     // console.log("@@@@@@@@@@@inside get invoice method");
+    //     var token = await this.getToken();
+    //     // console.log("token",token);
+    //
+    //     var url = config.qbcredentials.api_uri + config.qbcredentials.realmId + '/query?query=select * from Invoice'
+    //     console.log('Making API call to: ' + url)
+    //
+    //     var requestObj = await this.getRequestObj (url, token)
+    //
+    //     var result = await this.make_api_call (requestObj)
+    //
+    //     var jsondata = JSON.parse(result.body);
+    //     var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
+    //     console.log("Length of Invoice",len);
+    //     var arr = [];
+    //     for (var i=0; i<len; i++) {
+    //       var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[i], null, 2);
+    //       arr.push(JSON.parse(data1));
+    //     }
+    //     resolve(arr);
+    //   })
+    // }
 
-        var url = config.qbcredentials.api_uri + config.qbcredentials.realmId + '/query?query=select * from Invoice'
-        console.log('Making API call to: ' + url)
-
-        var requestObj = await this.getRequestObj (url, token)
-
-        var result = await this.make_api_call (requestObj)
-
-        var jsondata = JSON.parse(result.body);
-        var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
-        console.log("Length of Invoice",len);
-        var arr = [];
-        for (var i=0; i<len; i++) {
-          var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[i], null, 2);
-          arr.push(JSON.parse(data1));
-        }
-        resolve(arr);
-      })
-    }
-
-    async getInvoiceById(id) {
-      var token = await this.getToken();
+    async getInvoiceById(config,id) {
+      var token = await this.getToken(config);
       // console.log("token",token);
 
-      var url = config.qbcredentials.api_uri + config.qbcredentials.realmId + "/query?query=select * from Invoice where Id='" + id + "'"
+      var url = 'https://sandbox-quickbooks.api.intuit.com/v3/company/' + config.realmId + "/query?query=select * from Invoice where Id='" + id + "'"
       console.log('Making API call to: ' + url)
 
       var requestObj = await this.getRequestObj (url, token)
@@ -121,19 +128,24 @@ class QB1 {
         console.log("@@@@@@@@@@@inside get invoice by id",id);
 
         var jsondata = JSON.parse(result.body);
-        var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
-        console.log("Length of Invoice",len);
-        var arr = [];
-        for (var i=0; i<len; i++) {
-          var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[i], null, 2);
-          arr.push(JSON.parse(data1));
+        if (jsondata.QueryResponse == undefined) {
+
+        }
+        else {
+          var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
+          console.log("Length of Invoice",len);
+          var arr = [];
+          for (var i=0; i<len; i++) {
+            var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[i], null, 2);
+            arr.push(JSON.parse(data1));
+          }
         }
         resolve(arr);
       })
     }
 
-    async createInvoice(data) {
-      var token = await this.getToken();
+    async createInvoice(config,data) {
+      var token = await this.getToken(config);
       var value = '59';             //customer ref value
       var line = [
               {
@@ -162,13 +174,13 @@ class QB1 {
       return arr;
     }
 
-    async getInvoicesByFilter(data) {
+    async getInvoicesByFilter(config,data) {
 
       var data_arr = [];
       var condition = '';
       data_arr.push(data);
       var keys = Object.keys(data_arr[0]);
-      var url = config.qbcredentials.api_uri + config.qbcredentials.realmId + "/query?query=select * from Invoice "
+      var url = 'https://sandbox-quickbooks.api.intuit.com/v3/company/' + config.realmId + "/query?query=select * from Invoice "
 
       for (var i = 0; i < keys.length; i++) {
         if ( i == 1) {
@@ -178,7 +190,7 @@ class QB1 {
           // console.log("inside key else ");
           condition = ' && '
         }
-        if (keys[i] == 'domain' || keys[i] == 'chart') {
+        if (keys[i] == 'domain' || keys[i] == 'chart' || keys[i] == 'stats' || keys[i] == 'settingId') {
 
         }
         else {
@@ -196,8 +208,8 @@ class QB1 {
       // console.log("############filter url",url);
       console.log('Making API call to: ', url)
 
-      var token = await this.getToken();
-      // console.log("token",token);
+      var token = await this.getToken(config);
+      // console.log("@@@@@@@@@2token",token);
       var requestObj = await this.getRequestObj (url,token)
       // console.log("requestObj",requestObj);
       // Make API call
@@ -218,8 +230,9 @@ class QB1 {
       })
     }
 
-    async invoiceStatistics(data) {
-      var token = await this.getToken();
+    async invoiceStatistics(config,data) {
+      var token = await this.getToken(config);
+      console.log("&&&&&&&&&&token",token);
       var date1 = moment(data.date1,'YYYY-MM-DD')
       var date2 = moment(data.date2,'YYYY-MM-DD')
       var month_len = (date2.diff(date1, 'month')) + 1;
@@ -243,9 +256,9 @@ class QB1 {
         }
       ];
 
-      for (var i=month_len-1; i >= 0; i--) {
+      for (var i=0; i <= month_len-1; i++) {
         console.log('value of i',i);
-        var url = config.qbcredentials.api_uri + config.qbcredentials.realmId + '/query?query=select * from Invoice'
+        var url = 'https://sandbox-quickbooks.api.intuit.com/v3/company/' + config.realmId + '/query?query=select * from Invoice'
         var invoice_arr = [];
         if ( i == (month_len-1)) {
           var mnth = moment(date2).format('MM')
@@ -346,12 +359,12 @@ class QB1 {
       return(amt_data);
     }
 
-    async invoiceStatisticsPieData(data) {
-      var token = await this.getToken();
+    async invoiceStatisticsPieData(config,data) {
+      var token = await this.getToken(config);
       var date1 = moment(data.date1).format('YYYY-MM-DD')
       var date2 = moment(data.date2).format('YYYY-MM-DD')
 
-      var url = config.qbcredentials.api_uri + config.qbcredentials.realmId + '/query?query=select * from Invoice'
+      var url = 'https://sandbox-quickbooks.api.intuit.com/v3/company/' + config.realmId + '/query?query=select * from Invoice'
 
       var paid_amt = 0;
       var unpaid_amt = 0;
@@ -392,8 +405,8 @@ class QB1 {
       return(pie_data);
     }
 
-    async invoiceStatisticsCashflow(data) {
-      var token = await this.getToken();
+    async invoiceStatisticsCashflow(config,data) {
+      var token = await this.getToken(config);
       var date1 = moment(data.date1,'YYYY-MM-DD')
       var date2 = moment(data.date2,'YYYY-MM-DD')
       var month_len = (date2.diff(date1, 'month')) + 1;
@@ -403,9 +416,9 @@ class QB1 {
       "July", "August", "September", "October", "November", "December"];
 
       var cashflow_arr = [];
-      for (var i=month_len-1; i >= 0; i--) {
+      for (var i=0; i <= month_len-1; i++) {
         console.log('value of i',i);
-        var url = config.qbcredentials.api_uri + config.qbcredentials.realmId + '/query?query=select * from Invoice'
+        var url = 'https://sandbox-quickbooks.api.intuit.com/v3/company/' + config.realmId + '/query?query=select * from Invoice'
         var invoice_arr = [];
         if ( i == (month_len-1)) {
           var mnth = moment(date2).format('MM')
@@ -501,12 +514,12 @@ class QB1 {
       return(cashflow_arr);
     }
 
-    async invoiceStats(data) {
-      var token = await this.getToken();
+    async invoiceStats(config,data) {
+      var token = await this.getToken(config);
       var date1 = moment(data.date1).format('YYYY-MM-DD')
       var date2 = moment(data.date2).format('YYYY-MM-DD')
 
-      var url = config.qbcredentials.api_uri + config.qbcredentials.realmId + '/query?query=select * from Invoice'
+      var url = 'https://sandbox-quickbooks.api.intuit.com/v3/company/' + config.realmId + '/query?query=select * from Invoice'
 
       var paid_amt = 0;
       var unpaid_amt = 0;

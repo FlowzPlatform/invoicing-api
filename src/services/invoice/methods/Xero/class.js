@@ -1,5 +1,5 @@
 var moment = require('moment');
-const config = require("../../../config.js");
+// const config = require("../../../config.js");
 
 const xero = require('xero-node');
 const fs = require("fs");
@@ -10,7 +10,7 @@ class Xero1 {
      * @param {*} options
      */
     constructor() {
-        console.log("inside constr")
+        console.log("inside constr xero")
 
         // this.options = options || {};
     }
@@ -20,11 +20,19 @@ class Xero1 {
      * @param {*} data
      */
 
-    authentication() {
+    authentication(config) {
       return new Promise(function(resolve, reject) {
-        if (config.credentials.privateKeyPath && !config.credentials.privateKey)
-        config.credentials.privateKey = fs.readFileSync(config.credentials.privateKeyPath);
-        const xeroClient = new xero.PrivateApplication(config.credentials);
+        var keybuffer = new Buffer(config.certificate, 'base64');
+        let credentials = {
+          "userAgent" : config.useragent,
+          "consumerKey": config.consumerKey,
+          "consumerSecret": config.consumerSecret,
+          "privateKey": keybuffer
+        }
+        // console.log("credentials",credentials);
+        // if (config.credentials.privateKeyPath && !config.credentials.privateKey)
+        // config.credentials.privateKey = fs.readFileSync(config.credentials.privateKeyPath);
+        const xeroClient = new xero.PrivateApplication(credentials);
         resolve(xeroClient);
       })
     }
@@ -34,7 +42,7 @@ class Xero1 {
       return new Date(year, month, 0).getDate();
     }
 
-    async getAllInvoice (data) {
+    async getAllInvoice (config,data) {
       var xeroClient = await this.authentication();
       return new Promise((resolve, reject) => {
           xeroClient.core.invoices.getInvoices()
@@ -48,8 +56,8 @@ class Xero1 {
       })
     }
 
-    async getInvoiceById(id) {
-        var xeroClient = await this.authentication();
+    async getInvoiceById(config,id) {
+        var xeroClient = await this.authentication(config);
         return new Promise((resolve, reject) => {
             xeroClient.core.invoices.getInvoice(id)
             .then(function(invoices) {
@@ -80,7 +88,7 @@ class Xero1 {
       })
     }
 
-    async getInvoicesByFilter(data) {
+    async getInvoicesByFilter(config,data) {
         // console.log("inside filter")
         var data_arr = [];
         var condition = '';
@@ -90,74 +98,6 @@ class Xero1 {
         // console.log("data_arr[0].keys[0]",data_arr[0][keys[0]]);
         // var filterContact = '';
         var filter = '';
-        // var array = {"ContactID" : "", "ContactStatus": "", "Name": "", "EmailAddress": ""};
-        // console.log("params data inside function",data_arr[0].amt_gt);
-        // for (var i = 0; i < keys.length; i++) {
-        //   if (i == (keys.length-1)) {
-        //     // console.log("inside key if");
-        //     condition = ''
-        //   }
-        //   else {
-        //     // console.log("inside key else ");
-        //     condition = ' && '
-        //   }
-        //   if (keys[i] in array) {
-        //     var n = filter.lastIndexOf("&&");
-        //     filter = filter.slice(0, n)
-        //     if (keys[i] == 'Name') {
-        //       filterContact += 'Contact.' + keys[i] + ' = "' + data_arr[0][keys[i]] + '"' + condition
-        //     }
-        //     else {
-        //       filterContact += 'Contact.' + keys[i] + ' = ' + data_arr[0][keys[i]] + condition
-        //     }
-        //   }
-        //   else {
-        //     if (keys[i] == 'domain') {
-        //
-        //     }
-        //     else if ( (keys[i] == 'Total' && data_arr[0].amt_gt == 'true') || (keys[i] == 'AmountPaid' && data_arr[0].amt_gt == 'true')) {
-        //       // console.log("inside total if");
-        //       filter += keys[i] + ' >= ' + data_arr[0][keys[i]] + condition
-        //     }
-        //     else if( keys[i] == 'Total' && data_arr[0].amt_lt == 'true') {
-        //       // console.log("inside total if");
-        //       filter += keys[i] + ' <= ' + data_arr[0][keys[i]] + condition
-        //     }
-        //     else if ( (keys[i] == 'amt_gt') || (keys[i] == 'amt_lt') ) {
-        //       // console.log("inside amt_gt if");
-        //       // var n = filter.lastIndexOf("AND");
-        //       // filter = filter.slice(0, n)
-        //       if (i == (keys.length-1)) {
-        //         var n = filter.lastIndexOf("&&");
-        //         filter = filter.slice(0, n)
-        //       }
-        //       continue;
-        //     }
-        //     // else if (keys[i] == 'Date' && data_arr[0].date_gt == 'true') {
-        //     else if (keys[i] == 'Date') {
-        //       var date = 'DateTime(' + moment(data_arr[0][keys[i]]).format('YYYY,MM,DD,HH,mm,ss') +')'
-        //       // console.log("date",date);
-        //       filter += keys[i] + ' = ' + date + condition
-        //     }
-        //     // else if (keys[i] == 'Date' && data_arr[0].date_lt == 'true') {
-        //     //   var date = 'DateTime(' + moment(data_arr[0][keys[i]]).format('YYYY,MM,DD,HH,mm,ss') +')'
-        //     //   // console.log("date",date);
-        //     //   filter += keys[i] + ' <= ' + date + condition
-        //     // }
-        //     else if (keys[i] == 'DueDate') {
-        //       var date = 'DateTime(' + moment(data_arr[0][keys[i]]).format('YYYY,MM,DD,HH,mm,ss') +')'
-        //       // console.log("date",date);
-        //       filter += keys[i] + ' = ' + date + condition
-        //     }
-        //     else if (keys[i] == 'Status') {
-        //       filter += keys[i] + ' = "' + data_arr[0][keys[i]] + '"' + condition
-        //     }
-        //     else {
-        //       console.log("inside else");
-        //       filter += keys[i] + ' = ' + data_arr[0][keys[i]] + condition
-        //     }
-        //   }
-        // }
 
         for (var i = 0; i < keys.length; i++) {
           if (i == 1) {
@@ -166,7 +106,7 @@ class Xero1 {
           else {
             condition = ' && '
           }
-          if (keys[i] == 'domain' || keys[i] == 'chart') {
+          if (keys[i] == 'domain' || keys[i] == 'chart' || keys[i] == 'stats' || keys[i] == 'settingId') {
 
           }
           else {
@@ -223,10 +163,11 @@ class Xero1 {
         // }
         console.log("############filter",filter);
 
-        var xeroClient = await this.authentication();
+        var xeroClient = await this.authentication(config);
         return new Promise((resolve, reject) => {
             xeroClient.core.invoices.getInvoices({ where : filter})
             .then(function(invoices) {
+              // console.log("invoices",invoices);
                 resolve(invoices)
             })
             .catch(function(err) {
@@ -236,7 +177,7 @@ class Xero1 {
         })
     }
 
-    async createInvoice(data) {
+    async createInvoice(config,data) {
       var xeroClient = await this.authentication();
       var sampleInvoice = {
         Type: 'ACCREC',
@@ -268,8 +209,8 @@ class Xero1 {
       })
     }
 
-    async invoiceStatistics(data) {
-      var xeroClient = await this.authentication();
+    async invoiceStatistics(config,data) {
+      var xeroClient = await this.authentication(config);
       var date1 = moment(data.date1,'YYYY,MM,DD')
       var date2 = moment(data.date2,'YYYY,MM,DD')
       var month_len = (date2.diff(date1, 'month')) + 1;
@@ -293,7 +234,7 @@ class Xero1 {
       ];
 
       var filter = '';
-      for (var i=month_len-1; i >= 0; i--) {
+      for (var i=0; i <= month_len-1; i++) {
         var invoice_arr = [];
         if ( i == (month_len-1)) {
           var mnth = moment(date2).format('MM')
@@ -364,8 +305,8 @@ class Xero1 {
       return(amt_data);
     }
 
-    async invoiceStatisticsPieData(data) {
-        var xeroClient = await this.authentication();
+    async invoiceStatisticsPieData(config,data) {
+        var xeroClient = await this.authentication(config);
         var date1 = moment(data.date1).format('YYYY,MM,DD')
         var date2 = moment(data.date2).format('YYYY,MM,DD')
         var filter = "";
@@ -393,11 +334,12 @@ class Xero1 {
           {name:"Unpaid Amount", value: unpaid_amt},
           {name: "Draft Amount", value: draft_amt}
         ];
+        // console.log("pie_data in function",pie_data);
         return(pie_data);
     }
 
-    async invoiceStatisticsCashflow(data) {
-      var xeroClient = await this.authentication();
+    async invoiceStatisticsCashflow(config,data) {
+      var xeroClient = await this.authentication(config);
       var date1 = moment(data.date1,'YYYY,MM,DD')
       var date2 = moment(data.date2,'YYYY,MM,DD')
       var month_len = (date2.diff(date1, 'month')) + 1;
@@ -407,7 +349,7 @@ class Xero1 {
 
       var filter = '';
       var cashflow_arr = [];
-      for (var i=month_len-1; i >= 0; i--) {
+      for (var i=0; i <= month_len-1; i++) {
         var invoice_arr = [];
         if ( i == (month_len-1)) {
           var mnth = moment(date2).format('MM')
@@ -464,8 +406,8 @@ class Xero1 {
       return(cashflow_arr);
     }
 
-    async invoiceStats(data) {
-        var xeroClient = await this.authentication();
+    async invoiceStats(config,data) {
+        var xeroClient = await this.authentication(config);
         var date1 = moment(data.date1).format('YYYY,MM,DD')
         var date2 = moment(data.date2).format('YYYY,MM,DD')
         var filter = "";

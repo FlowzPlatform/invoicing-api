@@ -58,20 +58,37 @@ beforeGet =async  hook => {
 }
 
 beforeFind =async hook =>{
+  console.log(hook.params.query)
   let res = await validateUser(hook);
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
+   //  let getMultipleDataRes = await getMultipleData(hook);
+   // console.log(">>>>>>>>>>>>>>>> "  , getMultipleDataRes)
     hook.params.query.userId = JSON.parse(res).data._id;
     hook.params.query.isDeleated = false;
-    if(hook.params.query.isActive == "true"){
+    if(hook.params.query.isActive == "true")
+    {
       hook.params.query.isActive = true;
+     // hook.params.query.id = 
     }
+    if(hook.params.query.configId){
+      hook.params.query.id ={$in : hook.params.query.configId} 
+    }
+
+    console.log(hook.params.query);
+
+    
+    
   }
 }
+
+
+
 beforepatch = async hook =>{
-  console.log(hook)
+  //console.log(hook)
   let res = await validateUser(hook);
+  console.log(res)
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
