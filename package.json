@@ -29,6 +29,7 @@
   "dependencies": {
     "@feathersjs/errors": "^3.2.0",
     "ajv": "^5.5.1",
+    "axios": "^0.17.1",
     "body-parser": "^1.18.2",
     "compression": "^1.7.1",
     "cors": "^2.8.4",
@@ -46,6 +47,7 @@
     "fs-blob-store": "^5.2.1",
     "helmet": "^3.8.2",
     "lodash": "^4.17.4",
+    "refresh-token": "^1.0.0",
     "rethinkdbdash": "^2.3.31",
     "serve-favicon": "^2.4.5",
     "winston": "^2.4.0",

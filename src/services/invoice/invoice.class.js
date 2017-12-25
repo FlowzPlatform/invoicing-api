@@ -7,10 +7,14 @@ const ajv = new Ajv();
 const fs = require("fs");
 const feathersErrors = require('feathers-errors');
 const errors = feathersErrors.errors;
-let schema = require("./methods/schema.js")
-let Xero1 = require("./methods/class.js")
-let obj = new Xero1();
+var rp = require('request-promise');
+const axios = require('axios');
+
 var moment = require("moment");
+
+//For quickbook
+var TokenProvider = require('refresh-token');
+var request = require('request')
 
 class Service {
   constructor (options) {
@@ -18,263 +22,48 @@ class Service {
   }
 
   async find (params) {
-    let schemaName = schema.find ;
-    this.validateSchema(params.query, schemaName)
-
-    console.log("#################config",config);
-    if (config.credentials.privateKeyPath && !config.credentials.privateKey)
-    config.credentials.privateKey = fs.readFileSync(config.credentials.privateKeyPath);
-
-    const xeroClient = new xero.PrivateApplication(config.credentials);
-    let response;
-    if (params.query.InvoiceID) {
-      response = await obj.getInvoiceById(params.query.InvoiceID, xeroClient);
-    }
-    else if (params.query.chart == 'bar' || params.query.chart == 'line') {
-      // console.log("inside bar call",params.query);
-      // response = await obj.getBarChart(params.query, xeroClient);
-      var date1 = moment(params.query.date1,'YYYY,MM,DD')
-      var date2 = moment(params.query.date2,'YYYY,MM,DD')
-      var month_len = (date2.diff(date1, 'month')) + 1;
-
-      var monthNames = ["January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"];
-
-      var amt_data = [
-        {
-          name : "Paid Amount",
-          data : [ ]
-        },
-        {
-          name : "Unpaid Amount",
-          data : [ ]
-        },
-        {
-          name : "Draft Amount",
-          data : [ ]
-        }
-      ];
-
-      var filter = '';
-      for (var i=month_len-1; i >= 0; i--) {
-        var invoice_arr = [];
-        if ( i == (month_len-1)) {
-          var mnth = moment(date2).format('MM')
-          var year = moment(date2).format('YYYY')
-          var dategt = year+','+ mnth + ',1'
-          var datelt = moment(date2).format('YYYY,MM,DD')
-          var mnth_name =  monthNames[mnth - 1];
-          filter = ' Date >= DateTime(' + dategt + ',00,00,00)' + 'AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
-          console.log("Filter####",filter);
-          var arr = await obj.invoiceStatistics(filter, xeroClient)
-          invoice_arr.push(arr);
-        }
-        else if (i == 0) {
-          var mnth = moment(date1).format('MM')
-          var year = moment(date1).format('YYYY')
-          var day = this.daysInMonth(mnth, year)
-          dategt = moment(date1).format('YYYY,MM,DD')
-          datelt = year+','+ mnth + ',' + day
-          var mnth_name =  monthNames[mnth - 1];
-          filter = ' Date >= DateTime(' + dategt + ',00,00,00)' + 'AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
-          console.log("Filter####",filter);
-          var arr = await obj.invoiceStatistics(filter, xeroClient)
-          invoice_arr.push(arr);
-        }
-        else {
-          var mnth = parseInt(moment(date1).format('MM')) + i
-          var year = moment(date1).format('YYYY')
-          var day = this.daysInMonth(mnth, year)
-          dategt = year+','+ mnth + ',1'
-          datelt = year+','+ mnth + ',' + day
-          var mnth_name =  monthNames[mnth - 1];
-          filter = ' Date >= DateTime(' + dategt + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
-          console.log("Filter####",filter);
-          var arr = await obj.invoiceStatistics(filter, xeroClient)
-          invoice_arr.push(arr);
-        }
-
-        var draft_amt = 0;
-        var authorize_amt = 0;
-        var paid_amt = 0;
-        // console.log("arr",arr[5]);
-        console.log("draft_amt",draft_amt,"authorize_amt",authorize_amt,"paid_amt",paid_amt);
-        invoice_arr.forEach(function(invoice) {
-          // console.log("@@@@@@@@@@@@@@arr",invoice[0]._obj.Status);
-          invoice.forEach(function(inv) {
-            // console.log("inv status",inv.Status);
-            // console.log("amount",inv.Total);
-            if (inv.Status == "PAID") {
-              // console.log("Paid invoice");
-              paid_amt += inv.Total;
-            }
-            else if (inv.Status == "AUTHORISED") {
-              // console.log("Unpaid invoice");
-              authorize_amt += inv.Total;
-            }
-            else {
-              // console.log("Draft or Void invoice");
-              draft_amt += inv.Total;
-            }
-          })
-        })
-        console.log("draft_amt",draft_amt,"authorize_amt",authorize_amt,"paid_amt",paid_amt);
-        var amt = [paid_amt, authorize_amt, draft_amt]
-        for (var j=0; j<3; j++) {
-          amt_data[j].data.push({"label" : mnth_name +'-2017', y : amt[j]})
-        }
-      }
-      response = amt_data;
-    }
-    else if (params.query.chart == 'pie') {
-      var date1 = moment(params.query.date1).format('YYYY,MM,DD')
-      var date2 = moment(params.query.date2).format('YYYY,MM,DD')
-      var filter = "";
-      var paid_amt = 0;
-      var unpaid_amt = 0;
-      var draft_amt= 0;
-      var arr_invoice;
-      filter = ' Date >= DateTime(' + date1 + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + date2 + ',00,00,00)'
-      console.log("#######filter",filter);
-      arr_invoice = await obj.invoiceStatistics(filter, xeroClient)
-      arr_invoice.forEach(function(invoice) {
-        // console.log("@@@@@#############invoice",invoice);
-          if(invoice.Status == 'AUTHORISED') {
-            unpaid_amt += invoice.Total;
-          }
-          else if(invoice.Status == 'DRAFT') {
-            draft_amt += invoice.Total;
-          }
-          else {
-            paid_amt += invoice.Total;
-          }
-      });
-      var pie_data = [
-        {name: "Paid Amount", value: paid_amt},
-        {name:"Unpaid Amount", value: unpaid_amt},
-        {name: "Draft Amount", value: draft_amt}
-      ];
-      response = pie_data
-    }
-    else if (params.query.chart == 'cashflow') {
-      var date1 = moment(params.query.date1,'YYYY,MM,DD')
-      var date2 = moment(params.query.date2,'YYYY,MM,DD')
-      var month_len = (date2.diff(date1, 'month')) + 1;
-
-      var monthNames = ["January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"];
-
-      var filter = '';
-      var cashflow_arr = [];
-      for (var i=month_len-1; i >= 0; i--) {
-        var invoice_arr = [];
-        if ( i == (month_len-1)) {
-          var mnth = moment(date2).format('MM')
-          var year = moment(date2).format('YYYY')
-          var dategt = year+','+ mnth + ',1'
-          var datelt = moment(date2).format('YYYY,MM,DD')
-          var mnth_name =  monthNames[mnth - 1];
-          filter = ' Date >= DateTime(' + dategt + ',00,00,00)' + 'AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
-          console.log("Filter####",filter);
-          var arr = await obj.invoiceStatistics(filter, xeroClient)
-          invoice_arr.push(arr);
-        }
-        else if (i == 0) {
-          var mnth = moment(date1).format('MM')
-          var year = moment(date1).format('YYYY')
-          var day = this.daysInMonth(mnth, year)
-          dategt = moment(date1).format('YYYY,MM,DD')
-          datelt = year+','+ mnth + ',' + day
-          var mnth_name =  monthNames[mnth - 1];
-          filter = ' Date >= DateTime(' + dategt + ',00,00,00)' + 'AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
-          console.log("Filter####",filter);
-          var arr = await obj.invoiceStatistics(filter, xeroClient)
-          invoice_arr.push(arr);
-        }
-        else {
-          var mnth = parseInt(moment(date1).format('MM')) + i
-          var year = moment(date1).format('YYYY')
-          var day = this.daysInMonth(mnth, year)
-          dategt = year+','+ mnth + ',1'
-          datelt = year+','+ mnth + ',' + day
-          var mnth_name =  monthNames[mnth - 1];
-          filter = ' Date >= DateTime(' + dategt + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
-          console.log("Filter####",filter);
-          var arr = await obj.invoiceStatistics(filter, xeroClient)
-          invoice_arr.push(arr);
-        }
-
-        var status_amt = 0;
-        invoice_arr.forEach(function(invoice) {
-          invoice.forEach(function(inv) {
-            if (params.query.status) {
-              if((inv.Status).toLowerCase() == params.query.status.toLowerCase()) {
-                status_amt += inv.Total               ///need to use status according field
-              }
-            }
-            else {
-              status_amt += inv.Total
-            }
-          })
-          cashflow_arr.push({"label":mnth_name, "y" : status_amt})
-        })
-      }
-      response = cashflow_arr;
-    }
-    else if (params.query.stats) {
-      var date1 = moment(params.query.date1).format('YYYY,MM,DD')
-      var date2 = moment(params.query.date2).format('YYYY,MM,DD')
-      var filter = "";
-      var paid_amt = 0;
-      var unpaid_amt = 0;
-      var draft_amt= 0;
-      var total_amt = 0;
-      var arr_invoice;
-      var arr_block;
-      filter = ' Date >= DateTime(' + date1 + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + date2 + ',00,00,00)'
-      console.log("#######filter",filter);
-      arr_invoice = await obj.invoiceStatistics(filter, xeroClient);
-      arr_invoice.forEach(function(invoice) {
-        // console.log("@@@@@#############invoice",invoice);
-          if(invoice.Status == 'AUTHORISED') {
-            unpaid_amt += invoice.Total;
-          }
-          else if(invoice.Status == 'DRAFT') {
-            draft_amt += invoice.Total;
-          }
-          else {
-            paid_amt += invoice.Total;
-          }
-      });
-      total_amt = unpaid_amt + draft_amt + paid_amt;
-      arr_block = [
-        {name: "Total Amount", value: total_amt},
-        {name: "Paid Amount", value: paid_amt},
-        {name:"Unpaid Amount", value: unpaid_amt},
-        {name: "Draft Amount", value: draft_amt}
-      ];
-      response = arr_block;
+    let res = await validateUser();
+    if(res.code == 401){
+      throw new errors.NotAuthenticated('Invalid token');
     }
     else {
-      response = await obj.getInvoicesByFilter(params.query, xeroClient);
+      let configdata = await this.getConfig(params);
+      // console.log("response----------->",configdata);
+      let response =  await this.getInvoice(configdata.data,params);
+      return(response);
     }
-    return(response);
   }
 
   async get (id, params) {
     console.log("id",id)
-    if (config.privateKeyPath && !config.privateKey)
-    config.privateKey = fs.readFileSync(config.privateKeyPath);
-    const xeroClient = new xero.PrivateApplication(config);
-    let response = await obj.getInvoiceById(id, xeroClient);
-    return(response);
+    let configdata = await this.getConfig(params);
+    let response;
+    let response1 = [];
+    for (let [index, config] of configdata.data.entries()) {
+       console.log("config.domain",config.domain);
+       let schema = require("./methods/"+config.domain+"/schema.js")
+       let class1 = require("./methods/"+config.domain+"/class.js")
+       let obj = new class1();
+       response = await obj.getInvoiceById(config, id);
+      //  console.log("response by id",response);
+      response1.push(response);
+     }
+    return(response1);
   }
 
   async create (data, params) {
-    if (config.privateKeyPath && !config.privateKey)
-    config.privateKey = fs.readFileSync(config.privateKeyPath);
-    const xeroClient = new xero.PrivateApplication(config);
-    let response = await obj.createInvoice(data, xeroClient);
+    let configdata = await this.getConfig(params);
+
+    console.log("Domain name",configdata.data.domain);
+    let schema = require("./methods/"+configdata.data.domain+"/schema.js")
+    let class1 = require("./methods/"+configdata.data.domain+"/class.js")
+    let obj = new class1();
+
+    let schemaName = schema.create ;
+    this.validateSchema(data, schemaName)
+
+    let response = await obj.createInvoice(configdata.data,data);
+
     return(response);
   }
 
@@ -290,6 +79,7 @@ class Service {
     return Promise.resolve({ id });
   }
 
+  //to validate schema
   validateSchema(data, schemaName) {
 
       let validateSc = ajv.compile(schemaName);
@@ -300,8 +90,199 @@ class Service {
       }
   }
 
-  daysInMonth(month, year) {
-    return new Date(year, month, 0).getDate();
+  validateUser (){
+      var options = {
+        uri: process.env.userDetailApi,
+        headers: {
+          Authorization : apiHeaders.authorization
+        }
+    };
+    return new Promise((resolve , reject) =>{
+      rp(options)
+      .then(function (parsedBody) {
+          resolve(parsedBody)
+      })
+      .catch(function (err) {
+        resolve({"code" : 401 })
+      });
+    })
+  }
+
+  //to get config from settings
+  async getConfig(params) {
+    var resp;
+    await axios.get("http://localhost:3037/settings?isActive=true", {
+      params: {
+        settingId : params.settingId
+      },
+      headers: {
+        Authorization : apiHeaders.authorization
+      }
+    })
+    .then(function (response) {
+      resp = response;
+    })
+    .catch(function (error) {
+      console.log("error",error);
+    });
+
+    return resp.data;
+  }
+
+  async getInvoice(configdata,params) {
+    let response;
+    let response1 = [];
+    let obj;
+    if (params.query.chart || params.query.stats) {
+      console.log("configdata[0].domain",configdata[0].domain);
+      let schema = require("./methods/"+configdata[0].domain+"/schema.js")
+      let class1 = require("./methods/"+configdata[0].domain+"/class.js")
+      obj = new class1();
+
+      let schemaName = schema.find ;
+      this.validateSchema(params.query, schemaName)
+    }
+    if (params.query.chart == 'bar' || params.query.chart == 'line') {
+      response = await obj.invoiceStatistics(configdata[0],params.query);
+      response1.push(
+        {"configName": configdata[0].configName,
+        "configId": configdata[0].id,
+        "data":response}
+      );
+    }
+    else if (params.query.chart == 'pie') {
+      response = await obj.invoiceStatisticsPieData(configdata[0],params.query);
+      // console.log("pie data",response);
+      response1.push(
+        {"configName": configdata[0].configName,
+        "configId": configdata[0].id,
+        "data":response}
+      );
+    }
+    else if (params.query.chart == 'cashflow') {
+      response = await obj.invoiceStatisticsCashflow(configdata[0],params.query);
+      response1.push(
+        {"configName": configdata[0].configName,
+        "configId": configdata[0].id,
+        "data":response}
+      );
+    }
+    else if (params.query.stats) {
+      response = await obj.invoiceStats(configdata[0],params.query);
+      response1.push(
+        {"configName": configdata[0].configName,
+        "configId": configdata[0].id,
+        "data":response}
+      );
+    }
+    else {
+      for (let [index, config] of configdata.entries()) {
+        console.log("config.domain",config.domain);
+        let schema = require("./methods/"+config.domain+"/schema.js")
+        let class1 = require("./methods/"+config.domain+"/class.js")
+        let obj = new class1();
+
+        let schemaName = schema.find ;
+        this.validateSchema(params.query, schemaName)
+
+        if (params.query.Invoiceid) {
+          response =  obj.getInvoiceById(config,params.query.Invoiceid);
+        }
+        else if (params.query.chart == 'bar' || params.query.chart == 'line') {
+          response = await obj.invoiceStatistics(config,params.query);
+        }
+        else if (params.query.chart == 'pie') {
+          response = obj.invoiceStatisticsPieData(config,params.query);
+        }
+        else if (params.query.chart == 'cashflow') {
+          response = obj.invoiceStatisticsCashflow(config,params.query);
+        }
+        else if (params.query.stats) {
+          response = obj.invoiceStats(config,params.query);
+        }
+        else {
+          // response = obj.getAllInvoice(params.query);
+          response = await obj.getInvoicesByFilter(config,params.query);
+        }
+        response1.push(
+          {"configName": config.configName,
+          "configId": config.id,
+          "data":response}
+        );
+      }
+    }
+    // var final_resp;
+    // var chart_arr = [];
+    // var chart_data = [
+    //   {
+    //     name : "Paid Amount",
+    //     data : [ ]
+    //   },
+    //   {
+    //     name : "Unpaid Amount",
+    //     data : [ ]
+    //   },
+    //   {
+    //     name : "Draft Amount",
+    //     data : [ ]
+    //   }
+    // ];
+    // if (params.query.chart || params.query.stats) {
+      // console.log("response1.length",response1.length);
+      // console.log("response1[0].data.length",response1[0].data.length);
+      // console.log("response1[0].data[0].data.length",response1[0].data[0].data.length);
+      // var y;
+      // var label;
+
+    // for (let [index, response] of response1.entries()) {
+    //   console.log("response",response.data[0].data);
+    //   y = 0;
+    //   label = '';
+    //   console.log("label1",label);
+    //   for (let [ind, resp] of response.data[0].data.entries()) {
+    //     y += resp.y;
+    //     label = resp.label;
+    //     chart_data[0].data.push({"label" : label, "y" : y})
+    //   }
+    //   console.log("label1",label);
+    //
+    //   y = 0;
+    //   label = '';
+    //   console.log("label2",label);
+    //   for (let [ind, resp] of response.data[1].data.entries()) {
+    //     y += resp.y;
+    //     label = resp.label;
+    //     chart_data[1].data.push({"label" : label, "y" : y})
+    //   }
+    //   console.log("label2",label);
+    //
+    //   y = 0;
+    //   label = '';
+    //   console.log("label3",label);
+    //   for (let [ind, resp] of response.data[2].data.entries()) {
+    //     y += resp.y;
+    //     label = resp.label;
+    //     chart_data[2].data.push({"label" : label, "y" : y})
+    //   }
+    //   console.log("label3",label);
+    // }
+
+    // response1.forEach(function(response) {
+        //   response.data.forEach(function(resp) {
+        //     if (resp.name == 'Paid Amount') {
+        //
+        //     }
+        //     else {
+        //       chart_arr.push(resp.name);
+        //     }
+        //     console.log("$$$$$$$$$$$",chart_arr);
+        //   })
+        // })
+      // }
+      // else {
+      //    final_resp = response1;
+      // }
+    return(response1);
   }
 }
 
