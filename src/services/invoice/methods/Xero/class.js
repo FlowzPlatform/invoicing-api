@@ -29,7 +29,7 @@ class Xero1 {
           "consumerSecret": config.consumerSecret,
           "privateKey": keybuffer
         }
-        console.log("credentials",credentials);
+        // console.log("credentials",credentials);
         // if (config.credentials.privateKeyPath && !config.credentials.privateKey)
         // config.credentials.privateKey = fs.readFileSync(config.credentials.privateKeyPath);
         const xeroClient = new xero.PrivateApplication(credentials);
@@ -210,7 +210,7 @@ class Xero1 {
     }
 
     async invoiceStatistics(config,data) {
-      var xeroClient = await this.authentication();
+      var xeroClient = await this.authentication(config);
       var date1 = moment(data.date1,'YYYY,MM,DD')
       var date2 = moment(data.date2,'YYYY,MM,DD')
       var month_len = (date2.diff(date1, 'month')) + 1;
@@ -234,7 +234,7 @@ class Xero1 {
       ];
 
       var filter = '';
-      for (var i=month_len-1; i >= 0; i--) {
+      for (var i=0; i <= month_len-1; i++) {
         var invoice_arr = [];
         if ( i == (month_len-1)) {
           var mnth = moment(date2).format('MM')
@@ -306,7 +306,7 @@ class Xero1 {
     }
 
     async invoiceStatisticsPieData(config,data) {
-        var xeroClient = await this.authentication();
+        var xeroClient = await this.authentication(config);
         var date1 = moment(data.date1).format('YYYY,MM,DD')
         var date2 = moment(data.date2).format('YYYY,MM,DD')
         var filter = "";
@@ -334,11 +334,12 @@ class Xero1 {
           {name:"Unpaid Amount", value: unpaid_amt},
           {name: "Draft Amount", value: draft_amt}
         ];
+        // console.log("pie_data in function",pie_data);
         return(pie_data);
     }
 
     async invoiceStatisticsCashflow(config,data) {
-      var xeroClient = await this.authentication();
+      var xeroClient = await this.authentication(config);
       var date1 = moment(data.date1,'YYYY,MM,DD')
       var date2 = moment(data.date2,'YYYY,MM,DD')
       var month_len = (date2.diff(date1, 'month')) + 1;
@@ -348,7 +349,7 @@ class Xero1 {
 
       var filter = '';
       var cashflow_arr = [];
-      for (var i=month_len-1; i >= 0; i--) {
+      for (var i=0; i <= month_len-1; i++) {
         var invoice_arr = [];
         if ( i == (month_len-1)) {
           var mnth = moment(date2).format('MM')
@@ -406,7 +407,7 @@ class Xero1 {
     }
 
     async invoiceStats(config,data) {
-        var xeroClient = await this.authentication();
+        var xeroClient = await this.authentication(config);
         var date1 = moment(data.date1).format('YYYY,MM,DD')
         var date2 = moment(data.date2).format('YYYY,MM,DD')
         var filter = "";

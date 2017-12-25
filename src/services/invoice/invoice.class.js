@@ -11,7 +11,6 @@ var rp = require('request-promise');
 const axios = require('axios');
 
 var moment = require("moment");
-var resp;
 
 //For quickbook
 var TokenProvider = require('refresh-token');
@@ -37,9 +36,6 @@ class Service {
 
   async get (id, params) {
     console.log("id",id)
-    // if (config.privateKeyPath && !config.privateKey)
-    // config.privateKey = fs.readFileSync(config.privateKeyPath);
-    // const xeroClient = new xero.PrivateApplication(config);
     let configdata = await this.getConfig(params);
     let response;
     let response1 = [];
@@ -51,23 +47,22 @@ class Service {
        response = await obj.getInvoiceById(config, id);
       //  console.log("response by id",response);
       response1.push(response);
-      //  if (response)
      }
-
-
     return(response1);
   }
 
   async create (data, params) {
-    console.log("Domain name",data.domain);
-    let schema = require("./methods/"+data.domain+"/schema.js")
-    let class1 = require("./methods/"+data.domain+"/class.js")
+    let configdata = await this.getConfig(params);
+
+    console.log("Domain name",configdata.data.domain);
+    let schema = require("./methods/"+configdata.data.domain+"/schema.js")
+    let class1 = require("./methods/"+configdata.data.domain+"/class.js")
     let obj = new class1();
 
     let schemaName = schema.create ;
     this.validateSchema(data, schemaName)
 
-    let response = await obj.createInvoice(data);
+    let response = await obj.createInvoice(configdata.data,data);
 
     return(response);
   }
@@ -115,6 +110,7 @@ class Service {
 
   //to get config from settings
   async getConfig(params) {
+    var resp;
     await axios.get("http://localhost:3037/settings?isActive=true", {
       params: {
         settingId : params.settingId
@@ -125,72 +121,168 @@ class Service {
     })
     .then(function (response) {
       resp = response;
-      // console.log();
     })
     .catch(function (error) {
       console.log("error",error);
     });
 
     return resp.data;
-    // var options = {
-    //   uri: 'http://172.16.160.229:3037/settings'+'?isActive=true',
-    //   headers: {
-    //     Authorization : apiHeaders.authorization
-    //   }
-    // };
-    // return new Promise((resolve , reject) =>{
-    //   rp(options)
-    //   .then(function (parsedBody) {
-    //       resolve(parsedBody)
-    //   })
-    //   .catch(function (err) {
-    //     resolve({"code" : 401 })
-    //   });
-    // })
   }
 
   async getInvoice(configdata,params) {
     let response;
     let response1 = [];
-    // return new Promise(function(resolve, reject) {
-      // configdata.forEach(async function(config) {
+    let obj;
+    if (params.query.chart || params.query.stats) {
+      console.log("configdata[0].domain",configdata[0].domain);
+      let schema = require("./methods/"+configdata[0].domain+"/schema.js")
+      let class1 = require("./methods/"+configdata[0].domain+"/class.js")
+      obj = new class1();
+
+      let schemaName = schema.find ;
+      this.validateSchema(params.query, schemaName)
+    }
+    if (params.query.chart == 'bar' || params.query.chart == 'line') {
+      response = await obj.invoiceStatistics(configdata[0],params.query);
+      response1.push(
+        {"configName": configdata[0].configName,
+        "configId": configdata[0].id,
+        "data":response}
+      );
+    }
+    else if (params.query.chart == 'pie') {
+      response = await obj.invoiceStatisticsPieData(configdata[0],params.query);
+      // console.log("pie data",response);
+      response1.push(
+        {"configName": configdata[0].configName,
+        "configId": configdata[0].id,
+        "data":response}
+      );
+    }
+    else if (params.query.chart == 'cashflow') {
+      response = await obj.invoiceStatisticsCashflow(configdata[0],params.query);
+      response1.push(
+        {"configName": configdata[0].configName,
+        "configId": configdata[0].id,
+        "data":response}
+      );
+    }
+    else if (params.query.stats) {
+      response = await obj.invoiceStats(configdata[0],params.query);
+      response1.push(
+        {"configName": configdata[0].configName,
+        "configId": configdata[0].id,
+        "data":response}
+      );
+    }
+    else {
       for (let [index, config] of configdata.entries()) {
-         console.log("config.domain",config.domain);
-         let schema = require("./methods/"+config.domain+"/schema.js")
-         let class1 = require("./methods/"+config.domain+"/class.js")
-         let obj = new class1();
+        console.log("config.domain",config.domain);
+        let schema = require("./methods/"+config.domain+"/schema.js")
+        let class1 = require("./methods/"+config.domain+"/class.js")
+        let obj = new class1();
 
-         let schemaName = schema.find ;
-         this.validateSchema(params.query, schemaName)
+        let schemaName = schema.find ;
+        this.validateSchema(params.query, schemaName)
 
-         if (params.query.Invoiceid) {
-           response =  obj.getInvoiceById(config,params.query.Invoiceid);
-         }
-         else if (params.query.chart == 'bar' || params.query.chart == 'line') {
-           response = obj.invoiceStatistics(config,params.query);
-         }
-         else if (params.query.chart == 'pie') {
-           response = obj.invoiceStatisticsPieData(config,params.query);
-         }
-         else if (params.query.chart == 'cashflow') {
-           response = obj.invoiceStatisticsCashflow(config,params.query);
-         }
-         else if (params.query.stats) {
-           response = obj.invoiceStats(config,params.query);
-         }
-         else {
-           // response = obj.getAllInvoice(params.query);
-           response = await obj.getInvoicesByFilter(config,params.query);
-         }
+        if (params.query.Invoiceid) {
+          response =  obj.getInvoiceById(config,params.query.Invoiceid);
+        }
+        else if (params.query.chart == 'bar' || params.query.chart == 'line') {
+          response = await obj.invoiceStatistics(config,params.query);
+        }
+        else if (params.query.chart == 'pie') {
+          response = obj.invoiceStatisticsPieData(config,params.query);
+        }
+        else if (params.query.chart == 'cashflow') {
+          response = obj.invoiceStatisticsCashflow(config,params.query);
+        }
+        else if (params.query.stats) {
+          response = obj.invoiceStats(config,params.query);
+        }
+        else {
+          // response = obj.getAllInvoice(params.query);
+          response = await obj.getInvoicesByFilter(config,params.query);
+        }
         response1.push(
           {"configName": config.configName,
           "configId": config.id,
-        "data":response}
-      );
+          "data":response}
+        );
       }
-      // console.log("response1",response1);
-      return(response1);
-    // })
+    }
+    // var final_resp;
+    // var chart_arr = [];
+    // var chart_data = [
+    //   {
+    //     name : "Paid Amount",
+    //     data : [ ]
+    //   },
+    //   {
+    //     name : "Unpaid Amount",
+    //     data : [ ]
+    //   },
+    //   {
+    //     name : "Draft Amount",
+    //     data : [ ]
+    //   }
+    // ];
+    // if (params.query.chart || params.query.stats) {
+      // console.log("response1.length",response1.length);
+      // console.log("response1[0].data.length",response1[0].data.length);
+      // console.log("response1[0].data[0].data.length",response1[0].data[0].data.length);
+      // var y;
+      // var label;
+
+    // for (let [index, response] of response1.entries()) {
+    //   console.log("response",response.data[0].data);
+    //   y = 0;
+    //   label = '';
+    //   console.log("label1",label);
+    //   for (let [ind, resp] of response.data[0].data.entries()) {
+    //     y += resp.y;
+    //     label = resp.label;
+    //     chart_data[0].data.push({"label" : label, "y" : y})
+    //   }
+    //   console.log("label1",label);
+    //
+    //   y = 0;
+    //   label = '';
+    //   console.log("label2",label);
+    //   for (let [ind, resp] of response.data[1].data.entries()) {
+    //     y += resp.y;
+    //     label = resp.label;
+    //     chart_data[1].data.push({"label" : label, "y" : y})
+    //   }
+    //   console.log("label2",label);
+    //
+    //   y = 0;
+    //   label = '';
+    //   console.log("label3",label);
+    //   for (let [ind, resp] of response.data[2].data.entries()) {
+    //     y += resp.y;
+    //     label = resp.label;
+    //     chart_data[2].data.push({"label" : label, "y" : y})
+    //   }
+    //   console.log("label3",label);
+    // }
+
+    // response1.forEach(function(response) {
+        //   response.data.forEach(function(resp) {
+        //     if (resp.name == 'Paid Amount') {
+        //
+        //     }
+        //     else {
+        //       chart_arr.push(resp.name);
+        //     }
+        //     console.log("$$$$$$$$$$$",chart_arr);
+        //   })
+        // })
+      // }
+      // else {
+      //    final_resp = response1;
+      // }
+    return(response1);
   }
 }
 
