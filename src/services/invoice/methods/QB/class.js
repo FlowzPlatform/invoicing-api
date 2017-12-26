@@ -31,8 +31,10 @@ class QB1 {
       //   client_secret: config.qbcredentials.client_secret
       // });
       var tokenProvider = new TokenProvider('https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer', {
+
         //refresh_token: 'L011522779074I2ZKFr34whZbYozDs0hrVx7hANti49VmAAh5B',
          refresh_token: config.refresh_token,
+
         client_id:     config.client_id,
         client_secret: config.client_secret
       });
