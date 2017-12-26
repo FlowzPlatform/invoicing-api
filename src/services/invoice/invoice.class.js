@@ -10,6 +10,8 @@ const errors = feathersErrors.errors;
 var rp = require('request-promise');
 const axios = require('axios');
 
+let baseUrl = process.env.baseUrl;
+
 var moment = require("moment");
 
 //For quickbook
@@ -28,7 +30,7 @@ class Service {
     }
     else {
       
-      let configdata = await this.getConfig(params);
+      let configdata = await this.getConfig(params.query.settingId);
        console.log("response----------->",configdata);
       let response =  await this.getInvoice(configdata.data,params);
       return(response);
@@ -37,7 +39,7 @@ class Service {
 
   async get (id, params) {
     console.log("id",id)
-    let configdata = await this.getConfig(params);
+    let configdata = await this.getConfig(params.query.settingId);
     let response;
     let response1 = [];
     for (let [index, config] of configdata.data.entries()) {
@@ -53,17 +55,18 @@ class Service {
   }
 
   async create (data, params) {
-    let configdata = await this.getConfig(params);
 
-    console.log("Domain name",configdata.data.domain);
-    let schema = require("./methods/"+configdata.data.domain+"/schema.js")
-    let class1 = require("./methods/"+configdata.data.domain+"/class.js")
+    let configdata = await this.getConfig(data.settingId);
+    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>> " , configdata)
+    console.log("Domain name",configdata.data[0].domain);
+    let schema = require("./methods/"+configdata.data[0].domain+"/schema.js")
+    let class1 = require("./methods/"+configdata.data[0].domain+"/class.js")
     let obj = new class1();
 
     let schemaName = schema.create ;
     this.validateSchema(data, schemaName)
 
-    let response = await obj.createInvoice(configdata.data,data);
+    let response = await obj.createInvoice(configdata.data[0],data);
 
     return(response);
   }
@@ -110,12 +113,12 @@ class Service {
   }
 
   //to get config from settings
-  async getConfig(params) {
+  async getConfig(data) {
     var resp;
     
-    await axios.get("http://localhost:3037/settings?isActive=true", {
+    await axios.get(baseUrl+"/settings?isActive=true", {
       params: {
-        id : params.query.settingId
+        id : data
       },
       headers: {
         Authorization : apiHeaders.authorization
