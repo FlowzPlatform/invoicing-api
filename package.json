@@ -29,6 +29,7 @@
   "dependencies": {
     "@feathersjs/errors": "^3.2.0",
     "ajv": "^5.5.1",
+    "asyncawait": "^1.0.6",
     "axios": "^0.17.1",
     "body-parser": "^1.18.2",
     "compression": "^1.7.1",

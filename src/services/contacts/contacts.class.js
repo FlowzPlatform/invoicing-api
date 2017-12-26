@@ -11,6 +11,8 @@ let schema = require("./methods/schema.js")
 let Xero1 = require("./methods/class.js")
 let obj = new Xero1();
 const axios = require('axios');
+let baseUrl = process.env.baseUrl;
+
 
  if (config.credentials.privateKeyPath && !config.credentials.privateKey) 
  config.credentials.privateKey = fs.readFileSync(config.credentials.privateKeyPath);
@@ -126,7 +128,7 @@ class Service {
 async getConfig(data) {
   var resp;
   
-  await axios.get("http://localhost:3037/settings?isActive=true", {
+  await axios.get(baseUrl+"/settings?isActive=true", {
     params: {
       id : data
     },

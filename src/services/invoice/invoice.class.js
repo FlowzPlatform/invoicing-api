@@ -10,6 +10,8 @@ const errors = feathersErrors.errors;
 var rp = require('request-promise');
 const axios = require('axios');
 
+let baseUrl = process.env.baseUrl;
+
 var moment = require("moment");
 
 //For quickbook
@@ -114,7 +116,7 @@ class Service {
   async getConfig(data) {
     var resp;
     
-    await axios.get("http://localhost:3037/settings?isActive=true", {
+    await axios.get(baseUrl+"/settings?isActive=true", {
       params: {
         id : data
       },
