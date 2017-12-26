@@ -1,0 +1,78 @@
+var moment = require('moment');
+// const config = require("../../../config.js");
+
+const xero = require('xero-node');
+const fs = require("fs");
+
+class Xero1 {
+    /**
+     * constructor
+     * @param {*} options
+     */
+    constructor() {
+        console.log("inside constr xero")
+
+        // this.options = options || {};
+    }
+
+    /**
+     * do direct charge
+     * @param {*} data
+     */
+
+    authentication(config) {
+      return new Promise(function(resolve, reject) {
+        var keybuffer = new Buffer(config.certificate, 'base64');
+        let credentials = {
+          "userAgent" : config.useragent,
+          "consumerKey": config.consumerKey,
+          "consumerSecret": config.consumerSecret,
+          "privateKey": keybuffer
+        }
+        // console.log("credentials",credentials);
+        // if (config.credentials.privateKeyPath && !config.credentials.privateKey)
+        // config.credentials.privateKey = fs.readFileSync(config.credentials.privateKeyPath);
+        const xeroClient = new xero.PrivateApplication(credentials);
+        resolve(xeroClient);
+      })
+    }
+
+    
+
+    async getAllContacts (config,data) {
+      
+      var xeroClient = await this.authentication(config);
+      return new Promise((resolve, reject) => {
+          xeroClient.core.contacts.getContacts()
+          .then(function(invoices) {
+              resolve(invoices)
+          })
+          .catch(function(err) {
+              console.log("Error", typeof(err));
+              data = {err:'Authentication error!!! Check your connection and credentials.'};
+          })
+      })
+    }
+
+    async createContact(config,data) {
+      var xeroClient = await this.authentication(config);
+        return new Promise((resolve, reject) => {
+            console.log(data)
+            xeroClient.core.contacts.newContact(data).save()
+                .then(function(contacts) {
+                    //console.log(contacts)
+                    resolve(contacts)
+                })
+                .catch(function(err) {
+                    console.log("Error", err);
+                    data = { err: 'Authentication error!!! Check your connection and credentials.' };
+                })
+        })
+    }
+
+    
+}
+
+module.exports = function(options) {
+    return new Xero1(options);
+};

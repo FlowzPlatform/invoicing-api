@@ -178,7 +178,7 @@ class Xero1 {
     }
 
     async createInvoice(config,data) {
-      var xeroClient = await this.authentication();
+      var xeroClient = await this.authentication(config);
       var sampleInvoice = {
         Type: 'ACCREC',
         Contact: {
@@ -417,6 +417,7 @@ class Xero1 {
         var total_amt = 0;
         var arr_invoice;
         var arr_block;
+        var total_invoice = 0;
         filter = ' Date >= DateTime(' + date1 + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + date2 + ',00,00,00)'
         console.log("#######filter",filter);
         arr_invoice = await this.invoiceChart(filter, xeroClient)
@@ -431,13 +432,15 @@ class Xero1 {
             else {
               paid_amt += invoice.Total;
             }
+            total_invoice += 1;
         });
         total_amt = unpaid_amt + draft_amt + paid_amt;
         arr_block = [
           {name: "Total Amount", value: total_amt},
           {name: "Paid Amount", value: paid_amt},
           {name:"Unpaid Amount", value: unpaid_amt},
-          {name: "Draft Amount", value: draft_amt}
+          {name: "Draft Amount", value: draft_amt},
+          {name: "Total Invoice", value: total_invoice}
         ];
         return(arr_block);
     }
