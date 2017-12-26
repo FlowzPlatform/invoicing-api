@@ -1,6 +1,6 @@
 
 {
-  "apiUrl" : "http://172.16.61.188:3032/payment",
+  "apiUrl" : "http://api.flowz.com/payment",
   "credentials" : {
 
     "stripe" : {

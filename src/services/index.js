@@ -3,6 +3,8 @@ const settings = require('./settings/settings.service.js');
 const invoice = require('./invoice/invoice.service.js');
 const upload = require('./upload/upload.service.js');
 
+const payment = require('./payment/payment.service.js');
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(contacts);
@@ -12,4 +14,5 @@ module.exports = function () {
 
 
   app.configure(upload);
+  app.configure(payment);
 };
