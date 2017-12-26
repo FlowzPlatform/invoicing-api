@@ -1,9 +1,9 @@
 module.exports = {
     create : {
        "properties": {
-           "domain": {
-               "type": "string",
-               "enum": ["QB", "Xero"]
+           "settingId": {
+               "type": "string"
+               
            },
            "name": {
                "description": "Customer name"
@@ -19,8 +19,8 @@ module.exports = {
                "type": "number"
            }
        },
-       "required": ["domain", "amount"],
-        "additionalProperties": false
+       "required": ["settingId"],
+        "additionalProperties": true
    },
 
     delete : {

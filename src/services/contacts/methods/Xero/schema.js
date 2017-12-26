@@ -1,9 +1,8 @@
 module.exports = {
     create : {
        "properties": {
-           "domain": {
-               "type": "string",
-               "enum": ["QB", "Xero"]
+           "settingId" : {
+            "description": "settingId is required"
            },
            "name": {
                "description": "Customer name"
@@ -19,9 +18,10 @@ module.exports = {
                "type": "number"
            }
        },
-       "required": ["domain", "amount"],
-        "additionalProperties": false
+       "required": ["settingId"],
+        "additionalProperties": true
    },
+
 
     delete : {
        "properties": {
@@ -34,7 +34,7 @@ module.exports = {
            }
        },
        "required": ["id", "gateway"],
-        "additionalProperties": false
+        "additionalProperties": true
    },
 
     update : {
@@ -57,7 +57,7 @@ module.exports = {
            }
        },
        "required":["customer","gateway"],
-        "additionalProperties": false
+        "additionalProperties": true
     },
 
 
@@ -77,7 +77,6 @@ module.exports = {
         "additionalProperties": true
    },
 
-
    find : {
      "properties" : {
        "domain" : {
@@ -91,19 +90,16 @@ module.exports = {
        "stats" : {
          "type" : "string"
        },
-       "Invoiceid" : {
+       "Name" : {
          "type" : "string"
        },
-       "CustomerRef" : {
+       "Date" : {
          "type" : "string"
        },
-       "TxnDate" : {
+       "minDate" : {
          "type" : "string"
        },
-       "minTxnDate" : {
-         "type" : "string"
-       },
-       "maxTxnDate" : {
+       "maxDate" : {
          "type" : "string"
        },
        "DueDate" : {
@@ -115,22 +111,59 @@ module.exports = {
        "maxDueDate" : {
          "type" : "string"
        },
-       "TotalAmt" : {
+       "InvoiceNumber" : {
          "type" : "string"
        },
-       "minTotalAmt" : {
+       "Status" : {
+         "type" : "string",
+         "enum" : ["PAID" , "AUTHORISED" , "DRAFT"]
+       },
+       "SubTotal" : {
          "type" : "string"
        },
-       "maxTotalAmt" : {
+       "minSubTotal" : {
          "type" : "string"
        },
-       "Balance" : {
+       "maxSubTotal" : {
          "type" : "string"
        },
-       "minBalance" : {
+       "TotalTax" : {
          "type" : "string"
        },
-       "maxBalance" : {
+       "minTotalTax" : {
+         "type" : "string"
+       },
+       "maxTotalTax" : {
+         "type" : "string"
+       },
+       "Total" : {
+         "type" : "string"
+       },
+       "minTotal" : {
+         "type" : "string"
+       },
+       "maxTotal" : {
+         "type" : "string"
+       },
+       "Invoiceid" : {
+         "type" : "string"
+       },
+       "AmountDue" : {
+         "type" : "string"
+       },
+       "minAmountDue" : {
+         "type" : "string"
+       },
+       "maxAmountDue" : {
+         "type" : "string"
+       },
+       "AmountPaid" : {
+         "type" : "string"
+       },
+       "minAmountPaid" : {
+         "type" : "string"
+       },
+       "maxAmountPaid" : {
          "type" : "string"
        }
      },

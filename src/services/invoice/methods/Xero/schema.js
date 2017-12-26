@@ -1,9 +1,8 @@
 module.exports = {
     create : {
        "properties": {
-           "domain": {
-               "type": "string",
-               "enum": ["QB", "Xero"]
+           "settingId" : {
+            "description": "settingId is required"
            },
            "name": {
                "description": "Customer name"
@@ -19,8 +18,8 @@ module.exports = {
                "type": "number"
            }
        },
-       "required": ["domain", "amount"],
-        "additionalProperties": false
+       "required": ["settingId","amount"],
+        "additionalProperties": true
    },
 
 
@@ -35,7 +34,7 @@ module.exports = {
            }
        },
        "required": ["id", "gateway"],
-        "additionalProperties": false
+        "additionalProperties": true
    },
 
     update : {
@@ -58,7 +57,7 @@ module.exports = {
            }
        },
        "required":["customer","gateway"],
-        "additionalProperties": false
+        "additionalProperties": true
     },
 
 
@@ -78,7 +77,6 @@ module.exports = {
         "additionalProperties": true
    },
 
-
    find : {
      "properties" : {
        "domain" : {
@@ -90,8 +88,7 @@ module.exports = {
          "enum" : ["bar","pie","line","cashflow"]
        },
        "stats" : {
-         "type" : "string",
-         "enum" : [true, false]
+         "type" : "string"
        },
        "Name" : {
          "type" : "string"
@@ -170,7 +167,7 @@ module.exports = {
          "type" : "string"
        }
      },
-    "required": ["domain"],
+    "required": [],
     "additionalProperties": true
    }
 }

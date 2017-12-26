@@ -10,6 +10,9 @@ const errors = feathersErrors.errors;
 let schema = require("./methods/schema.js")
 let Xero1 = require("./methods/class.js")
 let obj = new Xero1();
+const axios = require('axios');
+let baseUrl = process.env.baseUrl;
+
 
  if (config.credentials.privateKeyPath && !config.credentials.privateKey) 
  config.credentials.privateKey = fs.readFileSync(config.credentials.privateKeyPath);
@@ -22,10 +25,32 @@ class Service {
   }
 
   async find (params) {
-    let schemaName = schema.get ;
-    this.validateSchema(params.query, schemaName)
-    let response = await obj.getAllContacts(params.query , xeroClient);
-    return(response);
+    let res = await validateUser();
+    let response1 =[];
+    if(res.code == 401){
+      throw new errors.NotAuthenticated('Invalid token');
+    }
+    else 
+    {
+      
+      let configdata = await this.getConfig(params.query.settingId);
+       console.log("response----------->",configdata);
+       for (let [index, config] of configdata.data.entries()) {
+        let schema = require("./methods/"+config.domain+"/schema.js")
+        let class1 = require("./methods/"+config.domain+"/class.js")
+        let obj = new class1();
+
+        let schemaName = schema.find ;
+        //this.validateSchema(params.query, schemaName)
+        let response = await obj.getAllContacts(config , params);
+        response1.push({
+          "configName": config.configName,
+          "configId": config.id,
+          "data":response
+        })
+       }
+       return (response1)
+    }
   }
 
   get (id, params) {
@@ -35,10 +60,29 @@ class Service {
   }
 
   async create (data, params) {
-    let schemaName = schema.create ;
-    this.validateSchema(data , schemaName);
-    let response = await obj.createNewContact(data , xeroClient);
-    return Promise.resolve(response);
+    let res = await validateUser();
+    let response1 =[];
+    if(res.code == 401){
+      throw new errors.NotAuthenticated('Invalid token');
+    }
+    else 
+    {
+      console.log(data)
+      let configdata = await this.getConfig(data.settingId);
+      console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>> " , configdata)
+      
+      let schema = require("./methods/"+configdata.data[0].domain+"/schema.js")
+      let class1 = require("./methods/"+configdata.data[0].domain+"/class.js")
+      let obj = new class1();
+  
+      let schemaName = schema.create ;
+      this.validateSchema(data, schemaName)
+  
+      let response = await obj.createContact(configdata.data[0],data);
+      console.log("@@@@@@@@@@@@@@@ " , response.response)
+      return(response);
+    }
+    
   }
 
   update (id, data, params) {
@@ -62,6 +106,49 @@ class Service {
           throw new errors.NotAcceptable('user input not valid', validateSc.errors);
       }
   }
+
+  validateUser (){
+    var options = {
+      uri: process.env.userDetailApi,
+      headers: {
+        Authorization : apiHeaders.authorization
+      }
+  };
+  return new Promise((resolve , reject) =>{
+    rp(options)
+    .then(function (parsedBody) {
+        resolve(parsedBody)
+    })
+    .catch(function (err) {
+      resolve({"code" : 401 })
+    });
+  })
+}
+
+async getConfig(data) {
+  var resp;
+  
+  await axios.get(baseUrl+"/settings?isActive=true", {
+    params: {
+      id : data
+    },
+    headers: {
+      Authorization : apiHeaders.authorization
+    }
+  })
+  .then(function (response) {
+    resp = response;
+
+  })
+  .catch(function (error) {
+    console.log("error",error);
+  });
+
+  return resp.data;
+}
+
+
+
 }
 
 module.exports = function (options) {
