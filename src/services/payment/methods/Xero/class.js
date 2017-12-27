@@ -83,7 +83,7 @@ class Xero1 {
               InvoiceID: data.id
           },
           Account: {
-              Code: '090'
+              Code: '001'
           },
           Date: new Date().toISOString().split("T")[0],
           Amount: data.amount
@@ -99,7 +99,7 @@ class Xero1 {
             })
             .catch(function(err) {
                 console.log("Error in payment Xero")
-                // console.log(err);
+                 console.log(err);
                 resolve({err:'Not able to perform payment!! Check Payment data'});
             });
       })
