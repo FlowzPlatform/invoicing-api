@@ -128,7 +128,7 @@ class Service {
 async getConfig(data) {
   var resp;
   
-  await axios.get(baseUrl+"/settings?isActive=true", {
+  await axios.get(baseUrl+"settings?isActive=true", {
     params: {
       id : data
     },

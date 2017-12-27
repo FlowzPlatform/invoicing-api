@@ -117,7 +117,7 @@ class Service {
   async getConfig(settingId) {
 
     var resp;
-    await axios.get(process.env.baseUrl+"/settings?isActive=true", {
+    await axios.get(process.env.baseUrl+"settings?isActive=true", {
       params: {
         id : settingId
       },
