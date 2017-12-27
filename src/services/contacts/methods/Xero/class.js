@@ -57,15 +57,32 @@ class Xero1 {
     async createContact(config,data) {
       var xeroClient = await this.authentication(config);
         return new Promise((resolve, reject) => {
-            console.log(data)
-            xeroClient.core.contacts.newContact(data).save()
+            console.log("params data",data)
+            var sampleContact = {
+                Name: data.Name,
+                EmailAddress: data.EmailAddress,
+                Addresses: [ {
+                    AddressType: 'STREET',
+                    AddressLine1: data.AddressLine1,
+                    AddressLine2: data.AddressLine2,
+                    City: data.City,
+                    Country : data.Country,
+                    PostalCode: data.PostalCode
+                } ],
+                Phones: [ {
+                    PhoneType: 'DDI',
+                    PhoneNumber: data.PhoneNumber
+                } ]
+            };
+            xeroClient.core.contacts.newContact(sampleContact).save()
                 .then(function(contacts) {
                     //console.log(contacts)
-                    resolve(contacts)
+                    resolve(contacts.entities);
                 })
                 .catch(function(err) {
                     console.log("Error", err);
-                    data = { err: 'Authentication error!!! Check your connection and credentials.' };
+                    resolve(err);
+                    // data = { err: 'Authentication error!!! Check your connection and credentials.' };
                 })
         })
     }

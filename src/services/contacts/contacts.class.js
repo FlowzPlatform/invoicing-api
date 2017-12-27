@@ -79,7 +79,7 @@ class Service {
       this.validateSchema(data, schemaName)
   
       let response = await obj.createContact(configdata.data[0],data);
-      console.log("@@@@@@@@@@@@@@@ " , response.response)
+      console.log("@@@@@@@@@@@@@@@ " , response)
       return(response);
     }
     
