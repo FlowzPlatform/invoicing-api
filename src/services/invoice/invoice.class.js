@@ -31,7 +31,7 @@ class Service {
     else {
       
       let configdata = await this.getConfig(params.query.settingId);
-       console.log("response----------->",configdata);
+      //  console.log("response----------->",configdata);
       let response =  await this.getInvoice(configdata.data,params);
       return(response);
     }
