@@ -89,7 +89,7 @@ class Xero1 {
           else {
             condition = ' && '
           }
-          if (keys[i] == 'domain' || keys[i] == 'chart' || keys[i] == 'stats' || keys[i] == 'settingId') {
+          if (keys[i] == 'domain' || keys[i] == 'chart' || keys[i] == 'stats' || keys[i] == 'settingId' || keys[i] == 'user') {
 
           }
           else {
@@ -154,7 +154,7 @@ class Xero1 {
                 resolve(invoices)
             })
             .catch(function(err) {
-                console.log("Error", typeof(err));
+                console.log("Error", typeof(err), err);
                 data = {err:'Authentication error!!! Check your connection and credentials.'};
             })
         })
@@ -162,6 +162,17 @@ class Xero1 {
 
     async createInvoice(config,data) {
       var xeroClient = await this.authentication(config);
+      console.log("###########product arr",data.products);
+      var LineItems = [];
+      data.products.forEach(function(product) {
+        var lineItemData = {
+          Description: product.description,
+          Quantity: product.qty,
+          UnitAmount: product.amount,
+          AccountCode: '200'
+        };
+        LineItems.push(lineItemData);
+      })
       var sampleInvoice = {
         Type: 'ACCREC',
         Contact: {
@@ -169,12 +180,13 @@ class Xero1 {
         },
         Status: 'AUTHORISED',
         DueDate: new Date().toISOString().split("T")[0],
-        LineItems: [{
-          Description: data.description,
-          Quantity: data.qty,
-          UnitAmount: data.amount,
-          AccountCode: '200'
-        }]
+        // LineItems: [{
+        //   Description: data.description,
+        //   Quantity: data.qty,
+        //   UnitAmount: data.amount,
+        //   AccountCode: '200'
+        // }]
+        LineItems : LineItems
       };
       console.log("sampleInvoice",sampleInvoice);
       return new Promise((resolve, reject) => {

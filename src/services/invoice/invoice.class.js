@@ -24,22 +24,22 @@ class Service {
   }
 
   async find (params) {
-    let res = await validateUser();
-    if(res.code == 401){
-      throw new errors.NotAuthenticated('Invalid token');
-    }
-    else {
+    // let res = await validateUser();
+    // if(res.code == 401){
+    //   throw new errors.NotAuthenticated('Invalid token');
+    // }
+    // else {
       
-      let configdata = await this.getConfig(params.query.settingId);
-      //  console.log("response----------->",configdata);
+      let configdata = await this.getConfig(params.query);
+       console.log("response----------->",configdata);
       let response =  await this.getInvoice(configdata.data,params);
       return(response);
-    }
+    // }
   }
 
   async get (id, params) {
     console.log("id",id)
-    let configdata = await this.getConfig(params.query.settingId);
+    let configdata = await this.getConfig(params.query);
     let response;
     let response1 = [];
     for (let [index, config] of configdata.data.entries()) {
@@ -56,7 +56,7 @@ class Service {
 
   async create (data, params) {
 
-    let configdata = await this.getConfig(data.settingId);
+    let configdata = await this.getConfig(data);
     console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>> " , configdata)
     console.log("Domain name",configdata.data[0].domain);
     let schema = require("./methods/"+configdata.data[0].domain+"/schema.js")
@@ -94,23 +94,23 @@ class Service {
       }
   }
 
-  validateUser (){
-      var options = {
-        uri: process.env.userDetailApi,
-        headers: {
-          Authorization : apiHeaders.authorization
-        }
-    };
-    return new Promise((resolve , reject) =>{
-      rp(options)
-      .then(function (parsedBody) {
-          resolve(parsedBody)
-      })
-      .catch(function (err) {
-        resolve({"code" : 401 })
-      });
-    })
-  }
+  // validateUser (){
+  //     var options = {
+  //       uri: process.env.userDetailApi,
+  //       headers: {
+  //         Authorization : apiHeaders.authorization
+  //       }
+  //   };
+  //   return new Promise((resolve , reject) =>{
+  //     rp(options)
+  //     .then(function (parsedBody) {
+  //         resolve(parsedBody)
+  //     })
+  //     .catch(function (err) {
+  //       resolve({"code" : 401 })
+  //     });
+  //   })
+  // }
 
   //to get config from settings
   async getConfig(data) {
@@ -118,11 +118,12 @@ class Service {
     
     await axios.get(baseUrl+"settings?isActive=true", {
       params: {
-        id : data
-      },
-      headers: {
-        Authorization : apiHeaders.authorization
+        id : data.settingId,
+        user : data.user
       }
+      // headers: {
+      //   Authorization : apiHeaders.authorization
+      // }
     })
     .then(function (response) {
       resp = response;
