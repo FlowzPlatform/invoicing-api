@@ -58,14 +58,21 @@ beforeGet =async  hook => {
 }
 
 beforeFind =async hook =>{
-  console.log(hook.params.query)
-  let res = await validateUser(hook);
-  if(res.code == 401){
-    throw new errors.NotAuthenticated('Invalid token');
-  }else{
-   //  let getMultipleDataRes = await getMultipleData(hook);
-   // console.log(">>>>>>>>>>>>>>>> "  , getMultipleDataRes)
-    hook.params.query.userId = JSON.parse(res).data._id;
+  // console.log(hook.params.query)
+  // let res = await validateUser(hook);
+  // if(res.code == 401){
+  //   throw new errors.NotAuthenticated('Invalid token');
+  // }else{
+   
+
+   //################## COmmented : check user with token
+    // hook.params.query.userId = JSON.parse(res).data._id;
+     //#################### COmmented : check user with token
+    
+    if( hook.params.query.user == undefined){
+      throw new errors.NotAcceptable("please provide user email")
+    }
+    
     hook.params.query.isDeleated = false;
     if(hook.params.query.isActive == "true")
     {
@@ -80,7 +87,7 @@ beforeFind =async hook =>{
 
     
     
-  }
+ // }
 }
 
 
