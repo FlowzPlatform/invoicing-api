@@ -25,15 +25,15 @@ class Service {
   }
 
   async find (params) {
-    let res = await validateUser();
-    let response1 =[];
-    if(res.code == 401){
-      throw new errors.NotAuthenticated('Invalid token');
-    }
-    else 
-    {
+    // let res = await validateUser();
+    // if(res.code == 401){
+    //   throw new errors.NotAuthenticated('Invalid token');
+    // }
+    // else 
+    // {
       
-      let configdata = await this.getConfig(params.query.settingId);
+    let response1 =[];
+      let configdata = await this.getConfig(params.query);
        console.log("response----------->",configdata);
        for (let [index, config] of configdata.data.entries()) {
         let schema = require("./methods/"+config.domain+"/schema.js")
@@ -42,7 +42,7 @@ class Service {
 
         let schemaName = schema.find ;
         //this.validateSchema(params.query, schemaName)
-        let response = await obj.getAllContacts(config , params);
+        let response = await obj.getAllContacts(config , params.query);
         response1.push({
           "configName": config.configName,
           "configId": config.id,
@@ -50,7 +50,7 @@ class Service {
         })
        }
        return (response1)
-    }
+    // }
   }
 
   get (id, params) {
@@ -60,15 +60,15 @@ class Service {
   }
 
   async create (data, params) {
-    let res = await validateUser();
-    let response1 =[];
-    if(res.code == 401){
-      throw new errors.NotAuthenticated('Invalid token');
-    }
-    else 
-    {
-      console.log(data)
-      let configdata = await this.getConfig(data.settingId);
+    // let res = await validateUser();
+    // let response1 =[];
+    // if(res.code == 401){
+    //   throw new errors.NotAuthenticated('Invalid token');
+    // }
+    // else 
+    // {
+      console.log("@@@@@@@@@@@@@@@@@@@@",data)
+      let configdata = await this.getConfig(data);
       console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>> " , configdata)
       
       let schema = require("./methods/"+configdata.data[0].domain+"/schema.js")
@@ -81,7 +81,7 @@ class Service {
       let response = await obj.createContact(configdata.data[0],data);
       console.log("@@@@@@@@@@@@@@@ " , response)
       return(response);
-    }
+    // }
     
   }
 
@@ -130,11 +130,12 @@ async getConfig(data) {
   
   await axios.get(baseUrl+"settings?isActive=true", {
     params: {
-      id : data
-    },
-    headers: {
-      Authorization : apiHeaders.authorization
+      id : data.settingId,
+      user : data.user
     }
+    // headers: {
+    //   Authorization : apiHeaders.authorization
+    // }
   })
   .then(function (response) {
     resp = response;

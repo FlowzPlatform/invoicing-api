@@ -42,8 +42,13 @@ class Xero1 {
     async getAllContacts (config,data) {
       
       var xeroClient = await this.authentication(config);
+      var filter = '';
+      if (data.Name) {
+          filter = 'Name = "' + data.Name + '"'
+      }
+      console.log("############filter",filter);
       return new Promise((resolve, reject) => {
-          xeroClient.core.contacts.getContacts()
+          xeroClient.core.contacts.getContacts({ where : filter})
           .then(function(invoices) {
               resolve(invoices)
           })

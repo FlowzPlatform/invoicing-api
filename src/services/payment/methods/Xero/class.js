@@ -100,7 +100,7 @@ class Xero1 {
             .catch(function(err) {
                 console.log("Error in payment Xero")
                  console.log(err);
-                resolve({err:'Not able to perform payment!! Check Payment data'});
+                resolve(err);
             });
       })
     }

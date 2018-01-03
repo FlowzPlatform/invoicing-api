@@ -18,14 +18,15 @@ class Service {
   }
 
   async find (params) {
-    let res = await validateUser();
+    // let res = await validateUser();
+    // if(res.code == 401){
+    //   throw new errors.NotAuthenticated('Invalid token');
+    // }
+    // else {
     let response;
-    if(res.code == 401){
-      throw new errors.NotAuthenticated('Invalid token');
-    }
-    else {
-      let configdata = await this.getConfig(params.settingId);
-      console.log("response----------->",configdata);
+    let response1  = [];
+      let configdata = await this.getConfig(params.query);
+      console.log("response config----------->",configdata);
 
       for (let [index, config] of configdata.data.entries()) {
         console.log("Domain name",config.domain);
@@ -37,9 +38,12 @@ class Service {
         this.validateSchema(params.query, schemaName)
 
         response = await obj.getPayment(config,params);
+        response1.push({"configName": config.configName,
+          "configId": config.id,
+          "data":response});
       }
-    }
-    return response;
+    // }
+    return response1;
   }
 
   get (id, params) {
@@ -49,13 +53,13 @@ class Service {
   }
 
   async create (data, params) {
-    let res = await validateUser();
+    // let res = await validateUser();
+    // if(res.code == 401){
+    //   throw new errors.NotAuthenticated('Invalid token');
+    // }
+    // else {
     let response;
-    if(res.code == 401){
-      throw new errors.NotAuthenticated('Invalid token');
-    }
-    else {
-      let configdata = await this.getConfig(data.settingId);
+      let configdata = await this.getConfig(data);
       console.log("#######configdata inside create",configdata)
 
       console.log("Domain name",configdata.data[0].domain);
@@ -67,7 +71,7 @@ class Service {
       this.validateSchema(data, schemaName)
 
       response = await obj.createPayment(configdata.data[0],data);
-    }
+    // }
     console.log("response in payment",response);
     return response;
   }
@@ -114,15 +118,13 @@ class Service {
   }
   
   //to get config from settings
-  async getConfig(settingId) {
+  async getConfig(data) {
 
     var resp;
     await axios.get(process.env.baseUrl+"settings?isActive=true", {
       params: {
-        id : settingId
-      },
-      headers: {
-        Authorization : apiHeaders.authorization
+        id : data.settingId,
+        user : data.user
       }
     })
     .then(function (response) {

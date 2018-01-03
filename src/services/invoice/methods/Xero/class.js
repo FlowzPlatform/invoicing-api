@@ -176,7 +176,7 @@ class Xero1 {
       var sampleInvoice = {
         Type: 'ACCREC',
         Contact: {
-          Name: data.name
+          Name: data.Name
         },
         Status: 'AUTHORISED',
         DueDate: new Date().toISOString().split("T")[0],
