@@ -17,6 +17,10 @@ class QB1 {
         // this.options = options || {};
     }
 
+    setup(app){
+      this.app = app;
+    }
+
     /**
      * do direct charge
      * @param {*} data
@@ -41,6 +45,7 @@ class QB1 {
       // console.log("tokenProvider",tokenProvider);
       return new Promise(function(resolve, reject) {
         tokenProvider.getToken(function (err, newToken) {
+          console.log("Token######",newToken);
           resolve(newToken)
         });
       })
@@ -146,33 +151,46 @@ class QB1 {
       })
     }
 
-    async createInvoice(config,data) {
+    async createInvoice(config,data,contactResponse) {
+      let arr;
       var token = await this.getToken(config);
-      var value = '59';             //customer ref value
-      var line = [
-              {
-                "Amount": data.amount,
-                "DetailType": "SalesItemLineDetail",
-                "SalesItemLineDetail": {
-                  "ItemRef": {
-                    "value": "2",
-                    "name": "Services"
-                  }
-                }
-              }
-            ];
+      var value = contactResponse.data[0].Id;             //customer ref value
+      console.log("customer value",value);
+
+      let line = [];
+      data.products.forEach(function(product) {
+        let amount = (product.qty) * (product.amount); 
+        console.log("@@@@@@@@@@@@@@@@@amount",amount)
+        var lineData = {
+            "Amount" : amount,
+            "DetailType": "SalesItemLineDetail",
+            "SalesItemLineDetail": {
+              "ItemRef": {
+                "value": "2",
+                "name": "Services"
+              },
+              "UnitPrice" : product.amount,
+              "Qty" : product.qty
+            }
+          };
+        line.push(lineData);
+      })
+
       var ref = {
                 "value": value,
             };
       var body = JSON.stringify({'Line': line, 'CustomerRef':ref});
       console.log("body",body);
-      var url = config.qbcredentials.api_uri + config.qbcredentials.realmId + '/invoice'
+      var url = 'https://sandbox-quickbooks.api.intuit.com/v3/company/' + config.realmId + '/invoice'
       console.log('Making API call to: ' + url)
-      var postrequestObj = await this.postRequestObj (url,body, token)
+      var postrequestObj = await this.postRequestObj (url, body, token)
       var result = await this.make_api_call (postrequestObj)
       var jsondata = JSON.parse(result.body);
-      var data1 = JSON.stringify(jsondata.Invoice, null, 2);
-      var arr = JSON.parse(data1);
+      console.log("QB Invoice post response",jsondata);
+      if (jsondata.Invoice) {
+        var data1 = JSON.stringify(jsondata.Invoice, null, 2);
+        arr = JSON.parse(data1);
+      }
       return arr;
     }
 
@@ -221,20 +239,24 @@ class QB1 {
         // console.log("@@@@@@@@@@@inside get invoice method");
         // console.log("result",result);
         var jsondata = JSON.parse(result.body);
-        var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
-        console.log("Length of Invoice",len);
-        var arr = [];
-        for (var i=0; i<len; i++) {
-          var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[i], null, 2);
-          arr.push(JSON.parse(data1));
+        if (jsondata.QueryResponse == undefined) {
+
         }
-        resolve(arr);
+        else {
+          var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
+          console.log("Length of Invoice",len);
+          var arr = [];
+          for (var i=0; i<len; i++) {
+            var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[i], null, 2);
+            arr.push(JSON.parse(data1));
+          }
+          resolve(arr);
+        }
       })
     }
 
     async invoiceStatistics(config,data) {
       var token = await this.getToken(config);
-      console.log("&&&&&&&&&&token",token);
       var date1 = moment(data.date1,'YYYY-MM-DD')
       var date2 = moment(data.date2,'YYYY-MM-DD')
       var month_len = (date2.diff(date1, 'month')) + 1;
@@ -269,20 +291,28 @@ class QB1 {
           var datelt = moment(date2).format('YYYY-MM-DD')
           var mnth_name =  monthNames[mnth - 1];
           url += " WHERE TxnDate >= '" + dategt + "' AND" + " TxnDate <= '" + datelt + "'"
+          if (data.contact) {
+            url += " AND CustomerRef = '" + data.contact + "'"
+          }
           console.log('Making API call to: ' + url)
 
           var requestObj = await this.getRequestObj (url, token)
           // console.log("requestObj",requestObj);
           var result = await this.make_api_call (requestObj)
           var jsondata = JSON.parse(result.body);
-          var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
-          console.log("Length of Invoice",len);
-          var arr = [];
-          for (var j=0; j<len; j++) {
-            var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[j], null, 2);
-            arr.push(JSON.parse(data1));
+          if (jsondata.QueryResponse == undefined) {
+
           }
-          invoice_arr.push(arr);
+          else {
+            var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
+            console.log("Length of Invoice",len);
+            var arr = [];
+            for (var j=0; j<len; j++) {
+              var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[j], null, 2);
+              arr.push(JSON.parse(data1));
+            }
+            invoice_arr.push(arr);
+          }
         }
         else if (i == 0) {
           var mnth = moment(date1).format('MM')
@@ -292,20 +322,28 @@ class QB1 {
           datelt = year+'-'+ mnth + '-' + day
           var mnth_name =  monthNames[mnth - 1];
           url += " WHERE TxnDate >= '" + dategt + "' AND" + " TxnDate <= '" + datelt + "'"
+          if (data.contact) {
+            url += " AND CustomerRef = '" + data.contact + "'"
+          }
           console.log('Making API call to: ' + url)
 
           var requestObj = await this.getRequestObj (url, token)
 
           var result = await this.make_api_call (requestObj)
           var jsondata = JSON.parse(result.body);
-          var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
-          console.log("Length of Invoice",len);
-          var arr = [];
-          for (var j=0; j<len; j++) {
-            var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[j], null, 2);
-            arr.push(JSON.parse(data1));
+          if (jsondata.QueryResponse == undefined) {
+
           }
-          invoice_arr.push(arr);
+          else {
+            var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
+            console.log("Length of Invoice",len);
+            var arr = [];
+            for (var j=0; j<len; j++) {
+              var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[j], null, 2);
+              arr.push(JSON.parse(data1));
+            }
+            invoice_arr.push(arr);
+          }
         }
         else {
           var mnth = (parseInt(moment(date1).format('MM')) + i)
@@ -319,20 +357,28 @@ class QB1 {
           datelt = year+'-'+ mnth + '-' + day
           var mnth_name =  monthNames[mnth - 1];
           url += " WHERE TxnDate >= '" + dategt + "' AND" + " TxnDate <= '" + datelt + "'"
+          if (data.contact) {
+            url += " AND CustomerRef = '" + data.contact + "'"
+          }
           console.log('Making API call to: ' + url)
 
           var requestObj = await this.getRequestObj (url, token)
 
           var result = await this.make_api_call (requestObj)
           var jsondata = JSON.parse(result.body);
-          var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
-          console.log("Length of Invoice",len);
-          var arr = [];
-          for (var j=0; j<len; j++) {
-            var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[j], null, 2);
-            arr.push(JSON.parse(data1));
+          if (jsondata.QueryResponse == undefined) {
+
           }
-          invoice_arr.push(arr);
+          else {
+            var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
+            console.log("Length of Invoice",len);
+            var arr = [];
+            for (var j=0; j<len; j++) {
+              var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[j], null, 2);
+              arr.push(JSON.parse(data1));
+            }
+            invoice_arr.push(arr);
+          }
         }
 
         var draft_amt = 0;
@@ -355,7 +401,7 @@ class QB1 {
         // console.log("draft_amt",draft_amt,"authorize_amt",authorize_amt,"paid_amt",paid_amt);
         var amt = [paid_amt, authorize_amt, draft_amt]
         for (var k=0; k<3; k++) {
-          amt_data[k].data.push({"label" : mnth_name +'-2017', y : amt[k]})
+          amt_data[k].data.push({"label" : mnth_name+year, y : amt[k]})
         }
       }
       return(amt_data);
@@ -373,38 +419,45 @@ class QB1 {
       var draft_amt= 0;
       var arr_invoice;
       url += " WHERE TxnDate >= '" + date1 + "' AND" + " TxnDate <= '" + date2 + "'"
-
+      if (data.contact) {
+        url += " AND CustomerRef = '" + data.contact + "'"
+      }
       console.log('Making API call to: ' + url)
 
       var requestObj = await this.getRequestObj (url, token)
       // console.log("requestObj",requestObj);
       var result = await this.make_api_call (requestObj)
       var jsondata = JSON.parse(result.body);
-      var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
-      console.log("Length of Invoice",len);
-      var arr = [];
-      for (var j=0; j<len; j++) {
-        var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[j], null, 2);
-        arr.push(JSON.parse(data1));
+      if (jsondata.QueryResponse == undefined) {
+
       }
-      arr.forEach(function(invoice) {
-        // console.log("@@@@@#############invoice",invoice);
-        if (invoice.Balance == 0) {
-          paid_amt += invoice.TotalAmt;
+      else {
+        var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
+        console.log("Length of Invoice",len);
+        var arr = [];
+        for (var j=0; j<len; j++) {
+          var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[j], null, 2);
+          arr.push(JSON.parse(data1));
         }
-        else if (invoice.Balance > 0) {
-          unpaid_amt += invoice.TotalAmt;
-        }
-        else {
-          draft_amt += invoice.TotalAmt;
-        }
-      });
-      var pie_data = [
-        {name: "Paid Amount", value: paid_amt},
-        {name: "Unpaid Amount", value: unpaid_amt},
-        {name: "Draft Amount", value: draft_amt}
-      ];
-      return(pie_data);
+        arr.forEach(function(invoice) {
+          // console.log("@@@@@#############invoice",invoice);
+          if (invoice.Balance == 0) {
+            paid_amt += invoice.TotalAmt;
+          }
+          else if (invoice.Balance > 0) {
+            unpaid_amt += invoice.TotalAmt;
+          }
+          else {
+            draft_amt += invoice.TotalAmt;
+          }
+        });
+        var pie_data = [
+          {name: "Paid Amount", value: paid_amt},
+          {name: "Unpaid Amount", value: unpaid_amt},
+          {name: "Draft Amount", value: draft_amt}
+        ];
+        return(pie_data);
+      }
     }
 
     async invoiceStatisticsCashflow(config,data) {
@@ -429,20 +482,28 @@ class QB1 {
           var datelt = moment(date2).format('YYYY-MM-DD')
           var mnth_name =  monthNames[mnth - 1];
           url += " WHERE TxnDate >= '" + dategt + "' AND" + " TxnDate <= '" + datelt + "'"
+          if (data.contact) {
+            url += " AND CustomerRef = '" + data.contact + "'"
+          }
           console.log('Making API call to: ' + url)
 
           var requestObj = await this.getRequestObj (url, token)
           // console.log("requestObj",requestObj);
           var result = await this.make_api_call (requestObj)
           var jsondata = JSON.parse(result.body);
-          var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
-          console.log("Length of Invoice",len);
-          var arr = [];
-          for (var j=0; j<len; j++) {
-            var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[j], null, 2);
-            arr.push(JSON.parse(data1));
+          if (jsondata.QueryResponse == undefined) {
+
           }
-          invoice_arr.push(arr);
+          else {
+            var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
+            console.log("Length of Invoice",len);
+            var arr = [];
+            for (var j=0; j<len; j++) {
+              var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[j], null, 2);
+              arr.push(JSON.parse(data1));
+            }
+            invoice_arr.push(arr);
+          }
         }
         else if (i == 0) {
           var mnth = moment(date1).format('MM')
@@ -452,20 +513,28 @@ class QB1 {
           datelt = year+'-'+ mnth + '-' + day
           var mnth_name =  monthNames[mnth - 1];
           url += " WHERE TxnDate >= '" + dategt + "' AND" + " TxnDate <= '" + datelt + "'"
+          if (data.contact) {
+            url += " AND CustomerRef = '" + data.contact + "'"
+          }
           console.log('Making API call to: ' + url)
 
           var requestObj = await this.getRequestObj (url, token)
 
           var result = await this.make_api_call (requestObj)
           var jsondata = JSON.parse(result.body);
-          var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
-          console.log("Length of Invoice",len);
-          var arr = [];
-          for (var j=0; j<len; j++) {
-            var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[j], null, 2);
-            arr.push(JSON.parse(data1));
+          if (jsondata.QueryResponse == undefined) {
+
           }
-          invoice_arr.push(arr);
+          else {
+            var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
+            console.log("Length of Invoice",len);
+            var arr = [];
+            for (var j=0; j<len; j++) {
+              var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[j], null, 2);
+              arr.push(JSON.parse(data1));
+            }
+            invoice_arr.push(arr);
+          }
         }
         else {
           var mnth = (parseInt(moment(date1).format('MM')) + i)
@@ -479,20 +548,28 @@ class QB1 {
           datelt = year+'-'+ mnth + '-' + day
           var mnth_name =  monthNames[mnth - 1];
           url += " WHERE TxnDate >= '" + dategt + "' AND" + " TxnDate <= '" + datelt + "'"
+          if (data.contact) {
+            url += " AND CustomerRef = '" + data.contact + "'"
+          }
           console.log('Making API call to: ' + url)
 
           var requestObj = await this.getRequestObj (url, token)
 
           var result = await this.make_api_call (requestObj)
           var jsondata = JSON.parse(result.body);
-          var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
-          console.log("Length of Invoice",len);
-          var arr = [];
-          for (var j=0; j<len; j++) {
-            var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[j], null, 2);
-            arr.push(JSON.parse(data1));
+          if (jsondata.QueryResponse == undefined) {
+
           }
-          invoice_arr.push(arr);
+          else {
+            var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
+            console.log("Length of Invoice",len);
+            var arr = [];
+            for (var j=0; j<len; j++) {
+              var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[j], null, 2);
+              arr.push(JSON.parse(data1));
+            }
+            invoice_arr.push(arr);
+          }
         }
 
         var status_amt = 0;
@@ -531,42 +608,49 @@ class QB1 {
       var arr_block;
       var total_invoice = 0;
       url += " WHERE TxnDate >= '" + date1 + "' AND" + " TxnDate <= '" + date2 + "'"
-
+      if (data.contact) {
+        url += " AND CustomerRef = '" + data.contact + "'"
+      }
       console.log('Making API call to: ' + url)
 
       var requestObj = await this.getRequestObj (url, token)
       // console.log("requestObj",requestObj);
       var result = await this.make_api_call (requestObj)
       var jsondata = JSON.parse(result.body);
-      var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
-      console.log("Length of Invoice",len);
-      var arr = [];
-      for (var j=0; j<len; j++) {
-        var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[j], null, 2);
-        arr.push(JSON.parse(data1));
+      if (jsondata.QueryResponse == undefined) {
+
       }
-      arr.forEach(function(invoice) {
-        // console.log("@@@@@#############invoice",invoice);
-        if (invoice.Balance == 0) {
-          paid_amt += invoice.TotalAmt;
+      else {
+        var len = JSON.stringify(jsondata.QueryResponse.totalCount, null, 2);
+        console.log("Length of Invoice",len);
+        var arr = [];
+        for (var j=0; j<len; j++) {
+          var data1 = JSON.stringify(jsondata.QueryResponse.Invoice[j], null, 2);
+          arr.push(JSON.parse(data1));
         }
-        else if (invoice.Balance > 0) {
-          unpaid_amt += invoice.TotalAmt;
-        }
-        else {
-          draft_amt += invoice.TotalAmt;
-        }
-        total_invoice += 1;
-      });
-      total_amt = unpaid_amt + draft_amt + paid_amt;
-      arr_block = [
-        {name: "Total Amount", value: total_amt},
-        {name: "Paid Amount", value: paid_amt},
-        {name:"Unpaid Amount", value: unpaid_amt},
-        {name: "Draft Amount", value: draft_amt},
-        {name: "Total Invoice", value: total_invoice}
-      ];
-      return(arr_block);
+        arr.forEach(function(invoice) {
+          // console.log("@@@@@#############invoice",invoice);
+          if (invoice.Balance == 0) {
+            paid_amt += invoice.TotalAmt;
+          }
+          else if (invoice.Balance > 0) {
+            unpaid_amt += invoice.TotalAmt;
+          }
+          else {
+            draft_amt += invoice.TotalAmt;
+          }
+          total_invoice += 1;
+        });
+        total_amt = unpaid_amt + draft_amt + paid_amt;
+        arr_block = [
+          {name: "Total Amount", value: total_amt},
+          {name: "Paid Amount", value: paid_amt},
+          {name:"Unpaid Amount", value: unpaid_amt},
+          {name: "Draft Amount", value: draft_amt},
+          {name: "Total Invoice", value: total_invoice}
+        ];
+        return(arr_block);
+      }
     }
 }
 

@@ -19,8 +19,8 @@ module.exports = {
                "type": "number"
            }
        },
-       "required": ["domain", "amount"],
-        "additionalProperties": false
+       "required": [ ],
+        "additionalProperties": true
    },
 
     delete : {

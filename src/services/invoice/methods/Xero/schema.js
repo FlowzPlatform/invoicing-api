@@ -18,7 +18,7 @@ module.exports = {
                "type": "number"
            }
        },
-       "required": ["settingId","amount"],
+       "required": ["settingId"],
         "additionalProperties": true
    },
 

@@ -37,13 +37,16 @@ class Xero1 {
       })
     }
 
-    
-
     async getAllContacts (config,data) {
       
       var xeroClient = await this.authentication(config);
+      var filter = '';
+      if (data.Name) {
+          filter = 'Name = "' + data.Name + '"'
+      }
+      console.log("############filter",filter);
       return new Promise((resolve, reject) => {
-          xeroClient.core.contacts.getContacts()
+          xeroClient.core.contacts.getContacts({ where : filter})
           .then(function(invoices) {
               resolve(invoices)
           })
@@ -66,6 +69,7 @@ class Xero1 {
                     AddressLine1: data.AddressLine1,
                     AddressLine2: data.AddressLine2,
                     City: data.City,
+                    Region : data.State,
                     Country : data.Country,
                     PostalCode: data.PostalCode
                 } ],

@@ -89,7 +89,7 @@ class Xero1 {
           else {
             condition = ' && '
           }
-          if (keys[i] == 'domain' || keys[i] == 'chart' || keys[i] == 'stats' || keys[i] == 'settingId') {
+          if (keys[i] == 'domain' || keys[i] == 'chart' || keys[i] == 'stats' || keys[i] == 'settingId' || keys[i] == 'user') {
 
           }
           else {
@@ -154,7 +154,7 @@ class Xero1 {
                 resolve(invoices)
             })
             .catch(function(err) {
-                console.log("Error", typeof(err));
+                console.log("Error", typeof(err), err);
                 data = {err:'Authentication error!!! Check your connection and credentials.'};
             })
         })
@@ -162,19 +162,31 @@ class Xero1 {
 
     async createInvoice(config,data) {
       var xeroClient = await this.authentication(config);
+      console.log("###########product arr",data.products);
+      var LineItems = [];
+      data.products.forEach(function(product) {
+        var lineItemData = {
+          Description: product.description,
+          Quantity: product.qty,
+          UnitAmount: product.amount,
+          AccountCode: '200'
+        };
+        LineItems.push(lineItemData);
+      })
       var sampleInvoice = {
         Type: 'ACCREC',
         Contact: {
-          Name: data.name
+          Name: data.Name
         },
         Status: 'AUTHORISED',
         DueDate: new Date().toISOString().split("T")[0],
-        LineItems: [{
-          Description: data.description,
-          Quantity: data.qty,
-          UnitAmount: data.amount,
-          AccountCode: '200'
-        }]
+        // LineItems: [{
+        //   Description: data.description,
+        //   Quantity: data.qty,
+        //   UnitAmount: data.amount,
+        //   AccountCode: '200'
+        // }]
+        LineItems : LineItems
       };
       console.log("sampleInvoice",sampleInvoice);
       return new Promise((resolve, reject) => {
@@ -215,6 +227,7 @@ class Xero1 {
       var date1 = moment(data.date1,'YYYY,MM,DD')
       var date2 = moment(data.date2,'YYYY,MM,DD')
       var month_len = (date2.diff(date1, 'month')) + 1;
+      console.log("mnth_len",month_len);
 
       var monthNames = ["January", "February", "March", "April", "May", "June",
       "July", "August", "September", "October", "November", "December"];
@@ -309,7 +322,7 @@ class Xero1 {
         console.log("draft_amt",draft_amt,"authorize_amt",authorize_amt,"paid_amt",paid_amt);
         var amt = [paid_amt, authorize_amt, draft_amt]
         for (var j=0; j<3; j++) {
-          amt_data[j].data.push({"label" : mnth_name +'-2017', y : amt[j]})
+          amt_data[j].data.push({"label" : mnth_name+year, y : amt[j]})
         }
       }
       return(amt_data);
@@ -422,7 +435,7 @@ class Xero1 {
                 status_amt += inv.Total
               }
           })
-          cashflow_arr.push({"label":mnth_name, "y" : status_amt})
+          cashflow_arr.push({"label":mnth_name+year, "y" : status_amt})
         })
       }
       return(cashflow_arr);
