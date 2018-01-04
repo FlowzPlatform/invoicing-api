@@ -93,14 +93,15 @@ class Xero1 {
         var myPayment;
         paymentObj.save()
             .then(function(payments) {
-                myPayment = payments.entities[0];
+              console.log(">>>>>>>>>>>> payments " , payments)
+                myPayment = payments.response;
                 console.log("Save");
                 resolve(myPayment);
             })
             .catch(function(err) {
                 console.log("Error in payment Xero")
                  console.log(err);
-                resolve({err:'Not able to perform payment!! Check Payment data'});
+                resolve(err);
             });
       })
     }
@@ -124,7 +125,7 @@ class Xero1 {
         payment1 = await this.postPayment(data,xeroClient);
       }
       return new Promise(async function(resolve, reject) {
-        // console.log("@@@@@@@@@payment1",payment1)
+        // console.log("@@@@@@@@@  payment1",payment1)
         resolve(payment1);
       })
     }
