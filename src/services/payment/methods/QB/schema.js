@@ -19,7 +19,7 @@ module.exports = {
                "type": "number"
            }
        },
-       "required": ["domain", "amount"],
+       "required": [],
         "additionalProperties": false
    },
 
@@ -33,9 +33,6 @@ module.exports = {
        },
        "amount" : {
          "type": "number"
-       },
-       "cname" : {
-         "type": "string"
        },
        "value" : {
          "type": "string"
@@ -56,7 +53,7 @@ module.exports = {
         "type": "string"
       },
      },
-     "required": ["gateway","id", "amount", "cname", "value"],
+     "required": [],
       "additionalProperties": true
    },
 

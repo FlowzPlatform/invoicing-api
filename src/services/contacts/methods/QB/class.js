@@ -87,7 +87,10 @@ class QB1 {
       let token = await this.getToken(config);
        console.log("token >>>>>>>>>>  ",token);
        let arrcustomer = [];
-      let url = api_uri + config.realmId + '/query?query=select * from Customer'
+      let url = api_uri + config.realmId + "/query?query=select * from Customer "
+      if (data.Name) {
+        url += "Where DisplayName = '" + data.Name + "'"
+      }
       console.log('Making API call to: ' + url)
   
       let requestObj = await this.getRequestObj (url , token)
@@ -96,16 +99,22 @@ class QB1 {
         // console.log("@@@@@@@@@@@inside get invoice method");
         
         let jsondata = JSON.parse(result.body);
-        let len = JSON.stringify(jsondata.QueryResponse.maxResults, null, 2);
-        console.log("Length of Customer",len);
-        
-        for (let i=0; i<len; i++) {
-          let data1 =jsondata.QueryResponse.Customer[i];
-          
-          // console.log("data:",arrdata)
-          arrcustomer.push(data1);
+        console.log("@@@@@@@@@@@@@@@@@@@@@jsondata",jsondata);
+        if (jsondata.QueryResponse == undefined) {
+
         }
-        console.log("Customer Get Data",arrcustomer[0]);
+        else {
+          let len = JSON.stringify(jsondata.QueryResponse.maxResults, null, 2);
+          console.log("Length of Customer",len);
+          
+          for (let i=0; i<len; i++) {
+            let data1 =jsondata.QueryResponse.Customer[i];
+            
+            // console.log("data:",arrdata)
+            arrcustomer.push(data1);
+          }
+          // console.log("Customer Get Data",arrcustomer[0]);
+        }
         resolve (arrcustomer);
       })
     }
@@ -113,12 +122,31 @@ class QB1 {
     async createContact(config,data) { 
       var token = await this.getToken(config);
 
-      var url = config.api_uri + req.session.credentials[0].realmId + '/customer'
+      var url = api_uri + config.realmId + '/customer'
       console.log('Making API call to: ' + url)
+
+      var body = JSON.stringify({
+            'BillAddr': {
+              'Line1': data.AddressLine1,
+              'City': data.City,
+              'Country': data.Country,
+              'PostalCode': data.PostalCode
+            },
+            // 'CompanyName': data.CompanyName,
+            'DisplayName': data.Name,
+            'PrimaryPhone': {
+              'FreeFormNumber': data.PhoneNumber
+            },
+            'PrimaryEmailAddr': {
+              'Address': data.EmailAddress
+            }
+          });
       
       var postrequestObj = await this.postRequestObj (url,body, token)
       var result = await this.make_api_call (postrequestObj)
-
+      let resp = [];
+      resp.push((JSON.parse(result.body)).Customer);
+      return resp;
     }
 }
 

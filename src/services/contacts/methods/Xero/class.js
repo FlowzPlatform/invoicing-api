@@ -37,8 +37,6 @@ class Xero1 {
       })
     }
 
-    
-
     async getAllContacts (config,data) {
       
       var xeroClient = await this.authentication(config);
@@ -71,6 +69,7 @@ class Xero1 {
                     AddressLine1: data.AddressLine1,
                     AddressLine2: data.AddressLine2,
                     City: data.City,
+                    Region : data.State,
                     Country : data.Country,
                     PostalCode: data.PostalCode
                 } ],

@@ -57,22 +57,49 @@ beforeGet =async  hook => {
   //hook.result = "any data"
 }
 
-beforeFind =async hook =>{
-  // console.log(hook.params.query)
-  // let res = await validateUser(hook);
-  // if(res.code == 401){
-  //   throw new errors.NotAuthenticated('Invalid token');
-  // }else{
+// beforeFind =async hook =>{
+//   // console.log(hook.params.query)
+//   // let res = await validateUser(hook);
+//   // if(res.code == 401){
+//   //   throw new errors.NotAuthenticated('Invalid token');
+//   // }else{
    
 
-   //################## COmmented : check user with token
-    // hook.params.query.userId = JSON.parse(res).data._id;
-     //#################### COmmented : check user with token
+//    //################## COmmented : check user with token
+//     // hook.params.query.userId = JSON.parse(res).data._id;
+//      //#################### COmmented : check user with token
     
-    if( hook.params.query.user == undefined){
-      throw new errors.NotAcceptable("please provide user email")
-    }
+//     if( hook.params.query.user == undefined){
+//       throw new errors.NotAcceptable("please provide user email")
+//     }
     
+//     hook.params.query.isDeleated = false;
+//     if(hook.params.query.isActive == "true")
+//     {
+//       hook.params.query.isActive = true;
+//      // hook.params.query.id = 
+//     }
+//     if(hook.params.query.configId){
+//       hook.params.query.id ={$in : hook.params.query.configId} 
+//     }
+
+//     console.log(hook.params.query);
+
+    
+    
+//  // }
+// }
+
+
+ beforeFind =async hook =>{
+  console.log(hook.params.query)
+  let res = await validateUser(hook);
+  if(res.code == 401){
+    throw new errors.NotAuthenticated('Invalid token');
+  }else{
+   //  let getMultipleDataRes = await getMultipleData(hook);
+   // console.log(">>>>>>>>>>>>>>>> "  , getMultipleDataRes)
+    hook.params.query.userId = JSON.parse(res).data._id;
     hook.params.query.isDeleated = false;
     if(hook.params.query.isActive == "true")
     {
@@ -84,12 +111,8 @@ beforeFind =async hook =>{
     }
 
     console.log(hook.params.query);
-
-    
-    
- // }
+  }
 }
-
 
 
 beforepatch = async hook =>{

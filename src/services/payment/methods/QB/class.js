@@ -4,6 +4,7 @@ const paymentConfig = require("../../../payment-plugin.json");
 var TokenProvider = require('refresh-token');
 var request = require('request');
 var rp = require('request-promise');
+const axios = require('axios');
 
 class QB1 {
     /**
@@ -117,6 +118,19 @@ class QB1 {
     }
 
     async postPayment(data, token,url) {
+      let value;
+
+      await axios.get(process.env.baseUrl+"contacts", {
+        params: data
+      })
+      .then(function (response) {
+        console.log("contact response",response.data[0]);
+        value = response.data[0].data[0].Id
+      })
+      .catch(function (error) {
+        console.log("error",error);
+      });
+
       var line = [
         {
             "Amount": data.amount,
@@ -127,8 +141,8 @@ class QB1 {
             }]
         }];
       var ref = {
-            "value": data.value,
-            "name": data.cname
+            "value": value,
+            "name": data.Name
         };
       var TotalAmt = data.amount;
       var body = JSON.stringify({'Line': line, 'CustomerRef':ref, 'TotalAmt':TotalAmt});

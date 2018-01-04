@@ -24,6 +24,10 @@ class Service {
     this.options = options || {};
   }
 
+  setup(app){
+    this.app = app;
+  }
+
   async find (params) {
     // let res = await validateUser();
     // if(res.code == 401){
@@ -33,23 +37,24 @@ class Service {
     // {
       
     let response1 =[];
-      let configdata = await this.getConfig(params.query);
-       console.log("response----------->",configdata);
-       for (let [index, config] of configdata.data.entries()) {
-        let schema = require("./methods/"+config.domain+"/schema.js")
-        let class1 = require("./methods/"+config.domain+"/class.js")
-        let obj = new class1();
+    let configdata = [];
+    configdata.push(await this.getConfig(params.query));
+    console.log("response----------->",configdata);
+    for (let [index, config] of configdata.entries()) {
+      let schema = require("./methods/"+config.domain+"/schema.js")
+      let class1 = require("./methods/"+config.domain+"/class.js")
+      let obj = new class1();
 
-        let schemaName = schema.find ;
-        //this.validateSchema(params.query, schemaName)
-        let response = await obj.getAllContacts(config , params.query);
-        response1.push({
-          "configName": config.configName,
-          "configId": config.id,
-          "data":response
-        })
-       }
-       return (response1)
+      let schemaName = schema.find ;
+      //this.validateSchema(params.query, schemaName)
+      let response = await obj.getAllContacts(config , params.query);
+      response1.push({
+        "configName": config.configName,
+        "configId": config.id,
+        "data":response
+      })
+    }
+    return (response1)
     // }
   }
 
@@ -67,20 +72,25 @@ class Service {
     // }
     // else 
     // {
-      console.log("@@@@@@@@@@@@@@@@@@@@",data)
-      let configdata = await this.getConfig(data);
+      // console.log("@@@@@@@@@@@@@@@@@@@@",data)
+      let configdata = [];
+      configdata.push(await this.getConfig(data));
       console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>> " , configdata)
       
-      let schema = require("./methods/"+configdata.data[0].domain+"/schema.js")
-      let class1 = require("./methods/"+configdata.data[0].domain+"/class.js")
+      let schema = require("./methods/"+configdata[0].domain+"/schema.js")
+      let class1 = require("./methods/"+configdata[0].domain+"/class.js")
       let obj = new class1();
   
       let schemaName = schema.create ;
       this.validateSchema(data, schemaName)
   
-      let response = await obj.createContact(configdata.data[0],data);
+      let response = await obj.createContact(configdata[0],data);
       console.log("@@@@@@@@@@@@@@@ " , response)
-      return(response);
+      return({
+        "configName": configdata[0].configName,
+        "configId": configdata[0].id,
+        "data":response
+      });
     // }
     
   }
@@ -125,30 +135,36 @@ class Service {
   })
 }
 
-async getConfig(data) {
-  var resp;
-  
-  await axios.get(baseUrl+"settings?isActive=true", {
-    params: {
-      id : data.settingId,
-      user : data.user
-    }
-    // headers: {
-    //   Authorization : apiHeaders.authorization
-    // }
-  })
-  .then(function (response) {
-    resp = response;
+  async getConfig(data) {
+    var resp;
 
-  })
-  .catch(function (error) {
-    console.log("error",error);
-  });
+    await this.app.service("settings").get(data.settingId)
+      .then(response => {
+        resp = response;
+        console.log('users:', response);
+      }).catch(err => {
+          console.log(err)
+      });
+    
+    // await axios.get(baseUrl+"settings?isActive=true", {
+    //   params: {
+    //     id : data.settingId,
+    //     user : data.user
+    //   }
+    //   // headers: {
+    //   //   Authorization : apiHeaders.authorization
+    //   // }
+    // })
+    // .then(function (response) {
+    //   resp = response;
 
-  return resp.data;
-}
+    // })
+    // .catch(function (error) {
+    //   console.log("error",error);
+    // });
 
-
+    return resp;
+  }
 
 }
 

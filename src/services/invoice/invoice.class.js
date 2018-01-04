@@ -23,6 +23,10 @@ class Service {
     this.options = options || {};
   }
 
+  setup(app){
+    this.app = app;
+  }
+
   async find (params) {
     // let res = await validateUser();
     // if(res.code == 401){
@@ -30,19 +34,21 @@ class Service {
     // }
     // else {
       
-      let configdata = await this.getConfig(params.query);
+      let configdata = [];
+      configdata.push(await this.getConfig(params.query));
        console.log("response----------->",configdata);
-      let response =  await this.getInvoice(configdata.data,params);
+      let response =  await this.getInvoice(configdata,params);
       return(response);
     // }
   }
 
   async get (id, params) {
     console.log("id",id)
-    let configdata = await this.getConfig(params.query);
+    let configdata = [];
+    configdata.push(await this.getConfig(params.query));
     let response;
     let response1 = [];
-    for (let [index, config] of configdata.data.entries()) {
+    for (let [index, config] of configdata.entries()) {
        console.log("config.domain",config.domain);
        let schema = require("./methods/"+config.domain+"/schema.js")
        let class1 = require("./methods/"+config.domain+"/class.js")
@@ -57,20 +63,21 @@ class Service {
   async create (data, params) {
     // console.log("data@@@@@@@@@@",data);
     // console.log("params@@@@@@@@@",params);
-
-    let configdata = await this.getConfig(data);
+    let configdata = [];
+    configdata.push(await this.getConfig(data));
     console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>> " , configdata)
-    console.log("Domain name",configdata.data[0].domain);
-    let schema = require("./methods/"+configdata.data[0].domain+"/schema.js")
-    let class1 = require("./methods/"+configdata.data[0].domain+"/class.js")
+    console.log("Domain name",configdata[0].domain);
+    let schema = require("./methods/"+configdata[0].domain+"/schema.js")
+    let class1 = require("./methods/"+configdata[0].domain+"/class.js")
     let obj = new class1();
 
     let schemaName = schema.create ;
     this.validateSchema(data, schemaName)
 
-    let contactResponse = await this.getContact(configdata.data[0],data);
+    let contactResponse = await this.getContact(configdata[0],data);
+    // console.log("contact response",contactResponse);
 
-    let response = await obj.createInvoice(configdata.data[0],data);
+    let response = await obj.createInvoice(configdata[0],data,contactResponse);
 
     return(response);
   }
@@ -119,25 +126,34 @@ class Service {
   //to get config from settings
   async getConfig(data) {
     var resp;
+
+    await this.app.service("settings").get(data.settingId)
+      .then(response => {
+        resp = response;
+        console.log('users:', response);
+      }).catch(err => {
+          console.log(err)
+      });
+
     
-    await axios.get(baseUrl+"settings?isActive=true", {
-      params: {
-        id : data.settingId,
-        user : data.user
-      }
-      // headers: {
-      //   Authorization : apiHeaders.authorization
-      // }
-    })
-    .then(function (response) {
-      resp = response;
+    // await axios.get(baseUrl+"settings?isActive=true", {
+    //   params: {
+    //     id : data.settingId,
+    //     user : data.user
+    //   }
+    //   // headers: {
+    //   //   Authorization : apiHeaders.authorization
+    //   // }
+    // })
+    // .then(function (response) {
+    //   resp = response;
 
-    })
-    .catch(function (error) {
-      console.log("error",error);
-    });
+    // })
+    // .catch(function (error) {
+    //   console.log("error",error);
+    // });
 
-    return resp.data;
+    return resp;
   }
 
   async getContact(configdata, data) {
@@ -145,13 +161,9 @@ class Service {
     
     await axios.get(baseUrl+"contacts", {
       params: data
-      // {
-      //   user : data.user,
-      //   Name : data.name
-      // }
     })
     .then(function (response) {
-      console.log("contact response",response.data);
+      console.log("contact response",response.data[0]);
       resp = response.data[0];
     })
     .catch(function (error) {
@@ -161,10 +173,6 @@ class Service {
 
     if (resp.data.length == 0) {
       console.log("Inside if contact");
-      // let data1 = {
-      //   Name : data.name,
-      //   EmailAddress : data.EmailAddress
-      // }
       await axios({
           method: 'post',
           url: baseUrl+"contacts",
@@ -172,13 +180,14 @@ class Service {
       })
       .then(function (response) {
         console.log("contact post response",response.data);
-        resp = response;
+        resp = response.data;
       })
       .catch(function (error) {
         console.log("error",error);
       });
     }
-    return resp.data;
+
+    return resp;
   }
 
   async getInvoice(configdata,params) {

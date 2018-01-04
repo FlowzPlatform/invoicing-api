@@ -227,6 +227,7 @@ class Xero1 {
       var date1 = moment(data.date1,'YYYY,MM,DD')
       var date2 = moment(data.date2,'YYYY,MM,DD')
       var month_len = (date2.diff(date1, 'month')) + 1;
+      console.log("mnth_len",month_len);
 
       var monthNames = ["January", "February", "March", "April", "May", "June",
       "July", "August", "September", "October", "November", "December"];
@@ -321,7 +322,7 @@ class Xero1 {
         console.log("draft_amt",draft_amt,"authorize_amt",authorize_amt,"paid_amt",paid_amt);
         var amt = [paid_amt, authorize_amt, draft_amt]
         for (var j=0; j<3; j++) {
-          amt_data[j].data.push({"label" : mnth_name +'-2017', y : amt[j]})
+          amt_data[j].data.push({"label" : mnth_name+year, y : amt[j]})
         }
       }
       return(amt_data);
@@ -434,7 +435,7 @@ class Xero1 {
                 status_amt += inv.Total
               }
           })
-          cashflow_arr.push({"label":mnth_name, "y" : status_amt})
+          cashflow_arr.push({"label":mnth_name+year, "y" : status_amt})
         })
       }
       return(cashflow_arr);
