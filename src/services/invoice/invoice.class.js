@@ -9,7 +9,8 @@ const feathersErrors = require('feathers-errors');
 const errors = feathersErrors.errors;
 var rp = require('request-promise');
 const axios = require('axios');
-
+const feathers = require('feathers');
+//const app = require ("../../app") 
 let baseUrl = process.env.baseUrl;
 
 var moment = require("moment");
@@ -21,7 +22,11 @@ var request = require('request')
 class Service {
   constructor (options) {
     this.options = options || {};
+    console.log("inside costructor1 " , options)
+    
   }
+
+  
 
   async find (params) {
     let res = await validateUser();
@@ -29,7 +34,7 @@ class Service {
       throw new errors.NotAuthenticated('Invalid token');
     }
     else {
-      
+       
       let configdata = await this.getConfig(params.query.settingId);
        console.log("response----------->",configdata);
       let response =  await this.getInvoice(configdata.data,params);

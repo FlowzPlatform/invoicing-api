@@ -20,6 +20,9 @@ const jwt = require('feathers-authentication-jwt');
 
 const rethinkdb = require('./rethinkdb');
 
+
+const subscription = require('flowz-subscription')
+
 const app = feathers();
 
 app.use(function(req, res, next) {
@@ -41,7 +44,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(favicon(path.join(app.get('public'), 'favicon.ico')));
 // Host the public folder
 app.use('/', feathers.static(app.get('public')));
-
+app.use(subscription.subscription)
 // Set up Plugins and providers
 app.configure(hooks());
 app.configure(rethinkdb);
@@ -54,9 +57,12 @@ app.configure(socketio());
 
 
 // Set up our services (see `services/index.js`)
+
 app.configure(services);
-// Configure middleware (see `middleware/index.js`) - always has to be last
 app.configure(middleware);
+// Configure middleware (see `middleware/index.js`) - always has to be last
+
 app.hooks(appHooks);
+
 
 module.exports = app;

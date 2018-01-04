@@ -43,7 +43,7 @@ module.exports = {
 
 beforecreate = async hook => {
   let res = await validateUser(hook);
-  let response = await checkDefaultConfig(hook , res)
+  //let response = await checkDefaultConfig(hook , res)
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
@@ -58,14 +58,18 @@ beforeGet =async  hook => {
 }
 
 beforeFind =async hook =>{
-  console.log(hook.params.query)
+  //console.log(hook.params.query)
   let res = await validateUser(hook);
+  //console.log(res)
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
    //  let getMultipleDataRes = await getMultipleData(hook);
    // console.log(">>>>>>>>>>>>>>>> "  , getMultipleDataRes)
+   
+   ///########################For All User################################
     hook.params.query.userId = JSON.parse(res).data._id;
+  ///#######################################################
     hook.params.query.isDeleated = false;
     if(hook.params.query.isActive == "true")
     {
@@ -77,9 +81,6 @@ beforeFind =async hook =>{
     }
 
     console.log(hook.params.query);
-
-    
-    
   }
 }
 
@@ -88,7 +89,7 @@ beforeFind =async hook =>{
 beforepatch = async hook =>{
   //console.log(hook)
   let res = await validateUser(hook);
-  console.log(res)
+  //console.log(res)
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
@@ -98,6 +99,7 @@ beforepatch = async hook =>{
 }
 
 validateUser =data =>{
+ 
     var options = {
       uri: process.env.userDetailApi,
       headers: {
@@ -110,18 +112,19 @@ validateUser =data =>{
         resolve(parsedBody)
     })
     .catch(function (err) {
+      
       resolve({"code" : 401 })
     });
   })
 }
 
-checkDefaultConfig = (data , res) => {
-  console.log(res)
+// checkDefaultConfig = (data , res) => {
+//  // console.log(res)
   
-  let findUser = JSON.parse(res).data._id;
-  console.log(app.service('settings'))
-  // app.service('settings').find({userId : findUser}).then(settings => {
-  //   console.log(settings)
-  // })
-  return true;
-}
+//   let findUser = JSON.parse(res).data._id;
+//   console.log(app.service('settings'))
+//   // app.service('settings').find({userId : findUser}).then(settings => {
+//   //   console.log(settings)
+//   // })
+//   return true;
+// }
