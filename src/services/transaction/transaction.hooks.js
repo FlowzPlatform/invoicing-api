@@ -15,9 +15,7 @@ module.exports = {
     all: [],
     find: [],
     get: [],
-    create: [
-      hook => afterCreate(hook)
-    ],
+    create: [],
     update: [],
     patch: [],
     remove: []
@@ -33,7 +31,3 @@ module.exports = {
     remove: []
   }
 };
-
-afterCreate = async hook => {
-  console.log("after create payment",hook)
-}

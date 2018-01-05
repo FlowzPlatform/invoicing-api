@@ -10,7 +10,7 @@ const errors = feathersErrors.errors;
 var rp = require('request-promise');
 const axios = require('axios');
 
-let baseUrl = process.env.baseUrl;
+let baseUrl = process.env.serviceUrl;
 
 var moment = require("moment");
 
@@ -39,6 +39,7 @@ class Service {
 
   async get (id, params) {
     console.log("id",id)
+    console.log("params",params)
     let configdata = await this.getConfig(params.query.settingId);
     let response;
     let response1 = [];
@@ -116,7 +117,7 @@ class Service {
   async getConfig(data) {
     var resp;
     
-    await axios.get(baseUrl+"settings?isActive=true", {
+    await axios.get(baseUrl+"/settings?isActive=true", {
       params: {
         id : data
       },

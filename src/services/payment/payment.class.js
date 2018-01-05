@@ -69,8 +69,24 @@ class Service {
       response = await obj.createPayment(configdata.data[0],data);
     }
     console.log("response in payment",response);
-    return response;
-  }
+
+      var options = {
+      method: 'POST',
+      uri: 'http://172.16.230.202:3037/transaction',
+      body: response,
+      json: true 
+      };
+     
+      rp(options)
+          .then(function (parsedBody) {
+            console.log("parsedBody---------------->",parsedBody)
+          })
+          .catch(function (err) {
+            console.log("err---------------->",err)
+          });
+
+        return response;
+      }
 
   update (id, data, params) {
     return Promise.resolve(data);
@@ -117,7 +133,7 @@ class Service {
   async getConfig(settingId) {
 
     var resp;
-    await axios.get(process.env.baseUrl+"settings?isActive=true", {
+    await axios.get(process.env.baseUrl+"/settings?isActive=true", {
       params: {
         id : settingId
       },

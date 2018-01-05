@@ -4,6 +4,7 @@ const paymentConfig = require("../../../payment-plugin.json");
 var TokenProvider = require('refresh-token');
 var request = require('request');
 var rp = require('request-promise');
+var _ = require('lodash')
 
 class QB1 {
     /**
@@ -140,11 +141,23 @@ class QB1 {
     }
 
     async createPayment(config,data) {
+      console.log("params--------------->",data)
       var token = await this.getToken(config);
       var paymentConf = paymentConfig.credentials[data.gateway];
       // console.log("paymentConf",paymentConf)
         var payment = await this.paymentGateway(data,paymentConf);
+        console.log("payment",payment)
+        let myfinalObj = {};
         // console.log("payment",payment)
+        myfinalObj.settingId = data.settingId
+        myfinalObj.user = data.user
+        var mObj = {}
+        _.forEach(payment, (v, k) => {
+          if (k == 'id' || k == 'amount' || k == 'balance_transaction' ||  k == 'captured' || k == 'created'|| k == 'currency'|| k == 'refunded'|| k == 'refunds') {
+            mObj[k] = v
+          }
+        })
+        myfinalObj.payment = mObj
         if (payment.err) {
           var err = payment.err.message || payment.err.response.error_description
           console.log("Error in payment",err);
@@ -161,7 +174,18 @@ class QB1 {
         }
       return new Promise(async function(resolve, reject) {
         var jsondata = JSON.parse(payment1.body);
-        resolve(jsondata);
+        var mObj = {}
+        _.forEach(jsondata.Payment, (v, k) => {
+          if (k == 'TotalAmt' ||  k == 'domain' || k == 'Id'|| k == 'MetaData'|| k == 'CurrencyRef'|| k == 'Line') {
+            mObj[k] = v
+          }
+        })
+        var mObj1 = {}
+        mObj1['id']= jsondata.Payment.CustomerRef.value
+        mObj1['name'] = jsondata.Payment.CustomerRef.name
+        myfinalObj.Customer = mObj1
+        myfinalObj.Accounting = mObj
+        resolve(myfinalObj);
       })
     }
 

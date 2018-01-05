@@ -3,6 +3,8 @@ const paymentConfig = require("../../../payment-plugin.json");
 
 const xero = require('xero-node');
 var rp = require('request-promise');
+const axios = require('axios');
+var _ = require('lodash')
 
 class Xero1 {
     /**
@@ -106,11 +108,49 @@ class Xero1 {
     }
 
     async createPayment(config,data) {
+      console.log("TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT")
       var xeroClient = await this.authentication(config);
       var paymentConf = paymentConfig.credentials[data.gateway];
       console.log("paymentConf",paymentConf);
       var payment = await this.paymentGateway(data,paymentConf);
-      // console.log("payment",payment)
+      var res
+
+      console.log("data.settingId------------------->",data.settingId)
+      console.log("apiHeaders.authorization===================>",apiHeaders.authorization)
+
+      await axios.get('http://localhost:3037/invoice/'+ data.id, {
+          params: {
+            settingId : data.settingId
+          },
+          headers: {
+            Authorization : apiHeaders.authorization
+          }
+        })
+        .then(function (response) {
+          console.log("response",response)
+          res = response
+        })
+        .catch(function (error) {
+          console.log("error",error);
+        });
+      console.log("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU",res.data[0].Contact.ContactID)
+      let myfinalObj = {};
+        myfinalObj.settingId = data.settingId
+        myfinalObj.user = data.user
+        var mObj = {}
+        _.forEach(payment, (v, k) => {
+          if (k == 'id' || k == 'amount' || k == 'balance_transaction' ||  k == 'captured' || k == 'created'|| k == 'currency'|| k == 'refunded'|| k == 'refunds') {
+            mObj[k] = v
+          }
+        })
+        myfinalObj.payment = mObj
+
+        var mObj1 = {}
+        mObj1['id']= res.data[0].Contact.ContactID
+        mObj1['name'] =res.data[0].Contact.Name
+
+        myfinalObj.Customer = mObj1
+
       if (payment.err) {
         var err = payment.err.message || payment.err.response.error_description
         console.log("Error in payment",err);
@@ -125,7 +165,8 @@ class Xero1 {
       }
       return new Promise(async function(resolve, reject) {
         // console.log("@@@@@@@@@payment1",payment1)
-        resolve(payment1);
+        myfinalObj.Accounting = payment1
+        resolve(myfinalObj);
       })
     }
 
