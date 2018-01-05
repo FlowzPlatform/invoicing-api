@@ -12,6 +12,9 @@ const relationshipcomments = require('./relationshipcomments/relationshipcomment
 const payment = require('./payment/payment.service.js');
 
 
+const transaction = require('./transaction/transaction.service.js');
+
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(contacts);
@@ -28,8 +31,9 @@ module.exports = function () {
   app.configure(crmHistory);
   app.configure(relationshipcomments);
 
-  
+
 
   app.configure(payment);
 
+  app.configure(transaction);
 };
