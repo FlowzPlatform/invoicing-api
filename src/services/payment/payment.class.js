@@ -74,7 +74,20 @@ class Service {
 
     response = await obj.createPayment(configdata[0],data);
     // }
-    //console.log("response in payment",response);
+    var options = {
+      method: 'POST',
+      uri: process.env.baseUrl +'transaction',
+      body: response.paymemntPostObj,
+      json: true 
+    };
+     
+    rp(options)
+      .then(function (parsedBody) {
+        console.log("parsedBody---------------->",parsedBody)
+      })
+      .catch(function (err) {
+        console.log("err---------------->",err)
+      });
     return response;
   }
 

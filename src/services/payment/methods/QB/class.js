@@ -5,6 +5,7 @@ var TokenProvider = require('refresh-token');
 var request = require('request');
 var rp = require('request-promise');
 const axios = require('axios');
+const _ = require('lodash');
 
 class QB1 {
     /**
@@ -175,7 +176,43 @@ class QB1 {
         }
       return new Promise(async function(resolve, reject) {
         var jsondata = JSON.parse(payment1.body);
-        resolve(jsondata);
+
+        let myfinalObj = {};
+        let mObj = {}
+        _.forEach(payment, (v, k) => {
+          if (k == 'id' || k == 'amount' || k == 'balance_transaction' ||  k == 'captured' || k == 'created'|| k == 'currency'|| k == 'refunded'|| k == 'refunds') {
+            mObj[k] = v
+          }
+        })
+
+        console.log(">>>>>>>>>>>>>>>>>>>>>jsondata",jsondata);
+
+        let accObj = {
+          'PaymentID' : jsondata.Payment.Id,
+          'Amount' : jsondata.Payment.TotalAmt,
+          'Account' : jsondata.Payment.DepositToAccountRef,
+          'Invoice' : {
+            'InvoiceID' : jsondata.Payment.Line[0].LinkedTxn[0].TxnId,
+            'Date' : jsondata.Payment.TxnDate
+          },
+          'Contact' : {
+            'ContactID' : jsondata.Payment.CustomerRef.value,
+            'Name' : jsondata.Payment.CustomerRef.name
+          }
+        };
+
+        myfinalObj.settingId = config.id
+        myfinalObj.user = config.user
+        myfinalObj.paymentGateway = mObj
+        myfinalObj.paymentAccounting = accObj
+
+        console.log("payment transaction post obj",myfinalObj);
+
+        resolve({
+          paymentGateway: payment,
+          paymentAccounting: jsondata,
+          paymemntPostObj : myfinalObj
+        });
       })
     }
 
