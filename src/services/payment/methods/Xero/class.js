@@ -3,6 +3,8 @@ const paymentConfig = require("../../../payment-plugin.json");
 
 const xero = require('xero-node');
 var rp = require('request-promise');
+const _ = require('lodash');
+var moment = require("moment");
 
 class Xero1 {
     /**
@@ -126,7 +128,43 @@ class Xero1 {
       }
       return new Promise(async function(resolve, reject) {
         // console.log("@@@@@@@@@  payment1",payment1)
-        resolve(payment1);
+        console.log("payment date",payment1.Payments[0].Date)
+        let myfinalObj = {};
+        let mObj = {}
+        _.forEach(payment, (v, k) => {
+          if (k == 'id' || k == 'amount' || k == 'balance_transaction' ||  k == 'captured' || k == 'created'|| k == 'currency'|| k == 'refunded'|| k == 'refunds') {
+            mObj[k] = v
+          }
+        })
+        let accObj = {
+          'PaymentID' : payment1.Payments[0].PaymentID,
+          'Amount' : payment1.Payments[0].Amount,
+          'Account' : payment1.Payments[0].Account,
+          'Invoice' : {
+            'InvoiceID' : payment1.Payments[0].Invoice.InvoiceID,
+            'InvoiceNumber' : payment1.Payments[0].Invoice.InvoiceNumber,
+            'Date' : moment(payment1.Payments[0].Date).format('DD/MM/YYYY'),
+            'DueDate' : payment1.Payments[0].Invoice.DueDateString,
+            'LineItems' : payment1.Payments[0].Invoice.LineItems
+          },
+          'Contact' : {
+            'ContactID' : payment1.Payments[0].Invoice.Contact.ContactID,
+            'Name' : payment1.Payments[0].Invoice.Contact.Name
+          }
+        };
+
+        myfinalObj.settingId = config.id
+        myfinalObj.user = config.user
+        myfinalObj.paymentGateway = mObj
+        myfinalObj.paymentAccounting = accObj
+
+        // console.log("payment transaction post obj",myfinalObj);
+
+        resolve({
+          paymentGateway: payment,
+          paymentAccounting: payment1,
+          paymemntPostObj : myfinalObj
+        });
       })
     }
 
