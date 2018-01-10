@@ -41,19 +41,36 @@ module.exports = {
 
 async function beforeFind(hook){
 
+  if (hook.params.query.Name) {
+    let name = hook.params.query.Name;
+    hook.params.query = {}
+    hook.params.query['paymentAccounting.Contact.Name'] = name;
+  }
+  if (hook.params.query.InvoiceID || hook.params.query.Id) {
+    let id = hook.params.query.InvoiceID == undefined ?  hook.params.query.Id : hook.params.query.InvoiceID;
+    hook.params.query = {}
+    hook.params.query['paymentAccounting.Invoice.InvoiceID'] = id;
+  }
+  if (hook.params.query.InvoiceNumber) {
+    let invNum = hook.params.query.InvoiceNumber;
+    hook.params.query = {}
+    hook.params.query['paymentAccounting.Invoice.InvoiceNumber'] = invNum;
+  }
+  console.log(">>>>>>>> ", hook.params.query)
  
   // let Amount1 = hook.params.query.Amount
-  // hook.params.query = {}
  // hook.params ={ query :{ paymentAccounting : {Amount: parseInt(hook.params.query.Amount)}}}
   // hook.params.query.paymentAccounting={Amount : 500} 
 //  hook.app.service('transaction').filter({paymentAccounting : {Amount: 50}}).then(function(result){
    
-  // hook.params.query['paymentAccounting.Amount'] = 500
   
-   if(hook.params.query.paymentAccounting.Amount){
-    hook.params.query['paymentAccounting.Amount'] = 50;
-   }
-   console.log(">>>>>>>> ", hook.params.query)
+  //  if(hook.params.query.paymentAccounting.Amount){
+  //   hook.params.query['paymentAccounting.Amount'] = 50;
+  //  }
+
+  // hook.params = { 
+  //   query : filter(('paymentAccounting')('Contact')('Name').eq(hook.params.query.Name))
+  // }
 //   })
  
   //   console.log(result)

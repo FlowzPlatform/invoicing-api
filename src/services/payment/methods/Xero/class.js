@@ -4,6 +4,7 @@ const paymentConfig = require("../../../payment-plugin.json");
 const xero = require('xero-node');
 var rp = require('request-promise');
 const _ = require('lodash');
+var moment = require("moment");
 
 class Xero1 {
     /**
@@ -127,6 +128,7 @@ class Xero1 {
       }
       return new Promise(async function(resolve, reject) {
         // console.log("@@@@@@@@@  payment1",payment1)
+        console.log("payment date",payment1.Payments[0].Date)
         let myfinalObj = {};
         let mObj = {}
         _.forEach(payment, (v, k) => {
@@ -141,7 +143,7 @@ class Xero1 {
           'Invoice' : {
             'InvoiceID' : payment1.Payments[0].Invoice.InvoiceID,
             'InvoiceNumber' : payment1.Payments[0].Invoice.InvoiceNumber,
-            'Date' : payment1.Payments[0].Invoice.DateString,
+            'Date' : moment(payment1.Payments[0].Date).format('DD/MM/YYYY'),
             'DueDate' : payment1.Payments[0].Invoice.DueDateString,
             'LineItems' : payment1.Payments[0].Invoice.LineItems
           },
@@ -156,7 +158,7 @@ class Xero1 {
         myfinalObj.paymentGateway = mObj
         myfinalObj.paymentAccounting = accObj
 
-        console.log("payment transaction post obj",myfinalObj);
+        // console.log("payment transaction post obj",myfinalObj);
 
         resolve({
           paymentGateway: payment,

@@ -6,6 +6,7 @@ var request = require('request');
 var rp = require('request-promise');
 const axios = require('axios');
 const _ = require('lodash');
+var moment = require("moment");
 
 class QB1 {
     /**
