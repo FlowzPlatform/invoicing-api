@@ -14,6 +14,12 @@ const payment = require('./payment/payment.service.js');
 const transaction = require('./transaction/transaction.service.js');
 
 
+const customcustomer = require('./customcustomer/customcustomer.service.js');
+
+
+const custominvoice = require('./custominvoice/custominvoice.service.js');
+
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(contacts);
@@ -34,4 +40,6 @@ module.exports = function () {
 
   app.configure(transaction);
 
+  app.configure(customcustomer);
+  app.configure(custominvoice);
 };
