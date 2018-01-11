@@ -95,7 +95,7 @@ class Xero1 {
         var myPayment;
         paymentObj.save()
             .then(function(payments) {
-              console.log(">>>>>>>>>>>> payments " , payments)
+              // console.log(">>>>>>>>>>>> payments " , payments)
                 myPayment = payments.response;
                 console.log("Save");
                 resolve(myPayment);
@@ -158,7 +158,7 @@ class Xero1 {
         myfinalObj.paymentGateway = mObj
         myfinalObj.paymentAccounting = accObj
 
-        // console.log("payment transaction post obj",myfinalObj);
+        console.log("payment transaction post obj",myfinalObj);
 
         resolve({
           paymentGateway: payment,

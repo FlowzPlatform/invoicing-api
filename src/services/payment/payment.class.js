@@ -74,7 +74,7 @@ class Service {
 
     response = await obj.createPayment(configdata[0],data);
     // }
-    //console.log("response in payment",response);
+    console.log("response in payment",response);
 
     var options = {
       method: 'POST',

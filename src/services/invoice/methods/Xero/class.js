@@ -164,6 +164,13 @@ class Xero1 {
       var xeroClient = await this.authentication(config);
       console.log("###########product arr",data.products);
       var LineItems = [];
+      let duedate;
+      if (data.DueDate) {
+        duedate = data.DueDate
+      }
+      else {
+        duedate = new Date().toISOString().split("T")[0]
+      }
       data.products.forEach(function(product) {
         var lineItemData = {
           Description: product.description,
@@ -179,7 +186,7 @@ class Xero1 {
           Name: data.Name
         },
         Status: 'AUTHORISED',
-        DueDate: new Date().toISOString().split("T")[0],
+        DueDate: duedate,
         // LineItems: [{
         //   Description: data.description,
         //   Quantity: data.qty,
