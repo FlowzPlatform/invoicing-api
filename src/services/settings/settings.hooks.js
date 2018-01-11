@@ -91,7 +91,7 @@ beforeGet =async  hook => {
 // }
 
 
- beforeFind =async hook =>{
+ async function beforeFind(hook){
   console.log(hook.params.query)
   let res = await validateUser(hook);
   if(res.code == 401){
