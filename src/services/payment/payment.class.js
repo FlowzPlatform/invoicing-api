@@ -76,20 +76,26 @@ class Service {
     // }
     console.log("response in payment",response);
 
-    var options = {
-      method: 'POST',
-      uri: process.env.baseUrl +'transaction',
-      body: response.paymemntPostObj,
-      json: true 
-    };
+    // var options = {
+    //   method: 'POST',
+    //   uri: process.env.baseUrl +'transaction',
+    //   body: response.paymemntPostObj,
+    //   json: true 
+    // };
      
-    rp(options)
-      .then(function (parsedBody) {
-        console.log("parsedBody---------------->",parsedBody)
-      })
-      .catch(function (err) {
-        console.log("err---------------->",err)
-      });
+    // rp(options)
+    //   .then(function (parsedBody) {
+    //     console.log("parsedBody---------------->",parsedBody)
+    //   })
+    //   .catch(function (err) {
+    //     console.log("err---------------->",err)
+    //   });
+
+    app.service("transaction").create(response.paymemntPostObj).then(function(result){
+      console.log("parsedBody---------------->",result)
+    }).catch(function(err){
+      console.log(">>>>>>>>>>>>>>> " , err)
+    })
 
     return response;
   }
