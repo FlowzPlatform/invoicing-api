@@ -38,8 +38,9 @@ class Service {
       
     let response1 =[];
     let configdata = [];
+    
     configdata.push(await this.getConfig(params.query));
-    console.log("response----------->",configdata);
+    // console.log("response----------->",configdata);
     for (let [index, config] of configdata.entries()) {
       let schema = require("./methods/"+config.domain+"/schema.js")
       let class1 = require("./methods/"+config.domain+"/class.js")

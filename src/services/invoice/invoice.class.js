@@ -65,8 +65,8 @@ class Service {
     // console.log("params@@@@@@@@@",params);
     let configdata = [];
     configdata.push(await this.getConfig(data));
-    console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>>>> " , configdata)
-    console.log("Domain name",configdata[0].domain);
+  
+    
     let schema = require("./methods/"+configdata[0].domain+"/schema.js")
     let class1 = require("./methods/"+configdata[0].domain+"/class.js")
     let obj = new class1();
@@ -75,10 +75,10 @@ class Service {
     this.validateSchema(data, schemaName)
 
     let contactResponse = await this.getContact(configdata[0],data);
-    // console.log("contact response",contactResponse);
+     console.log("contact response",contactResponse);
 
     let response = await obj.createInvoice(configdata[0],data,contactResponse);
-
+    console.log("create Invoice ", response)
     return(response);
   }
 
@@ -127,7 +127,7 @@ class Service {
   async getConfig(data) {
     var resp;
 
-    await this.app.service("settings").get(data.settingId)
+    await app.service("settings").get(data.settingId)
       .then(response => {
         resp = response;
         console.log('users:', response);
@@ -157,34 +157,52 @@ class Service {
   }
 
   async getContact(configdata, data) {
-    var resp;
+    let resp;
     
-    await axios.get(baseUrl+"contacts", {
-      params: data
+    // await axios.get(baseUrl+"contacts", {
+    //   params: data
+    // })
+    // .then(function (response) {
+    //   console.log("contact response",response.data[0]);
+    //   resp = response.data[0];
+    // })
+    // .catch(function (error) {
+    //   console.log("error",error);
+    // });
+
+    console.log("Inside invoice data",data);
+
+    await app.service("contacts").find({query:data}).then(function(result){
+      console.log("parsedBody contact find---------------->",result)
+      resp = result[0].data;
+    }).catch(function(err){
+      console.log(">>>>>>>>>>>>>>> " , err)
     })
-    .then(function (response) {
-      console.log("contact response",response.data[0]);
-      resp = response.data[0];
-    })
-    .catch(function (error) {
-      console.log("error",error);
-    });
+
+    console.log("############contact resp",resp);
+    console.log("############contact resp",resp.length);
 
 
-    if (resp.data.length == 0) {
+    if (resp.length == 0) {
       console.log("Inside if contact");
-      await axios({
-          method: 'post',
-          url: baseUrl+"contacts",
-          data: data
-      })
-      .then(function (response) {
-        console.log("contact post response",response.data);
+      // await axios({
+      //     method: 'post',
+      //     url: baseUrl+"contacts",
+      //     data: data
+      // })
+      // .then(function (response) {
+      //   console.log("contact post response",response.data);
+      //   resp = response.data;
+      // })
+      // .catch(function (error) {
+      //   console.log("error",error);
+      // });
+      app.service("contacts").create(data).then(function(response){
+        console.log("parsedBody contact post---------------->",response.data)
         resp = response.data;
+      }).catch(function(err){
+        console.log(">>>>>>>>>>>>>>> " , err)
       })
-      .catch(function (error) {
-        console.log("error",error);
-      });
     }
 
     return resp;
