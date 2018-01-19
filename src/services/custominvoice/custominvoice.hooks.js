@@ -1,9 +1,25 @@
 let _ = require('lodash');
 let moment = require('moment');
+let Ajv = require('ajv');
+let feathersErrors = require('feathers-errors');
+let errors = feathersErrors.errors;
+
+let schema = {
+  "properties": {
+      "settingId": {
+          "type": "string",
+          "description": "settingId in String is requred",
+      }
+  },
+  "required": ["settingId" ]
+ 
+};
 module.exports = {
   before: {
     all: [],
-    find: [],
+    find: [
+      hook => beforeHook(hook)
+    ],
     get: [],
     create: [
       hook => beforeCreateInvoice(hook)
@@ -34,6 +50,9 @@ module.exports = {
   }
 };
 
+async function beforeHook(hook){
+  validateSchema(hook.params.query, schema)
+}
 
 async function beforeCreateInvoice(hook){
   
@@ -60,5 +79,16 @@ async function beforeCreateInvoice(hook){
     hook.data.Due = 0;
     hook.data.Status = 'AUTHORISED';
     hook.data.Invoice_No = "CINV-00"+incr
+  }
+}
+
+
+function validateSchema(data, schema) {
+  let ajv = new Ajv(); 
+  let validateSc = ajv.compile(schema);
+  let valid = validateSc(data);
+  console.log(valid)
+  if (!valid) {
+      throw new errors.NotAcceptable('user input not valid', validateSc.errors);
   }
 }

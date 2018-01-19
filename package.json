@@ -47,6 +47,7 @@
     "feathers-socketio": "^2.0.1",
     "fs-blob-store": "^5.2.1",
     "helmet": "^3.8.2",
+    "html-pdf": "^2.2.0",
     "lodash": "^4.17.4",
     "refresh-token": "^1.0.0",
     "rethinkdbdash": "^2.3.31",
