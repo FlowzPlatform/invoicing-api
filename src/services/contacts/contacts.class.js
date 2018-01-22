@@ -142,7 +142,7 @@ class Service {
     await this.app.service("settings").get(data.settingId)
       .then(response => {
         resp = response;
-        console.log('users:', response);
+       // console.log('users:', response);
       }).catch(err => {
           console.log(err)
       });

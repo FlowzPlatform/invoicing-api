@@ -20,6 +20,9 @@ const customcustomer = require('./customcustomer/customcustomer.service.js');
 const custominvoice = require('./custominvoice/custominvoice.service.js');
 
 
+const exporttopdf = require('./exporttopdf/exporttopdf.service.js');
+
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(contacts);
@@ -42,4 +45,5 @@ module.exports = function () {
 
   app.configure(customcustomer);
   app.configure(custominvoice);
+  app.configure(exporttopdf);
 };

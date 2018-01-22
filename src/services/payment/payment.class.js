@@ -65,12 +65,14 @@ class Service {
     console.log("#######configdata inside create",configdata)
 
     console.log("Domain name",configdata[0].domain);
+
     let schema = require("./methods/"+configdata[0].domain+"/schema.js")
     let class1 = require("./methods/"+configdata[0].domain+"/class.js")
     let obj = new class1();
 
+    console.log("sch ",schema)
     let schemaName = schema.createPayment ;
-    this.validateSchema(data, schemaName)
+    //this.validateSchema(data, schemaName)
 
     response = await obj.createPayment(configdata[0],data);
     // }
