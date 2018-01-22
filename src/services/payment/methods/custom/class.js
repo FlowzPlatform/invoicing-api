@@ -115,12 +115,13 @@ class custom {
 
             let id = JSON.parse(parsedBody).data[0].id
             let data = {Status : newStatus , Paid : allNewPaid , Due : newDue , payment_Date : moment(new Date()).format("DD/MM/YYYY") };
-            
-            app.service("custominvoice").patch(JSON.parse(parsedBody).data[0].id , data).then(function(result , err){
+            let resultAfterUpdate ;
+             app.service("custominvoice").patch(JSON.parse(parsedBody).data[0].id , data).then(function(result , err){
                 console.log(result)
+                resolve(result);
                 console.log(err)
             })
-            resolve(JSON.parse(parsedBody));
+            
             })
             .catch(function (err) {
               console.log("inside catch")
@@ -173,21 +174,22 @@ class custom {
             mObj[k] = v
           }
         })
+        console.log(">>>>>>>>>>>>>>>payment1>>>>>>>>>>>>>> " , payment1);
         let accObj = {
           //'PaymentID' : payment1.Payments[0].PaymentID,
           'Amount' : mObj.amount/100,
           //'Account' : payment1.Payments[0].Account,
-        //   'Invoice' : {
-        //     'InvoiceID' : payment1.Payments[0].Invoice.InvoiceID,
-        //     'InvoiceNumber' : payment1.Payments[0].Invoice.InvoiceNumber,
-        //     'Date' : moment(payment1.Payments[0].Date).format('DD/MM/YYYY'),
-        //     'DueDate' : payment1.Payments[0].Invoice.DueDateString,
-        //     'LineItems' : payment1.Payments[0].Invoice.LineItems
-        //   },
-        //   'Contact' : {
-        //     'ContactID' : payment1.Payments[0].Invoice.Contact.ContactID,
-        //     'Name' : payment1.Payments[0].Invoice.Contact.Name
-        //   }
+          'Invoice' : {
+            'InvoiceID' : payment1.id,
+            'InvoiceNumber' : payment1.Invoice_No,
+            'Date' :payment1.payment_Date,
+            'DueDate' : payment1.DueDate,
+            'LineItems' : payment1.Products
+          },
+          'Contact' : {
+            'ContactID' : ""  ,
+            'Name' : payment1.Name
+          }
         };
 
          myfinalObj.settingId = config.id
