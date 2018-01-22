@@ -63,7 +63,7 @@ async function beforeCreateInvoice(hook){
 
   console.log("#DueDate " ,  moment(hook.data.DueDate).format('DD/MM/YYYY'))
   let incr = invoiceCount+1
-  console.log("#invoiId ", "CINV-00",incr);
+  
   if(hook.data.Products.length > 0){
     let maximum = _.map(hook.data.Products, function(o) { return o.qty * o.amount; });
     let Total = maximum.reduce(function(maximum, b) { return maximum + b; }, 0);
