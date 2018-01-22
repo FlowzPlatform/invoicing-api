@@ -8,6 +8,12 @@ const axios = require('axios');
 const _ = require('lodash');
 var moment = require("moment");
 
+const feathersErrors = require('feathers-errors');
+const errors = feathersErrors.errors;
+
+let api_uri = 'https://sandbox-quickbooks.api.intuit.com/v3/company/';
+let token_uri = 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer';
+
 class QB1 {
     /**
      * constructor
@@ -26,7 +32,7 @@ class QB1 {
 
     async getToken(config) {
       console.log("inside get token");
-      var tokenProvider = new TokenProvider('https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer' , {
+      var tokenProvider = new TokenProvider(token_uri , {
         refresh_token: config.refresh_token,
         client_id:     config.client_id,
         client_secret: config.client_secret
@@ -46,7 +52,7 @@ class QB1 {
           'Accept': 'application/json'
         }
       }
-      console.log("requestObj",getReqObj);
+      // console.log("requestObj",getReqObj);
       return getReqObj;
     }
 
@@ -60,7 +66,7 @@ class QB1 {
           'Accept': 'application/json',
           'Content-Type' : 'application/json'
         }
-      }
+      };
       return postReqObj;
     }
 
@@ -72,7 +78,8 @@ class QB1 {
             resolve(response);
           }, function (err) {
             // console.log("Error",err);
-            resolve({isError:true, err:err});
+            // resolve(err);
+            throw new errors.NotAcceptable(err);
         })
       })
     }
@@ -107,14 +114,23 @@ class QB1 {
         console.log("options",options);
 
         rp(options)
-          .then(function (parsedBody) {
-            // console.log("inside then%%%%%%%%%%%",parsedBody)
-            resolve(parsedBody);
+          .then(function (parsedBody , err) {
+             console.log("inside then%%%%%%%%%%%",parsedBody.statusCode)
+             if(parsedBody.statusCode == 402){
+              reject(parsedBody)
+             }else{
+              resolve(parsedBody)
+             }
+            
           })
           .catch(function (err) {
-            console.log("inside catch")
-            resolve({err:err});
               // POST failed...
+             console.log("inside catch " , err)
+             reject(err);
+            //  if (err.statusCode == 500) {
+            //   reject(err);
+            //  }
+            //throw new errors.NotAcceptable(err);
           });
       })
     }
@@ -130,7 +146,8 @@ class QB1 {
         value = response.data[0].data[0].Id
       })
       .catch(function (error) {
-        console.log("error",error);
+        // console.log("error",error);
+        throw new errors.NotAcceptable(err);
       });
 
       var line = [
@@ -149,7 +166,6 @@ class QB1 {
       var TotalAmt = data.amount;
       var body = JSON.stringify({'Line': line, 'CustomerRef':ref, 'TotalAmt':TotalAmt});
       var requestObj = await this.postRequestObj (url,body, token)
-      console.log("requestObj@@@@",requestObj);
       // Make API call
       var result = await this.make_api_call (requestObj)
       return(result);
@@ -160,23 +176,23 @@ class QB1 {
       var paymentConf = paymentConfig.credentials[data.gateway];
       // console.log("paymentConf",paymentConf)
         var payment = await this.paymentGateway(data,paymentConf);
-        // console.log("payment",payment)
-        if (payment.err) {
-          var err = payment.err.message || payment.err.response.error_description
-          console.log("Error in payment",err);
-        }
-        else {
-          var status = payment.status
+         console.log("payment payment payment",payment)
+        // if (payment.err) {
+        //   var err = payment.err.message || payment.err.response.error_description
+        //   console.log("Error in payment",err);
+        // }
+        // else {
+          var status = payment.status || payment.messages.resultCode || payment.state
           console.log("Status of payment", status);
-        }
+        // }
         var payment1;
         if(status == 'succeeded' || status == 'Ok' || status == 'created') {
-          var url = 'https://sandbox-quickbooks.api.intuit.com/v3/company/' + config.realmId + '/payment'
+          var url = api_uri + config.realmId + '/payment'
           console.log('Making API call to: ' + url)
           payment1 = await this.postPayment(data,token,url);  
         }
       return new Promise(async function(resolve, reject) {
-        var jsondata = JSON.parse(payment1.body);
+        let jsondata = JSON.parse(payment1.body);
         let myfinalObj = {};
         let mObj = {}
         _.forEach(payment, (v, k) => {
@@ -184,8 +200,7 @@ class QB1 {
             mObj[k] = v
           }
         })
-
-        console.log(">>>>>>>>>>>>>>>>>>>>>jsondata",jsondata);
+        // console.log(">>>>>>>>>>>>>>>>>>>>>jsondata",jsondata);
 
         let accObj = {
           'PaymentID' : jsondata.Payment.Id,
@@ -193,7 +208,8 @@ class QB1 {
           'Account' : jsondata.Payment.DepositToAccountRef,
           'Invoice' : {
             'InvoiceID' : jsondata.Payment.Line[0].LinkedTxn[0].TxnId,
-            'Date' : jsondata.Payment.TxnDate
+            'Date' : jsondata.Payment.TxnDate,
+            'Status' : ''
           },
           'Contact' : {
             'ContactID' : jsondata.Payment.CustomerRef.value,
@@ -206,7 +222,7 @@ class QB1 {
         myfinalObj.paymentGateway = mObj
         myfinalObj.paymentAccounting = accObj
 
-        console.log("payment transaction post obj",myfinalObj);
+        // console.log("payment transaction post obj",myfinalObj);
 
         resolve({
           paymentGateway: payment,
@@ -218,9 +234,9 @@ class QB1 {
 
     async getPayment(config,data) {
       var token = await this.getToken(config);
-         console.log("token",token);
+        //  console.log("token",token);
 
-         var url = 'https://sandbox-quickbooks.api.intuit.com/v3/company/' + config.realmId + '/query?query=select * from Payment'
+         var url = api_uri + config.realmId + '/query?query=select * from Payment'
         console.log('Making API call to: ' + url)
 
         var requestObj = await this.getRequestObj (url, token)
