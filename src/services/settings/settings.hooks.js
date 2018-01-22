@@ -33,7 +33,9 @@ module.exports = {
   error: {
     all: [],
     find: [],
-    get: [],
+    get: [
+      hook => errorGet(hook)
+    ],
     create: [],
     update: [],
     patch: [],
@@ -56,6 +58,11 @@ beforecreate = async hook => {
 beforeGet =async  hook => {
   //hook.result = "any data"
 }
+
+errorGet = async hook=>{
+  
+}
+
 
 // beforeFind =async hook =>{
 //   // console.log(hook.params.query)
