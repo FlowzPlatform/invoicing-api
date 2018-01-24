@@ -1,9 +1,26 @@
 var rp = require('request-promise');
-let errors = require('@feathersjs/errors') ;
+// let errors = require('@feathersjs/errors') ;
 
 const r = require('rethinkdbdash')({
   db: 'invoicing_api'
 });
+
+const Ajv = require('ajv');
+const ajv = new Ajv();
+const feathersErrors = require('feathers-errors');
+const errors = feathersErrors.errors;
+
+let schema1 = {
+    findGetCreate : {
+        "properties" : {
+            "settingId" : {
+                "description" : "Id of configuration"
+            }
+        },
+        "required" : ["settingId"],
+        "additionalProperties": true
+    }
+};
 
 module.exports = {
   before: {
@@ -40,6 +57,9 @@ module.exports = {
 };
 
 async function beforeFind(hook){
+
+  let schemaName1 = schema1.findGetCreate ;
+  this.validateSchema(hook.params.query, schemaName1)
 
   if (hook.params.query.Name) {
     let name = hook.params.query.Name;
@@ -122,4 +142,13 @@ validateUser =data =>{
       resolve({"code" : 401 })
     });
   })
+}
+
+validateSchema = (data,schemaName) => {
+    let validateSc = ajv.compile(schemaName);
+    let valid = validateSc(data);
+
+    if (!valid) {
+        throw new errors.NotAcceptable('user input not valid', validateSc.errors);
+    }
 }

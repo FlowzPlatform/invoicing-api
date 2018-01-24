@@ -2,7 +2,7 @@ var moment = require('moment');
 // const config = require("../../../config.js");
 
 const xero = require('xero-node');
-const fs = require("fs");
+// const fs = require("fs");
 
 class Xero1 {
     /**
@@ -29,9 +29,6 @@ class Xero1 {
           "consumerSecret": config.consumerSecret,
           "privateKey": keybuffer
         }
-        // console.log("credentials",credentials);
-        // if (config.credentials.privateKeyPath && !config.credentials.privateKey)
-        // config.credentials.privateKey = fs.readFileSync(config.credentials.privateKeyPath);
         const xeroClient = new xero.PrivateApplication(credentials);
         resolve(xeroClient);
       })
@@ -42,34 +39,34 @@ class Xero1 {
       return new Date(year, month, 0).getDate();
     }
 
-    async getAllInvoice (config,data) {
-      var xeroClient = await this.authentication();
+    // async getAllInvoice (config,data) {
+    //   var xeroClient = await this.authentication();
+    //   return new Promise((resolve, reject) => {
+    //       xeroClient.core.invoices.getInvoices()
+    //       .then(function(invoices) {
+    //           resolve(invoices)
+    //       })
+    //       .catch(function(err) {
+    //           console.log("Error", typeof(err));
+    //           data = {err:'Authentication error!!! Check your connection and credentials.'};
+    //       })
+    //   })
+    // }
+
+    async getInvoiceById(config,id) {
+      var xeroClient = await this.authentication(config);
       return new Promise((resolve, reject) => {
-          xeroClient.core.invoices.getInvoices()
+        xeroClient.core.invoices.getInvoice(id)
           .then(function(invoices) {
               resolve(invoices)
           })
           .catch(function(err) {
-              console.log("Error", typeof(err));
-              data = {err:'Authentication error!!! Check your connection and credentials.'};
+              console.log("Error in get invoice by id", err);
+              // data = {err:'Authentication error!!! Check your connection and credentials.'};
+              resolve(err);
           })
       })
     }
-
-    async getInvoiceById(config,id) {
-        var xeroClient = await this.authentication(config);
-        return new Promise((resolve, reject) => {
-            xeroClient.core.invoices.getInvoice(id)
-            .then(function(invoices) {
-                resolve(invoices)
-            })
-            .catch(function(err) {
-                console.log("Error", typeof(err));
-                data = {err:'Authentication error!!! Check your connection and credentials.'};
-            })
-        })
-    }
-
 
     async getInvoicesByFilter(config,data) {
         // console.log("inside filter")
@@ -132,86 +129,76 @@ class Xero1 {
           }
         }
 
-        // var final_filter = '';
-        // if ( filterContact != '') {
-        //   if (filter != '') {
-        //     final_filter = filterContact + ' && ' + filter
-        //   }
-        //   else {
-        //     final_filter = filterContact
-        //   }
-        // }
-        // else {
-        //   final_filter = filter
-        // }
         console.log("############filter",filter);
 
         var xeroClient = await this.authentication(config);
         return new Promise((resolve, reject) => {
-            xeroClient.core.invoices.getInvoices({ where : filter})
+          xeroClient.core.invoices.getInvoices({ where : filter})
             .then(function(invoices) {
               // console.log("invoices",invoices);
                 resolve(invoices)
             })
             .catch(function(err) {
                 console.log("Error", typeof(err), err);
-                data = {err:'Authentication error!!! Check your connection and credentials.'};
+                // data = {err:'Authentication error!!! Check your connection and credentials.'};
+                resolve(err);
             })
         })
     }
 
     async createInvoice(config,data) {
-      var xeroClient = await this.authentication(config);
-      console.log("###########product arr",data.products);
-      var LineItems = [];
-      let duedate;
-      if (data.DueDate) {
-        duedate = data.DueDate
-      }
-      else {
-        duedate = new Date().toISOString().split("T")[0]
-      }
-      data.products.forEach(function(product) {
-        var lineItemData = {
-          Description: product.description,
-          Quantity: product.qty,
-          UnitAmount: product.amount,
-          AccountCode: '200'
+        var xeroClient = await this.authentication(config);
+        console.log("###########product arr",data.products);
+        var LineItems = [];
+        let duedate;
+        if (data.DueDate) {
+            duedate = data.DueDate
+        }
+        else {
+            duedate = new Date().toISOString().split("T")[0]
+        }
+        data.products.forEach(function(product) {
+            var lineItemData = {
+                Description: product.description,
+                Quantity: product.qty,
+                UnitAmount: product.amount,
+                AccountCode: '200'
+            };
+            LineItems.push(lineItemData);
+        })
+        var sampleInvoice = {
+            Type: 'ACCREC',
+            Contact: {
+                Name: data.Name
+            },
+            Status: 'AUTHORISED',
+            DueDate: duedate,
+            // LineItems: [{
+            //   Description: data.description,
+            //   Quantity: data.qty,
+            //   UnitAmount: data.amount,
+            //   AccountCode: '200'
+            // }]
+            LineItems : LineItems
         };
-        LineItems.push(lineItemData);
-      })
-      var sampleInvoice = {
-        Type: 'ACCREC',
-        Contact: {
-          Name: data.Name
-        },
-        Status: 'AUTHORISED',
-        DueDate: duedate,
-        // LineItems: [{
-        //   Description: data.description,
-        //   Quantity: data.qty,
-        //   UnitAmount: data.amount,
-        //   AccountCode: '200'
-        // }]
-        LineItems : LineItems
-      };
-      console.log("sampleInvoice",sampleInvoice);
-      return new Promise((resolve, reject) => {
-        var invoiceObj = xeroClient.core.invoices.newInvoice(sampleInvoice);
-        var myInvoice;
-        invoiceObj.save()
-          .then(function(invoices) {
-              myInvoice = invoices.entities[0];
-              resolve(myInvoice);
-          })
-          .catch(function(err) {
-              console.log("Error", typeof(err));
-              data = {err:'Authentication error!!! Check your connection and credentials.'};
-          })
-      })
+        console.log("sampleInvoice",sampleInvoice);
+        return new Promise((resolve, reject) => {
+            var invoiceObj = xeroClient.core.invoices.newInvoice(sampleInvoice);
+            var myInvoice;
+            invoiceObj.save()
+            .then(function(invoices) {
+                myInvoice = invoices.entities[0];
+                resolve(myInvoice);
+            })
+            .catch(function(err) {
+                console.log("Error in post invoice", typeof(err), err);
+                // data = {err:'Authentication error!!! Check your connection and credentials.'};
+                resolve(err);
+            })
+        })
     }
 
-    invoiceChart(filter, xeroClient) {
+    async invoiceChart(filter, xeroClient) {
       var invoice_arr = [];
       return new Promise((resolve, reject) => {
         xeroClient.core.invoices.getInvoices({where : filter})
@@ -224,7 +211,8 @@ class Xero1 {
         })
         .catch(function(err) {
             console.log("Error", typeof(err));
-            data = {err:'Authentication error!!! Check your connection and credentials.'};
+            // data = {err:'Authentication error!!! Check your connection and credentials.'};
+            resolve(err);
         })
       })
     }
@@ -320,9 +308,12 @@ class Xero1 {
               // console.log("Unpaid invoice");
               authorize_amt += inv.Total;
             }
-            else {
+            else if (inv.Status == "DRAFT"){
               // console.log("Draft or Void invoice");
               draft_amt += inv.Total;
+            }
+            else {
+                
             }
           })
         })

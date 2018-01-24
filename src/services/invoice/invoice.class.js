@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-vars */
 
-const xero = require('xero-node');
-const config = require("../config.js");
+// const xero = require('xero-node');
+// const config = require("../config.js");
 const Ajv = require('ajv');
 const ajv = new Ajv();
-const fs = require("fs");
+// const fs = require("fs");
 const feathersErrors = require('feathers-errors');
 const errors = feathersErrors.errors;
 var rp = require('request-promise');
@@ -14,355 +14,236 @@ let baseUrl = process.env.baseUrl;
 
 var moment = require("moment");
 
+let schema1 = {
+    findGetCreate : {
+        "properties" : {
+            "settingId" : {
+                "description" : "Id of configuration"
+            }
+        },
+        "required" : ["settingId"],
+        "additionalProperties": true
+    }
+};
+
 //For quickbook
-var TokenProvider = require('refresh-token');
-var request = require('request')
+// var TokenProvider = require('refresh-token');
+// var request = require('request')
 
 class Service {
-  constructor (options) {
-    this.options = options || {};
-  }
-
-  setup(app){
-    this.app = app;
-  }
-
-  async find (params) {
-    // let res = await validateUser();
-    // if(res.code == 401){
-    //   throw new errors.NotAuthenticated('Invalid token');
-    // }
-    // else {
-      
-      let configdata = [];
-      configdata.push(await this.getConfig(params.query));
-       console.log("response----------->",configdata);
-      let response =  await this.getInvoice(configdata,params);
-      return(response);
-    // }
-  }
-
-  async get (id, params) {
-    console.log("id",id)
-    let configdata = [];
-    configdata.push(await this.getConfig(params.query));
-    let response;
-    let response1 = [];
-    for (let [index, config] of configdata.entries()) {
-       console.log("config.domain",config.domain);
-       let schema = require("./methods/"+config.domain+"/schema.js")
-       let class1 = require("./methods/"+config.domain+"/class.js")
-       let obj = new class1();
-       response = await obj.getInvoiceById(config, id);
-      //  console.log("response by id",response);
-      response1.push(response);
-     }
-    return(response1);
-  }
-
-  async create (data, params) {
-    // console.log("data@@@@@@@@@@",data);
-    // console.log("params@@@@@@@@@",params);
-    let configdata = [];
-    configdata.push(await this.getConfig(data));
-  
-    
-    let schema = require("./methods/"+configdata[0].domain+"/schema.js")
-    let class1 = require("./methods/"+configdata[0].domain+"/class.js")
-    let obj = new class1();
-
-    let schemaName = schema.create ;
-    this.validateSchema(data, schemaName)
-
-    let contactResponse = await this.getContact(configdata[0],data);
-     console.log("contact response",contactResponse);
-
-    let response = await obj.createInvoice(configdata[0],data,contactResponse);
-    console.log("create Invoice ", response)
-    return(response);
-  }
-
-  update (id, data, params) {
-    return Promise.resolve(data);
-  }
-
-  patch (id, data, params) {
-    return Promise.resolve(data);
-  }
-
-  remove (id, params) {
-    return Promise.resolve({ id });
-  }
-
-  //to validate schema
-  validateSchema(data, schemaName) {
-
-      let validateSc = ajv.compile(schemaName);
-      let valid = validateSc(data);
-
-      if (!valid) {
-          throw new errors.NotAcceptable('user input not valid', validateSc.errors);
-      }
-  }
-
-  // validateUser (){
-  //     var options = {
-  //       uri: process.env.userDetailApi,
-  //       headers: {
-  //         Authorization : apiHeaders.authorization
-  //       }
-  //   };
-  //   return new Promise((resolve , reject) =>{
-  //     rp(options)
-  //     .then(function (parsedBody) {
-  //         resolve(parsedBody)
-  //     })
-  //     .catch(function (err) {
-  //       resolve({"code" : 401 })
-  //     });
-  //   })
-  // }
-
-  //to get config from settings
-  async getConfig(data) {
-    var resp;
-
-    await app.service("settings").get(data.settingId)
-      .then(response => {
-        resp = response;
-        console.log('users:', response);
-      }).catch(err => {
-          console.log(err)
-      });
-
-    
-    // await axios.get(baseUrl+"settings?isActive=true", {
-    //   params: {
-    //     id : data.settingId,
-    //     user : data.user
-    //   }
-    //   // headers: {
-    //   //   Authorization : apiHeaders.authorization
-    //   // }
-    // })
-    // .then(function (response) {
-    //   resp = response;
-
-    // })
-    // .catch(function (error) {
-    //   console.log("error",error);
-    // });
-
-    return resp;
-  }
-
-  async getContact(configdata, data) {
-    let resp;
-    
-    // await axios.get(baseUrl+"contacts", {
-    //   params: data
-    // })
-    // .then(function (response) {
-    //   console.log("contact response",response.data[0]);
-    //   resp = response.data[0];
-    // })
-    // .catch(function (error) {
-    //   console.log("error",error);
-    // });
-
-    console.log("Inside invoice data",data);
-
-    await app.service("contacts").find({query:data}).then(function(result){
-      console.log("parsedBody contact find---------------->",result)
-      resp = result[0].data;
-    }).catch(function(err){
-      console.log(">>>>>>>>>>>>>>> " , err)
-    })
-
-    console.log("############contact resp",resp);
-    console.log("############contact resp",resp.length);
-
-
-    if (resp.length == 0) {
-      console.log("Inside if contact");
-      // await axios({
-      //     method: 'post',
-      //     url: baseUrl+"contacts",
-      //     data: data
-      // })
-      // .then(function (response) {
-      //   console.log("contact post response",response.data);
-      //   resp = response.data;
-      // })
-      // .catch(function (error) {
-      //   console.log("error",error);
-      // });
-      app.service("contacts").create(data).then(function(response){
-        console.log("parsedBody contact post---------------->",response.data)
-        resp = response.data;
-      }).catch(function(err){
-        console.log(">>>>>>>>>>>>>>> " , err)
-      })
+    constructor (options) {
+        this.options = options || {};
     }
 
-    return resp;
-  }
+    setup(app){
+        this.app = app;
+    }
 
-  async getInvoice(configdata,params) {
-    let response;
-    let response1 = [];
-    let obj;
-    if (params.query.chart || params.query.stats) {
-      console.log("configdata[0].domain",configdata[0].domain);
-      let schema = require("./methods/"+configdata[0].domain+"/schema.js")
-      let class1 = require("./methods/"+configdata[0].domain+"/class.js")
-      obj = new class1();
+    async find (params) {
 
-      let schemaName = schema.find ;
-      this.validateSchema(params.query, schemaName)
+        let schemaName1 = schema1.findGetCreate ;
+        this.validateSchema(params.query, schemaName1)
+
+        let configdata = [];
+        configdata.push(await this.getConfig(params.query));
+        // console.log("setting response inside invoice find----------->",configdata);
+
+        let response =  await this.getInvoice(configdata,params);
+        return(response);
     }
-    if (params.query.chart == 'bar' || params.query.chart == 'line') {
-      response = await obj.invoiceStatistics(configdata[0],params.query);
-      response1.push(
-        {"configName": configdata[0].configName,
-        "configId": configdata[0].id,
-        "data":response}
-      );
-    }
-    else if (params.query.chart == 'pie') {
-      response = await obj.invoiceStatisticsPieData(configdata[0],params.query);
-      // console.log("pie data",response);
-      response1.push(
-        {"configName": configdata[0].configName,
-        "configId": configdata[0].id,
-        "data":response}
-      );
-    }
-    else if (params.query.chart == 'cashflow') {
-      response = await obj.invoiceStatisticsCashflow(configdata[0],params.query);
-      response1.push(
-        {"configName": configdata[0].configName,
-        "configId": configdata[0].id,
-        "data":response}
-      );
-    }
-    else if (params.query.stats) {
-      response = await obj.invoiceStats(configdata[0],params.query);
-      response1.push(
-        {"configName": configdata[0].configName,
-        "configId": configdata[0].id,
-        "data":response}
-      );
-    }
-    else {
-      for (let [index, config] of configdata.entries()) {
-        console.log("config.domain",config.domain);
-        let schema = require("./methods/"+config.domain+"/schema.js")
-        let class1 = require("./methods/"+config.domain+"/class.js")
+
+    async get (id, params) {
+        // console.log("invoice id inside get",id)
+        let schemaName1 = schema1.findGetCreate ;
+        this.validateSchema(params.query, schemaName1)
+
+        let response;
+        let response1 =[];
+        let configdata = [];
+        configdata.push(await this.getConfig(params.query));
+
+        console.log("config.domain",configdata[0].domain);
+        let schema = require("./methods/"+configdata[0].domain+"/schema.js")
+        let class1 = require("./methods/"+configdata[0].domain+"/class.js")
         let obj = new class1();
 
-        let schemaName = schema.find ;
+        let schemaName = schema.get ;
         this.validateSchema(params.query, schemaName)
 
-        if (params.query.Invoiceid) {
-          response =  obj.getInvoiceById(config,params.query.Invoiceid);
+        response = await obj.getInvoiceById(configdata[0], id);
+        //  console.log("response by id",response);
+        response1.push({
+            "configName": configdata[0].configName,
+            "configId": configdata[0].id,
+            "data": response
+        })
+        return(response1);
+    }
+
+    async create (data, params) {
+        // console.log("data@@@@@@@@@@",data);
+        // console.log("params@@@@@@@@@",params);
+        let schemaName1 = schema1.findGetCreate ;
+        this.validateSchema(data, schemaName1)
+
+        let configdata = [];
+        configdata.push(await this.getConfig(data));
+    
+        let schema = require("./methods/"+configdata[0].domain+"/schema.js")
+        let class1 = require("./methods/"+configdata[0].domain+"/class.js")
+        let obj = new class1();
+
+        let schemaName = schema.create ;
+        this.validateSchema(data, schemaName)
+
+        let contactResponse = await this.getContact(configdata[0],data);
+        // console.log("contact response",contactResponse);
+
+        let response = await obj.createInvoice(configdata[0],data,contactResponse);
+        // console.log("create Invoice ", response)
+        return(response);
+    }
+
+    update (id, data, params) {
+        return Promise.resolve(data);
+    }
+
+    patch (id, data, params) {
+        return Promise.resolve(data);
+    }
+
+    remove (id, params) {
+        return Promise.resolve({ id });
+    }
+
+    //to validate schema
+    validateSchema(data, schemaName) {
+
+        let validateSc = ajv.compile(schemaName);
+        let valid = validateSc(data);
+
+        if (!valid) {
+            throw new errors.NotAcceptable('user input not valid', validateSc.errors);
         }
-        else if (params.query.chart == 'bar' || params.query.chart == 'line') {
-          response = await obj.invoiceStatistics(config,params.query);
+    }
+
+    //to get config from settings
+    async getConfig(data) {
+        var resp;
+
+        await app.service("settings").get(data.settingId)
+            .then(response => {
+                resp = response;
+                // console.log('settings:', response);
+            }).catch(err => {
+                console.log(">>>>>>>>> " , err)
+                throw new errors.NotFound(err)
+            });
+            
+        return resp;
+    }
+
+    async getContact(configdata, data) {
+        let resp;
+
+        console.log("Inside invoice data",data);
+
+        await app.service("contacts").find({query:data}).then(function(result){
+            console.log("parsedBody contact find---------------->",result[0])
+            resp = result[0];
+        }).catch(function(err){
+            console.log(">>>>>>>>>>>>>>> " , err)
+            throw new errors.NotFound(err)
+        })
+
+        // console.log("############contact resp",resp);
+        // console.log("############contact resp",resp.length);
+
+        if (resp.data.length == 0) {
+
+            await app.service("contacts").create(data).then(function(response){
+                console.log("parsedBody contact post---------------->",response.data)
+                resp = response;
+            }).catch(function(err){
+                console.log(">>>>>>>>>>>>>>> err in post contact" , err)
+                throw new errors.NotAcceptable(err)
+            })
         }
-        else if (params.query.chart == 'pie') {
-          response = obj.invoiceStatisticsPieData(config,params.query);
-        }
-        else if (params.query.chart == 'cashflow') {
-          response = obj.invoiceStatisticsCashflow(config,params.query);
-        }
-        else if (params.query.stats) {
-          response = obj.invoiceStats(config,params.query);
+
+        return resp;
+    }
+
+    async getInvoice(configdata,params) {
+        let response;
+        let response1 = [];
+        let obj;
+        if (params.query.chart || params.query.stats) {
+            console.log("configdata[0].domain",configdata[0].domain);
+            let schema = require("./methods/"+configdata[0].domain+"/schema.js")
+            let class1 = require("./methods/"+configdata[0].domain+"/class.js")
+            obj = new class1();
+
+            let schemaName = schema.findChart ;
+            this.validateSchema(params.query, schemaName)
         }
         else {
-          // response = obj.getAllInvoice(params.query);
-          response = await obj.getInvoicesByFilter(config,params.query);
+            console.log("configdata[0].domain",configdata[0].domain);
+            let schema = require("./methods/"+configdata[0].domain+"/schema.js")
+            let class1 = require("./methods/"+configdata[0].domain+"/class.js")
+            obj = new class1();
+
+            let schemaName = schema.find ;
+            this.validateSchema(params.query, schemaName)
         }
-        response1.push(
-          {"configName": config.configName,
-          "configId": config.id,
-          "data":response}
-        );
-      }
+        if (params.query.chart == 'bar' || params.query.chart == 'line') {
+            response = await obj.invoiceStatistics(configdata[0],params.query);
+            response1.push({
+                "configName": configdata[0].configName,
+                "configId": configdata[0].id,
+                "data":response
+            });
+        }
+        else if (params.query.chart == 'pie') {
+            response = await obj.invoiceStatisticsPieData(configdata[0],params.query);
+            // console.log("pie data",response);
+            response1.push({
+                "configName": configdata[0].configName,
+                "configId": configdata[0].id,
+                "data":response
+            });
+        }
+        else if (params.query.chart == 'cashflow') {
+            response = await obj.invoiceStatisticsCashflow(configdata[0],params.query);
+            response1.push({
+                "configName": configdata[0].configName,
+                "configId": configdata[0].id,
+                "data":response
+            });
+        }
+        else if (params.query.stats) {
+            response = await obj.invoiceStats(configdata[0],params.query);
+            response1.push({
+                "configName": configdata[0].configName,
+                "configId": configdata[0].id,
+                "data":response
+            });
+        }
+        else {
+            if (params.query.InvoiceID) {
+                response = await obj.getInvoiceById(configdata[0],params.query.InvoiceID);
+            }
+            else {
+                // response = obj.getAllInvoice(params.query);
+                response = await obj.getInvoicesByFilter(configdata[0],params.query);
+            }
+            response1.push({
+                "configName": configdata[0].configName,
+                "configId": configdata[0].id,
+                "data":response
+            });
+        }
+        return(response1);
     }
-    // var final_resp;
-    // var chart_arr = [];
-    // var chart_data = [
-    //   {
-    //     name : "Paid Amount",
-    //     data : [ ]
-    //   },
-    //   {
-    //     name : "Unpaid Amount",
-    //     data : [ ]
-    //   },
-    //   {
-    //     name : "Draft Amount",
-    //     data : [ ]
-    //   }
-    // ];
-    // if (params.query.chart || params.query.stats) {
-      // console.log("response1.length",response1.length);
-      // console.log("response1[0].data.length",response1[0].data.length);
-      // console.log("response1[0].data[0].data.length",response1[0].data[0].data.length);
-      // var y;
-      // var label;
-
-    // for (let [index, response] of response1.entries()) {
-    //   console.log("response",response.data[0].data);
-    //   y = 0;
-    //   label = '';
-    //   console.log("label1",label);
-    //   for (let [ind, resp] of response.data[0].data.entries()) {
-    //     y += resp.y;
-    //     label = resp.label;
-    //     chart_data[0].data.push({"label" : label, "y" : y})
-    //   }
-    //   console.log("label1",label);
-    //
-    //   y = 0;
-    //   label = '';
-    //   console.log("label2",label);
-    //   for (let [ind, resp] of response.data[1].data.entries()) {
-    //     y += resp.y;
-    //     label = resp.label;
-    //     chart_data[1].data.push({"label" : label, "y" : y})
-    //   }
-    //   console.log("label2",label);
-    //
-    //   y = 0;
-    //   label = '';
-    //   console.log("label3",label);
-    //   for (let [ind, resp] of response.data[2].data.entries()) {
-    //     y += resp.y;
-    //     label = resp.label;
-    //     chart_data[2].data.push({"label" : label, "y" : y})
-    //   }
-    //   console.log("label3",label);
-    // }
-
-    // response1.forEach(function(response) {
-        //   response.data.forEach(function(resp) {
-        //     if (resp.name == 'Paid Amount') {
-        //
-        //     }
-        //     else {
-        //       chart_arr.push(resp.name);
-        //     }
-        //     console.log("$$$$$$$$$$$",chart_arr);
-        //   })
-        // })
-      // }
-      // else {
-      //    final_resp = response1;
-      // }
-    return(response1);
-  }
 }
 
 module.exports = function (options) {

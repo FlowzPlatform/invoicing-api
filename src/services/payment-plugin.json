@@ -1,6 +1,6 @@
 
 {
-  "apiUrl" : "http://api.flowz.com/payment",
+  "apiUrl" : "http://api.flowzcluster.tk/payment",
   "credentials" : {
 
     "stripe" : {
