@@ -127,7 +127,9 @@ beforepatch = async hook =>{
   }
 }
 
-validateUser =data =>{
+function validateUser(data){
+  console.log(process.env.userDetailApi)
+  console.log(apiHeaders.authorization)
     var options = {
       uri: process.env.userDetailApi,
       headers: {
@@ -137,9 +139,11 @@ validateUser =data =>{
   return new Promise((resolve , reject) =>{
     rp(options)
     .then(function (parsedBody) {
+      console.log(parsedBody)
         resolve(parsedBody)
     })
     .catch(function (err) {
+      console.log(err)
       resolve({"code" : 401 })
     });
   })
