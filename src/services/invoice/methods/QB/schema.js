@@ -1,27 +1,106 @@
 module.exports = {
-    create : {
-       "properties": {
-           "domain": {
-               "type": "string",
-               "enum": ["QB", "Xero"]
-           },
-           "name": {
-               "description": "Customer name"
-           },
-           "qty": {
-               "description": "Quantity"
-           },
-           "description": {
-               "description": "Description of product"
-           },
-           "amount": {
-               "description": "Amount of product",
-               "type": "number"
-           }
-       },
-       "required": [ ],
+    find : {
+      "properties" : {
+          "settingId" : {
+              "description" : "Id of configuration"
+          },
+          "InvoiceID" : {
+              "type" : "string"
+          },
+          "CustomerRef" : {
+            "type" : "string"
+          },
+          "TxnDate" : {
+            "type" : "string"
+          },
+          "minTxnDate" : {
+            "type" : "string"
+          },
+          "maxTxnDate" : {
+            "type" : "string"
+          },
+          "DueDate" : {
+            "type" : "string"
+          },
+          "minDueDate" : {
+            "type" : "string"
+          },
+          "maxDueDate" : {
+            "type" : "string"
+          },
+          "TotalAmt" : {
+            "type" : "string"
+          },
+          "minTotalAmt" : {
+            "type" : "string"
+          },
+          "maxTotalAmt" : {
+            "type" : "string"
+          },
+          "Balance" : {
+            "type" : "string"
+          },
+          "minBalance" : {
+            "type" : "string"
+          },
+          "maxBalance" : {
+            "type" : "string"
+          }
+      },
+      "required" : ["settingId"],
+      "additionalProperties": true
+    },
+
+    findChart : {
+        "properties": {
+            "settingId" : {
+                "description" : "Id of configuration"
+            },
+            "chart" : {
+                "type" : "string",
+                "enum" : ["bar","pie","line","cashflow"]
+            },
+            "stats" : {
+                "type" : "string"
+            },
+            "date1" : {
+                "description" : "min date for chart",
+                "type" : "string"
+            },
+            "date2" : {
+                "description" : "max date for chart",
+                "type" : "string"
+            }
+        },
+        "required": ["settingId","date1","date2"],
         "additionalProperties": true
-   },
+    },
+
+    create: {
+        "properties" : {
+            "settingId" : {
+                "description" : "Id of configuration"
+            },
+            "Name" : {
+                "description" : "Name of contact"
+            },
+            "products" : {
+                "type" : "array"
+            },
+            "qty": {
+                "description": "Quantity"
+            },
+            "description": {
+                "description": "Description of product"
+            },
+            "amount": {
+                "description": "Amount of product",
+                "type": "number"
+            }
+        },
+        "required" : ["settingId","Name"],
+        "additionalProperties": true
+    },
 
     delete : {
        "properties": {
@@ -60,7 +139,6 @@ module.exports = {
         "additionalProperties": false
     },
 
-
     get : {
        "properties": {
 
@@ -75,66 +153,5 @@ module.exports = {
        },
        "required": [],
         "additionalProperties": true
-   },
-
-
-   find : {
-     "properties" : {
-       "domain" : {
-         "type" : "string",
-         "enum" : ["QB", "Xero"]
-       },
-       "chart" : {
-         "type" : "string",
-         "enum" : ["bar","pie","line","cashflow"]
-       },
-       "stats" : {
-         "type" : "string"
-       },
-       "Invoiceid" : {
-         "type" : "string"
-       },
-       "CustomerRef" : {
-         "type" : "string"
-       },
-       "TxnDate" : {
-         "type" : "string"
-       },
-       "minTxnDate" : {
-         "type" : "string"
-       },
-       "maxTxnDate" : {
-         "type" : "string"
-       },
-       "DueDate" : {
-         "type" : "string"
-       },
-       "minDueDate" : {
-         "type" : "string"
-       },
-       "maxDueDate" : {
-         "type" : "string"
-       },
-       "TotalAmt" : {
-         "type" : "string"
-       },
-       "minTotalAmt" : {
-         "type" : "string"
-       },
-       "maxTotalAmt" : {
-         "type" : "string"
-       },
-       "Balance" : {
-         "type" : "string"
-       },
-       "minBalance" : {
-         "type" : "string"
-       },
-       "maxBalance" : {
-         "type" : "string"
-       }
-     },
-    "required": [],
-    "additionalProperties": true
    }
 }
