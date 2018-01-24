@@ -41,15 +41,23 @@ module.exports = {
   }
 };
 
-beforecreate = async hook => {
+async function  beforecreate (hook) {
   let res = await validateUser(hook);
-  let response = await checkDefaultConfig(hook , res)
+  console.log(res)
+  let response = await alreadyAvailable(hook , res)
+  console.log(response)
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
-    hook.data.createdAt = new Date();
-     hook.data.userId = JSON.parse(res).data._id;
-     hook.data.user = JSON.parse(res).data.email;
+    //hook.result = "created"
+    if(response > 0){
+      hook.result = "Custom Config is already available for this user"
+    }else{
+      hook.data.createdAt = new Date();
+      hook.data.userId = JSON.parse(res).data._id;
+      hook.data.user = JSON.parse(res).data.email;
+    }
+    
   }
 }
 
@@ -145,13 +153,24 @@ validateUser =data =>{
   })
 }
 
-checkDefaultConfig = (data , res) => {
-  console.log(res)
+
+function alreadyAvailable(hook , res) {
+  return new Promise((resolve , reject) =>{
+    app.service('settings').find({query: {userId : JSON.parse(res).data._id, domain:"custom"}}).then(settings => {
+          console.log(">>>>>>>>>>>>>>>>> " , settings.data.length)
+          resolve(settings.data.length)
+    })
+  })
   
-  let findUser = JSON.parse(res).data._id;
-  console.log(app.service('settings'))
-  // app.service('settings').find({userId : findUser}).then(settings => {
-  //   console.log(settings)
-  // })
-  return true;
 }
+
+// checkDefaultConfig = (data , res) => {
+//   console.log(res)
+  
+//   let findUser = JSON.parse(res).data._id;
+//   console.log(app.service('settings'))
+//   // app.service('settings').find({userId : findUser}).then(settings => {
+//   //   console.log(settings)
+//   // })
+//   return true;
+// }
