@@ -63,7 +63,7 @@ var beforeUpdate = async ( function(hook) {
 
 beforecreate = async hook => {
   let res = await validateUser(hook);
-  let response = await checkDefaultConfig(hook , res)
+  //let response = await checkDefaultConfig(hook , res)
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
