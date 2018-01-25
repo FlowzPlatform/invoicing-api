@@ -115,7 +115,7 @@ class QB1 {
 
         rp(options)
           .then(function (parsedBody , err) {
-             console.log("inside then%%%%%%%%%%%",parsedBody.statusCode)
+             console.log("inside then%%%%%%%%%%%",parsedBody)
              if(parsedBody.statusCode == 402){
               reject(parsedBody)
              }else{
@@ -182,7 +182,8 @@ class QB1 {
         //   console.log("Error in payment",err);
         // }
         // else {
-          var status = payment.status || payment.messages.resultCode || payment.state
+        // console.log("#########",payment.state)
+          var status = payment.status || payment.state || payment.messages.resultCode
           console.log("Status of payment", status);
         // }
         var payment1;

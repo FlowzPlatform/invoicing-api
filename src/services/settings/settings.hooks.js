@@ -142,7 +142,8 @@ beforepatch = async hook =>{
   }
 }
 
-validateUser =data =>{
+// validateUser =data =>{
+async function validateUser(data) {
     var options = {
       uri: process.env.userDetailApi,
       headers: {
