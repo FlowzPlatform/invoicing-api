@@ -76,7 +76,7 @@ class custom {
           })
           .catch(function (err) {
             console.log("inside catch")
-            resolve({err:err});
+            reject(err);
               // POST failed...
           });
       })
@@ -126,7 +126,7 @@ class custom {
             .catch(function (err) {
               console.log("inside catch")
               console.log(err)
-              resolve({err:err});
+              reject(err);
                 // POST failed...
             });
         // var paymentObj = xeroClient.core.payments.newPayment(samplePayment);
@@ -157,7 +157,7 @@ class custom {
         console.log("Error in payment",err);
       }
       else {
-        var status = payment.status || payment.messages.resultCode || payment.state
+        var status = payment.status || payment.state || payment.messages.resultCode
         console.log("Status of payment", status);
       }
      let payment1;

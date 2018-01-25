@@ -125,7 +125,7 @@ class Xero1 {
         if (paymentConf != undefined) {
             //payment in gateway
             var payment = await this.paymentGateway(data,paymentConf);
-            var status = payment.status || payment.messages.resultCode || payment.state
+            var status = payment.status || payment.state || payment.messages.resultCode
             console.log("Status of payment", status);
 
             //payment In accounting 
