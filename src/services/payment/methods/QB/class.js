@@ -195,11 +195,15 @@ class QB1 {
       return new Promise(async function(resolve, reject) {
         let jsondata = JSON.parse(payment1.body);
         let myfinalObj = {};
-        let mObj = {}
+        let mObj = {
+            'Gateway' : data.gateway
+        }
         _.forEach(payment, (v, k) => {
-          if (k == 'id' || k == 'amount' || k == 'balance_transaction' ||  k == 'captured' || k == 'created'|| k == 'currency'|| k == 'refunded'|| k == 'refunds') {
-            mObj[k] = v
-          }
+            if (k == 'id' || k == 'amount' || k == 'balance_transaction' ||  k == 'captured' || k == 'created'|| k == 'currency'|| k == 'refunded'|| k == 'refunds' || 
+                k == 'transactionResponse' || 
+                k == 'create_time' || k == 'update_time' || k == 'state' || k == 'payer' || k == 'transactions') {
+                mObj[k] = v
+            }
         })
         // console.log(">>>>>>>>>>>>>>>>>>>>>jsondata",jsondata);
 
