@@ -63,11 +63,11 @@ async function  beforecreate (hook) {
   }
 }
 
-beforeGet =async  hook => {
+ async function beforeGet(hook){
   //hook.result = "any data"
 }
 
-errorGet = async hook=>{
+async function errorGet(hook) {
   
 }
 
@@ -153,9 +153,11 @@ async function validateUser(data) {
   return new Promise((resolve , reject) =>{
     rp(options)
     .then(function (parsedBody) {
+        
         resolve(parsedBody)
     })
     .catch(function (err) {
+     
       resolve({"code" : 401 })
     });
   })
