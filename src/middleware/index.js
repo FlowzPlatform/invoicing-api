@@ -17,7 +17,7 @@ module.exports = async function () {
   subscription.moduleResource.registerAppModule = registerAppModule
   subscription.moduleResource.appRoles = ['admin', 'user', 'client']
   subscription.registeredAppModulesRole()
-  subscription.registerDynamicHooks(app, registerAppModule)
+  //subscription.registerDynamicHooks(app, registerAppModule)
 
   app.use(notFound());
   app.use(handler());

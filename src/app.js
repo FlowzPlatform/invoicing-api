@@ -54,7 +54,7 @@ app.configure(socketio());
 // app.configure(auth({ secret: 'abcdefgabcdefg' }))
 // app.configure(jwt({service : "contacts"}))
 // Set up our services (see `services/index.js`)
-app.use(subscription.featherSubscription)
+app.use(subscription.subscription)
 app.configure(services);
 // Configure middleware (see `middleware/index.js`) - always has to be last
 app.configure(middleware);
