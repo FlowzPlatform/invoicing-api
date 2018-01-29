@@ -26,21 +26,6 @@ class custom {
      * @param {*} data
      */
 
-    authentication(config) {
-      return new Promise(function(resolve, reject) {
-        var keybuffer = new Buffer(config.certificate, 'base64');
-        let credentials = {
-          "userAgent" : config.useragent,
-          "consumerKey": config.consumerKey,
-          "consumerSecret": config.consumerSecret,
-          "privateKey": keybuffer
-        }
-        console.log("credentials",credentials);
-        const xeroClient = new xero.PrivateApplication(credentials);
-        resolve(xeroClient);
-      })
-    }
-
     async paymentGateway(data,paymentConf) {
       return new Promise(async function(resolve, reject) {
         if (data.gateway == "paypal") {
@@ -82,18 +67,19 @@ class custom {
       })
     }
 
-    async postPayment(data , afterPaymentData ,config) {
+    async postPayment(data , afterPaymentData, gateway ,config) {
       return new Promise(async function(resolve, reject) {
+        let amount = data.amount;
         var samplePayment = {
           
             Invoice_No: data.id,
             settingId: data.settingId
           
         };
-        console.log("samplePayment ",samplePayment);
-        console.log("config ",config);
-        console.log("Sample payment ",samplePayment);
-        console.log("afterPaymentData " , afterPaymentData)
+        // console.log("samplePayment ",samplePayment);
+        // console.log("config ",config);
+        // console.log("Sample payment ",samplePayment);
+        // console.log("afterPaymentData " , afterPaymentData)
         var options = {
             method: "GET",
             uri: config.invoice_url,
@@ -103,15 +89,25 @@ class custom {
   
           rp(options)
             .then(function (parsedBody) {
-                
-               let newDue = JSON.parse(parsedBody).data[0].Due - afterPaymentData.amount/100 ; 
+               console.log("2inside then%%%%%%%%%%%",JSON.parse(parsedBody))
+                let newDue;
+                let newPaid;
+                // if (gateway == 'paypal') {
+                //   newDue = JSON.parse(parsedBody).data[0].Due - afterPaymentData.amount;
+                //   newPaid = afterPaymentData.amount;
+                // }
+                // else {
+                //   newDue = JSON.parse(parsedBody).data[0].Due - afterPaymentData.amount/100 ;
+                //   newPaid = afterPaymentData.amount/100;
+                // }
+
+                newDue = JSON.parse(parsedBody).data[0].Due - amount ;
+                newPaid = amount;
                console.log("newDue " + newDue)
-               let newPaid = afterPaymentData.amount/100;
                let allNewPaid = newPaid+JSON.parse(parsedBody).data[0].Paid
                console.log("newPaid "+ newPaid )
                let newStatus = newDue <= 0 ? "PAID" : "AUTHORISED";
                console.log("newStatus " + newStatus)
-               console.log("2inside then%%%%%%%%%%%",JSON.parse(parsedBody))
 
             let id = JSON.parse(parsedBody).data[0].id
             let data = {Status : newStatus , Paid : allNewPaid , Due : newDue , payment_Date : moment(new Date()).format("DD/MM/YYYY") };
@@ -129,55 +125,46 @@ class custom {
               reject(err);
                 // POST failed...
             });
-        // var paymentObj = xeroClient.core.payments.newPayment(samplePayment);
-        // var myPayment;
-        // paymentObj.save()
-        //     .then(function(payments) {
-        //       //console.log(">>>>>>>>>>>> payments " , payments)
-        //         myPayment = payments.response;
-        //         console.log("Save");
-        //         resolve(myPayment);
-        //     })
-        //     .catch(function(err) {
-        //         console.log("Error in payment Xero")
-        //          console.log(err);
-        //         resolve(err);
-        //     });
       })
     }
 
     async createPayment(config,data) {
-      //var xeroClient = await this.authentication(config);
+      
       var paymentConf = paymentConfig.credentials[data.gateway];
       //console.log("paymentConf",paymentConf);
       var payment = await this.paymentGateway(data,paymentConf);
       
-      if (payment.err) {
-        var err = payment.err.message || payment.err.response.error_description
-        console.log("Error in payment",err);
-      }
-      else {
+      // if (payment.err) {
+      //   var err = payment.err.message || payment.err.response.error_description
+      //   console.log("Error in payment",err);
+      // }
+      // else {
         var status = payment.status || payment.state || payment.messages.resultCode
         console.log("Status of payment", status);
-      }
+      // }
      let payment1;
       if(status == 'succeeded' || status == 'Ok' || status == 'created') {
-        payment1 = await this.postPayment(data , payment , config);
+        payment1 = await this.postPayment(data , payment, data.gateway , config);
       }
       return new Promise(async function(resolve, reject) {
         // console.log("@@@@@@@@@  payment1",payment1)
         // console.log("payment date",payment1.Payments[0].Date)
         let myfinalObj = {};
-        let mObj = {}
+        let mObj = {
+            'Gateway' : data.gateway
+        }
         _.forEach(payment, (v, k) => {
-          if (k == 'id' || k == 'amount' || k == 'balance_transaction' ||  k == 'captured' || k == 'created'|| k == 'currency'|| k == 'refunded'|| k == 'refunds') {
-            mObj[k] = v
-          }
+            if (k == 'id' || k == 'amount' || k == 'balance_transaction' ||  k == 'captured' || k == 'created'|| k == 'currency'|| k == 'refunded'|| k == 'refunds' || 
+                k == 'transactionResponse' || 
+                k == 'create_time' || k == 'update_time' || k == 'state' || k == 'payer' || k == 'transactions') {
+                mObj[k] = v
+            }
         })
         console.log(">>>>>>>>>>>>>>>payment1>>>>>>>>>>>>>> " , payment1);
+        
         let accObj = {
           //'PaymentID' : payment1.Payments[0].PaymentID,
-          'Amount' : mObj.amount/100,
+          'Amount' : data.amount,
           //'Account' : payment1.Payments[0].Account,
           'Invoice' : {
             'InvoiceID' : payment1.id,
@@ -201,24 +188,9 @@ class custom {
 
         resolve({
           paymentGateway: payment,
-          paymentAccounting: "payment1",
+          paymentAccounting: payment1,
           paymemntPostObj : myfinalObj
         });
-      })
-    }
-
-    async getPayment(config,data) {
-      var xeroClient = await this.authentication(config);
-      return new Promise(async function(resolve, reject) {
-        xeroClient.core.payments.getPayments()
-        .then(function(payments) {
-              resolve(payments)
-          })
-          .catch(function(err) {
-              console.log("Error", typeof(err));
-              data = {err:'Authentication error!!! Check your connection and credentials.'};
-              resolve(err)
-          })
       })
     }
 }

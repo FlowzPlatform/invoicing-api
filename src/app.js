@@ -20,6 +20,8 @@ const jwt = require('feathers-authentication-jwt');
 
 const rethinkdb = require('./rethinkdb');
 
+const subscription = require('flowz-subscription');
+
 const app = feathers();
 
 app.use(function(req, res, next) {
@@ -51,12 +53,13 @@ app.configure(socketio());
 
 // app.configure(auth({ secret: 'abcdefgabcdefg' }))
 // app.configure(jwt({service : "contacts"}))
-
-
 // Set up our services (see `services/index.js`)
+app.use(subscription.featherSubscription)
 app.configure(services);
 // Configure middleware (see `middleware/index.js`) - always has to be last
 app.configure(middleware);
 app.hooks(appHooks);
+
+
 
 module.exports = app;
