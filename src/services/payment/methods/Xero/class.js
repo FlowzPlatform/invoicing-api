@@ -125,7 +125,7 @@ class Xero1 {
         if (paymentConf != undefined) {
             //payment in gateway
             var payment = await this.paymentGateway(data,paymentConf);
-            var status = payment.status || payment.messages.resultCode || payment.state
+            var status = payment.status || payment.state || payment.messages.resultCode
             console.log("Status of payment", status);
 
             //payment In accounting 
@@ -138,9 +138,13 @@ class Xero1 {
                 // console.log("@@@@@@@@@  payment1",payment1)
                 // console.log("payment date",payment1.Payments[0].Date)
                 let myfinalObj = {};
-                let mObj = {}
+                let mObj = {
+                    'Gateway' : data.gateway
+                }
                 _.forEach(payment, (v, k) => {
-                    if (k == 'id' || k == 'amount' || k == 'balance_transaction' ||  k == 'captured' || k == 'created'|| k == 'currency'|| k == 'refunded'|| k == 'refunds') {
+                    if (k == 'id' || k == 'amount' || k == 'balance_transaction' ||  k == 'captured' || k == 'created'|| k == 'currency'|| k == 'refunded'|| k == 'refunds' || 
+                        k == 'transactionResponse' || 
+                        k == 'create_time' || k == 'update_time' || k == 'state' || k == 'payer' || k == 'transactions') {
                         mObj[k] = v
                     }
                 })

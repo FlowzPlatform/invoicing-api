@@ -115,7 +115,7 @@ class QB1 {
 
         rp(options)
           .then(function (parsedBody , err) {
-             console.log("inside then%%%%%%%%%%%",parsedBody.statusCode)
+             console.log("inside then%%%%%%%%%%%",parsedBody)
              if(parsedBody.statusCode == 402){
               reject(parsedBody)
              }else{
@@ -182,7 +182,8 @@ class QB1 {
         //   console.log("Error in payment",err);
         // }
         // else {
-          var status = payment.status || payment.messages.resultCode || payment.state
+        // console.log("#########",payment.state)
+          var status = payment.status || payment.state || payment.messages.resultCode
           console.log("Status of payment", status);
         // }
         var payment1;
@@ -194,11 +195,15 @@ class QB1 {
       return new Promise(async function(resolve, reject) {
         let jsondata = JSON.parse(payment1.body);
         let myfinalObj = {};
-        let mObj = {}
+        let mObj = {
+            'Gateway' : data.gateway
+        }
         _.forEach(payment, (v, k) => {
-          if (k == 'id' || k == 'amount' || k == 'balance_transaction' ||  k == 'captured' || k == 'created'|| k == 'currency'|| k == 'refunded'|| k == 'refunds') {
-            mObj[k] = v
-          }
+            if (k == 'id' || k == 'amount' || k == 'balance_transaction' ||  k == 'captured' || k == 'created'|| k == 'currency'|| k == 'refunded'|| k == 'refunds' || 
+                k == 'transactionResponse' || 
+                k == 'create_time' || k == 'update_time' || k == 'state' || k == 'payer' || k == 'transactions') {
+                mObj[k] = v
+            }
         })
         // console.log(">>>>>>>>>>>>>>>>>>>>>jsondata",jsondata);
 
