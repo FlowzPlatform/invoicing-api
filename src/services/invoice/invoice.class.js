@@ -11,6 +11,7 @@ var rp = require('request-promise');
 const axios = require('axios');
 
 let baseUrl = process.env.baseUrl;
+let _ = require('lodash');
 
 var moment = require("moment");
 
@@ -99,9 +100,11 @@ class Service {
         let contactResponse = await this.getContact(configdata[0],data);
         // console.log("contact response",contactResponse);
 
-        let response = await obj.createInvoice(configdata[0],data,contactResponse);
+        let invoiceResponse = await obj.createInvoice(configdata[0],data,contactResponse);
         // console.log("create Invoice ", response)
-        return(response);
+
+        let userTrack = await this.userTrackRecord(configdata[0],contactResponse,invoiceResponse);
+        return(invoiceResponse);
     }
 
     update (id, data, params) {
@@ -149,7 +152,7 @@ class Service {
         console.log("Inside invoice data",data);
 
         await app.service("contacts").find({query:data}).then(function(result){
-            console.log("parsedBody contact find---------------->",result[0])
+            // console.log("parsedBody contact find---------------->",result[0])
             resp = result[0];
         }).catch(function(err){
             console.log(">>>>>>>>>>>>>>> " , err)
@@ -162,7 +165,7 @@ class Service {
         if (resp.data.length == 0) {
 
             await app.service("contacts").create(data).then(function(response){
-                console.log("parsedBody contact post---------------->",response.data)
+                // console.log("parsedBody contact post---------------->",response.data)
                 resp = response;
             }).catch(function(err){
                 console.log(">>>>>>>>>>>>>>> err in post contact" , err)
@@ -243,6 +246,72 @@ class Service {
             });
         }
         return(response1);
+    }
+
+    async userTrackRecord(config,contactResponse,invoiceResponse) {
+        console.log("configId",config.id);
+        // console.log("contactResponse",contactResponse.data[0])
+        // console.log("contactresponse name & email",contactResponse.data[0].Name,contactResponse.data[0].EmailAddress)
+        // console.log("Invoice Id",invoiceResponse.InvoiceID);
+        
+        let invoiceId = invoiceResponse.InvoiceID || invoiceResponse.Id;
+        let customerName = contactResponse.data[0].Name
+        let customerEmail = contactResponse.data[0].EmailAddress
+        let queryBuild = { 'customerName' : customerName }
+        console.log("================queryBuild",queryBuild);
+        app.service('trackusersettings').find({query:queryBuild})
+        .then(function(response) {
+            console.log("-------------",response)
+            if (response.total == 0) {
+                let userObj = {
+                    customerName : customerName,
+                    customerEmail : customerEmail,
+                    settingId : [],
+                    invoiceId : []
+                };
+                userObj.settingId.push(config.id);
+                userObj.invoiceId.push(invoiceId);
+                app.service('trackusersettings').create(userObj)
+                .then(function(resp) {
+                    console.log("object create response",resp)
+                })
+                .catch(function(err) {
+
+                })
+            }
+            else {
+                let idArray = response.data[0].settingId;
+                let flag = _.findIndex(idArray, function(o) { return o == config; });
+                console.log("****************flag value",flag)
+                if (flag >= 0) {
+                    let invoiceIdArray = response.data[0].invoiceId
+                    invoiceIdArray.push(invoiceId)
+                    app.service('trackusersettings').patch(response.data[0].id ,{'invoiceId' : invoiceIdArray})
+                    .then(function(result) {
+                        console.log("++++++++++++++++++++++++settingId patch result insie if",result);
+                    })
+                    .catch(function(err) {
+
+                    })
+                }
+                else {
+                    let settingIdArray = response.data[0].settingId
+                    settingIdArray.push(config.id);
+                    let invoiceIdArray = response.data[0].invoiceId
+                    invoiceIdArray.push(invoiceId)
+                    app.service('trackusersettings').patch(response.data[0].id ,{'settingId' : settingIdArray, 'invoiceId' : invoiceIdArray})
+                    .then(function(result) {
+                        console.log("++++++++++++++++++++++++settingId patch result inside else",result);
+                    })
+                    .catch(function(err) {
+
+                    })
+                }
+            }
+        })
+        .catch(function(err) {
+            console.log("!!!!!!!!!!!!!!!!!!!!!",err)
+        })
     }
 }
 
