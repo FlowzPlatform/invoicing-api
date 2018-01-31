@@ -157,7 +157,6 @@ async function validateUser(data) {
         resolve(parsedBody)
     })
     .catch(function (err) {
-     
       resolve({"code" : 401 })
     });
   })
