@@ -456,11 +456,20 @@ class QB1 {
         }
         else {
           var mnth = (parseInt(moment(date1).format('MM')) + i)
+          var year = moment(date1).format('YYYY')
+          if (mnth > 12) {
+            if ((mnth % 12 != 0)) {
+              mnth = mnth % 12
+              year = parseInt(moment(date1).format('YYYY')) + 1
+            }
+            else {
+              mnth = 12
+            }
+          }
           if (mnth < 10) {
             mnth = moment({month:mnth-1}).format('MM')
           }
           console.log("mnth",mnth);
-          var year = moment(date1).format('YYYY')
           var day = this.daysInMonth(mnth, year)
           dategt = year+'-'+ mnth + '-01'
           datelt = year+'-'+ mnth + '-' + day
@@ -647,11 +656,20 @@ class QB1 {
         }
         else {
           var mnth = (parseInt(moment(date1).format('MM')) + i)
+          var year = moment(date1).format('YYYY')
+          if (mnth > 12) {
+            if ((mnth % 12 != 0)) {
+              mnth = mnth % 12
+              year = parseInt(moment(date1).format('YYYY')) + 1
+            }
+            else {
+              mnth = 12
+            }
+          }
           if (mnth < 10) {
             mnth = moment({month:mnth-1}).format('MM')
           }
           console.log("mnth",mnth);
-          var year = moment(date1).format('YYYY')
           var day = this.daysInMonth(mnth, year)
           dategt = year+'-'+ mnth + '-01'
           datelt = year+'-'+ mnth + '-' + day

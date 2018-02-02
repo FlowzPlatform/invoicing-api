@@ -1,6 +1,7 @@
 
 var rp = require('request-promise');
 let errors = require('@feathersjs/errors') ;
+let axios = require("axios")
 module.exports = {
   before: {
     all: [],
@@ -45,7 +46,7 @@ module.exports = {
 
 async function  beforecreate (hook) {
   let res = await validateUser(hook);
-  console.log(res)
+  // console.log(res)
   let response = await alreadyAvailable(hook , res)
   console.log(response)
   if(res.code == 401){
@@ -113,8 +114,8 @@ async function errorGet(hook) {
     throw new errors.NotAuthenticated('Invalid token');
   }else{
    //  let getMultipleDataRes = await getMultipleData(hook);
-   // console.log(">>>>>>>>>>>>>>>> "  , getMultipleDataRes)
-    hook.params.query.userId = JSON.parse(res).data._id;
+    // console.log(">>>>>>>>>>>>>>>> "  , res)
+    hook.params.query.userId = res.data.data._id;
     hook.params.query.isDeleated = false;
     if(hook.params.query.isActive == "true")
     {
@@ -133,17 +134,19 @@ async function errorGet(hook) {
 beforepatch = async hook =>{
   //console.log(hook)
   let res = await validateUser(hook);
-  console.log(res)
+  // console.log(res)
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
     hook.data.updatedAt = new Date();
-    hook.data.updatedBy = JSON.parse(res).data.email
+    hook.data.updatedBy = res.data.data.email
   }
 }
 
 // validateUser =data =>{
 async function validateUser(data) {
+    console.log(apiHeaders.authorization)
+    console.log(process.env.userDetailApi)
     var options = {
       uri: process.env.userDetailApi,
       headers: {
@@ -151,21 +154,37 @@ async function validateUser(data) {
       }
   };
   return new Promise((resolve , reject) =>{
-    rp(options)
-    .then(function (parsedBody) {
-        
-        resolve(parsedBody)
-    })
-    .catch(function (err) {
-      resolve({"code" : 401 })
-    });
+
+    // rp(options)
+    // .then(function (parsedBody) {
+    //     console.log(parsedBody)
+    //     resolve(parsedBody)
+    // })
+    // .catch(function (err) {
+    //   console.log(err)
+    //   resolve({"code" : 401 })
+    // });
+    axios.get(process.env.userDetailApi, {
+              strictSSL: false,
+              headers: {
+                "Authorization" : apiHeaders.authorization
+              }  
+            })
+            .then(function (response) {
+             // console.log(response)
+                resolve(response)
+            })
+            .catch(function (error) {
+              console.log("%%%%%%%%%%%%",error)
+                resolve({"code" : 401 })
+            });
   })
 }
 
 
 function alreadyAvailable(hook , res) {
   return new Promise((resolve , reject) =>{
-    app.service('settings').find({query: {userId : JSON.parse(res).data._id, domain:"custom"}}).then(settings => {
+    app.service('settings').find({query: {userId : res.data.data._id, domain:"custom"}}).then(settings => {
           console.log(">>>>>>>>>>>>>>>>> " , settings.data.length)
           resolve(settings.data.length)
     })

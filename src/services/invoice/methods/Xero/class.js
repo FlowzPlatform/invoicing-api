@@ -242,8 +242,8 @@ class Xero1 {
         }
       ];
 
-      var filter = '';
       for (var i=0; i <= month_len-1; i++) {
+        var filter = '';
         var invoice_arr = [];
         if ( i == (month_len-1)) {
           var mnth = moment(date2).format('MM')
@@ -251,10 +251,10 @@ class Xero1 {
           var dategt = year+','+ mnth + ',1'
           var datelt = moment(date2).format('YYYY,MM,DD')
           var mnth_name =  monthNames[mnth - 1];
-          filter = ' Date >= DateTime(' + dategt + ',00,00,00)' + 'AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           if (data.contact) {
-            filter += ' && Contact.Name = "'+ data.contact +'"'
+            filter = 'Contact.Name = "'+ data.contact +'" && '
           }
+          filter += 'Date >= DateTime(' + dategt + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           console.log("Filter####",filter);
           var arr = await this.invoiceChart(filter, xeroClient)
           invoice_arr.push(arr);
@@ -266,25 +266,34 @@ class Xero1 {
           dategt = moment(date1).format('YYYY,MM,DD')
           datelt = year+','+ mnth + ',' + day
           var mnth_name =  monthNames[mnth - 1];
-          filter = ' Date >= DateTime(' + dategt + ',00,00,00)' + 'AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           if (data.contact) {
-            filter += ' && Contact.Name = "'+ data.contact +'"'
+            filter = 'Contact.Name = "'+ data.contact +'" && '
           }
+          filter += 'Date >= DateTime(' + dategt + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           console.log("Filter####",filter);
           var arr = await this.invoiceChart(filter, xeroClient)
           invoice_arr.push(arr);
         }
         else {
-          var mnth = parseInt(moment(date1).format('MM')) + i
-          var year = moment(date1).format('YYYY')
+          let mnth = parseInt(moment(date1).format('MM')) + i
+          let year = moment(date1).format('YYYY');
+          if (mnth > 12) {
+            if ((mnth % 12 != 0)) {
+              mnth = mnth % 12
+              year = parseInt(moment(date1).format('YYYY')) + 1
+            }
+            else {
+              mnth = 12
+            }
+          }
           var day = this.daysInMonth(mnth, year)
           dategt = year+','+ mnth + ',1'
           datelt = year+','+ mnth + ',' + day
           var mnth_name =  monthNames[mnth - 1];
-          filter = ' Date >= DateTime(' + dategt + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           if (data.contact) {
-            filter += ' && Contact.Name = "'+ data.contact +'"'
+            filter = 'Contact.Name = "'+ data.contact +'" && '
           }
+          filter += 'Date >= DateTime(' + dategt + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           console.log("Filter####",filter);
           var arr = await this.invoiceChart(filter, xeroClient)
           invoice_arr.push(arr);
@@ -371,9 +380,9 @@ class Xero1 {
       var monthNames = ["January", "February", "March", "April", "May", "June",
       "July", "August", "September", "October", "November", "December"];
 
-      var filter = '';
       var cashflow_arr = [];
       for (var i=0; i <= month_len-1; i++) {
+        var filter = '';
         var invoice_arr = [];
         if ( i == (month_len-1)) {
           var mnth = moment(date2).format('MM')
@@ -381,10 +390,10 @@ class Xero1 {
           var dategt = year+','+ mnth + ',1'
           var datelt = moment(date2).format('YYYY,MM,DD')
           var mnth_name =  monthNames[mnth - 1];
-          filter = ' Date >= DateTime(' + dategt + ',00,00,00)' + 'AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           if (data.contact) {
-            filter += ' && Contact.Name = "'+ data.contact +'"'
+            filter = 'Contact.Name = "'+ data.contact +'" && '
           }
+          filter += 'Date >= DateTime(' + dategt + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           console.log("Filter####",filter);
           var arr = await this.invoiceChart(filter, xeroClient)
           invoice_arr.push(arr);
@@ -396,25 +405,34 @@ class Xero1 {
           dategt = moment(date1).format('YYYY,MM,DD')
           datelt = year+','+ mnth + ',' + day
           var mnth_name =  monthNames[mnth - 1];
-          filter = ' Date >= DateTime(' + dategt + ',00,00,00)' + 'AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           if (data.contact) {
-            filter += ' && Contact.Name = "'+ data.contact +'"'
+            filter = 'Contact.Name = "'+ data.contact +'" && '
           }
+          filter += ' Date >= DateTime(' + dategt + ',00,00,00)' + 'AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           console.log("Filter####",filter);
           var arr = await this.invoiceChart(filter, xeroClient)
           invoice_arr.push(arr);
         }
         else {
           var mnth = parseInt(moment(date1).format('MM')) + i
-          var year = moment(date1).format('YYYY')
+          let year = moment(date1).format('YYYY');
+          if (mnth > 12) {
+            if ((mnth % 12 != 0)) {
+              mnth = mnth % 12
+              year = parseInt(moment(date1).format('YYYY')) + 1
+            }
+            else {
+              mnth = 12
+            }
+          }
           var day = this.daysInMonth(mnth, year)
           dategt = year+','+ mnth + ',1'
           datelt = year+','+ mnth + ',' + day
           var mnth_name =  monthNames[mnth - 1];
-          filter = ' Date >= DateTime(' + dategt + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           if (data.contact) {
-            filter += ' && Contact.Name = "'+ data.contact +'"'
+            filter = 'Contact.Name = "'+ data.contact +'" && '
           }
+          filter += 'Date >= DateTime(' + dategt + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           console.log("Filter####",filter);
           var arr = await this.invoiceChart(filter, xeroClient)
           invoice_arr.push(arr);
