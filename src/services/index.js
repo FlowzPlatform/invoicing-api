@@ -25,6 +25,7 @@ const exporttopdf = require('./exporttopdf/exporttopdf.service.js');
 
 const trackusersettings = require('./trackusersettings/trackusersettings.service.js');
 
+const invite = require('./invite/invite.service.js');
 
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
@@ -50,4 +51,6 @@ module.exports = function () {
   app.configure(custominvoice);
   app.configure(exporttopdf);
   app.configure(trackusersettings);
+  app.configure(invite);
+
 };
