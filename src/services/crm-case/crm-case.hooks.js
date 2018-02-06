@@ -75,7 +75,7 @@ beforecreate = async hook => {
 
 validateUser =data =>{
     var options = {
-      uri: process.env.userDetailApi,
+      uri: process.env.userDetailURL,
       headers: {
         Authorization : apiHeaders.authorization
       }
@@ -92,7 +92,7 @@ validateUser =data =>{
 }
 
 beforeFind =async hook =>{
-  console.log(hook.params.query)
+
   let res = await validateUser(hook);
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
@@ -100,8 +100,8 @@ beforeFind =async hook =>{
    //  let getMultipleDataRes = await getMultipleData(hook);
    // console.log(">>>>>>>>>>>>>>>> "  , getMultipleDataRes)
     hook.params.query.userId = JSON.parse(res).data._id;
-    
-    
+
+
 
     console.log(hook.params.query);
   }
@@ -109,7 +109,7 @@ beforeFind =async hook =>{
 
 checkDefaultConfig = (data , res) => {
   console.log(res)
-  
+
   let findUser = JSON.parse(res).data._id;
   console.log(app.service('settings'))
   // app.service('settings').find({userId : findUser}).then(settings => {

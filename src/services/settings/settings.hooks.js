@@ -60,7 +60,7 @@ async function  beforecreate (hook) {
       hook.data.userId = JSON.parse(res).data._id;
       hook.data.user = JSON.parse(res).data.email;
     }
-    
+
   }
 }
 
@@ -69,7 +69,7 @@ async function  beforecreate (hook) {
 }
 
 async function errorGet(hook) {
-  
+
 }
 
 
@@ -79,30 +79,30 @@ async function errorGet(hook) {
 //   // if(res.code == 401){
 //   //   throw new errors.NotAuthenticated('Invalid token');
 //   // }else{
-   
+
 
 //    //################## COmmented : check user with token
 //     // hook.params.query.userId = JSON.parse(res).data._id;
 //      //#################### COmmented : check user with token
-    
+
 //     if( hook.params.query.user == undefined){
 //       throw new errors.NotAcceptable("please provide user email")
 //     }
-    
+
 //     hook.params.query.isDeleated = false;
 //     if(hook.params.query.isActive == "true")
 //     {
 //       hook.params.query.isActive = true;
-//      // hook.params.query.id = 
+//      // hook.params.query.id =
 //     }
 //     if(hook.params.query.configId){
-//       hook.params.query.id ={$in : hook.params.query.configId} 
+//       hook.params.query.id ={$in : hook.params.query.configId}
 //     }
 
 //     console.log(hook.params.query);
 
-    
-    
+
+
 //  // }
 // }
 
@@ -120,10 +120,10 @@ async function errorGet(hook) {
     if(hook.params.query.isActive == "true")
     {
       hook.params.query.isActive = true;
-     // hook.params.query.id = 
+     // hook.params.query.id =
     }
     if(hook.params.query.configId){
-      hook.params.query.id ={$in : hook.params.query.configId} 
+      hook.params.query.id ={$in : hook.params.query.configId}
     }
 
     console.log(hook.params.query);
@@ -145,10 +145,9 @@ beforepatch = async hook =>{
 
 // validateUser =data =>{
 async function validateUser(data) {
-    console.log(apiHeaders.authorization)
-    console.log(process.env.userDetailApi)
+    
     var options = {
-      uri: process.env.userDetailApi,
+      uri: process.env.userDetailURL,
       headers: {
         Authorization : apiHeaders.authorization
       }
@@ -164,11 +163,11 @@ async function validateUser(data) {
     //   console.log(err)
     //   resolve({"code" : 401 })
     // });
-    axios.get(process.env.userDetailApi, {
+    axios.get(process.env.userDetailURL, {
               strictSSL: false,
               headers: {
                 "Authorization" : apiHeaders.authorization
-              }  
+              }
             })
             .then(function (response) {
              // console.log(response)
@@ -189,12 +188,12 @@ function alreadyAvailable(hook , res) {
           resolve(settings.data.length)
     })
   })
-  
+
 }
 
 // checkDefaultConfig = (data , res) => {
 //   console.log(res)
-  
+
 //   let findUser = JSON.parse(res).data._id;
 //   console.log(app.service('settings'))
 //   // app.service('settings').find({userId : findUser}).then(settings => {
