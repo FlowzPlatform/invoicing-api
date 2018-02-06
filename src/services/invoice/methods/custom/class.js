@@ -35,8 +35,14 @@ class custom {
         var draft_amt= 0;
         let arr;
         let arr_invoice = [];
-        
-        await app.service('custominvoice').find(config.id)
+
+        let query = {
+            settingId: config.id
+        }
+        if (data.contact) {
+            query['Name'] = data.contact
+        }
+        await app.service('custominvoice').find({query : query})
             .then(function(response) {
                 arr = response.data;
             })
@@ -52,7 +58,7 @@ class custom {
             // console.log("invoice.Date",invoice.Date,date1,date2)
             let date = moment(invoice.Date).format('YYYY/MM/DD');
             if (date >= date1) {
-                console.log("invoice.DueDate",date,date1,date2)
+                console.log("invoice.Date",date,date1,date2)
                 if (date <= date2) {
                     // console.log("@@@@@@@@invoice.Status",invoice.Status)
                     if(invoice.Status == 'AUTHORISED') {
@@ -92,7 +98,13 @@ class custom {
         var arr;
         var arr_block;
         
-        await app.service('custominvoice').find(config.id)
+        let query = {
+            settingId: config.id
+        }
+        if (data.contact) {
+            query['Name'] = data.contact
+        }
+        await app.service('custominvoice').find({query : query})
             .then(function(response) {
                 arr = response.data;
             })
@@ -164,23 +176,33 @@ class custom {
             }
         ];
 
-        await app.service('custominvoice').find(config.id)
+        let query = {
+            settingId: config.id
+        }
+        if (data.contact) {
+            query['Name'] = data.contact
+        }
+        await app.service('custominvoice').find({query : query})
             .then(function(response) {
                 arr = response.data;
             })
             .catch(function(err) {
                 return err;
             })
+        
 
+        var dategt;
+        var datelt;
         for (var i=0; i <= month_len-1; i++) {
             
             var invoice_arr = [];
             if ( i == (month_len-1)) {
                 var mnth = moment(date2).format('MM')
                 var year = moment(date2).format('YYYY')
-                var dategt = year+'/'+ mnth + '/1'
-                var datelt = moment(date2).format('YYYY/MM/DD')
+                dategt = year+'/'+ mnth + '/1'
+                datelt = moment(date2).format('YYYY/MM/DD')
                 var mnth_name =  monthNames[mnth - 1];
+                dategt = moment(dategt).format('YYYY/MM/DD');
 
                 arr.forEach(function(invoice) {
                     let date = moment(invoice.Date).format('YYYY/MM/DD');
@@ -198,6 +220,7 @@ class custom {
                 dategt = moment(date1).format('YYYY/MM/DD')
                 datelt = year+'/'+ mnth + '/' + day
                 var mnth_name =  monthNames[mnth - 1];
+                datelt = moment(datelt).format('YYYY/MM/DD');
 
                 arr.forEach(function(invoice) {
                     let date = moment(invoice.Date).format('YYYY/MM/DD');
@@ -211,15 +234,27 @@ class custom {
             else {
                 var mnth = parseInt(moment(date1).format('MM')) + i
                 var year = moment(date1).format('YYYY')
+                if (mnth > 12) {
+                    if ((mnth % 12 != 0)) {
+                      mnth = mnth % 12
+                      year = parseInt(moment(date1).format('YYYY')) + 1
+                    }
+                    else {
+                      mnth = 12
+                    }
+                }
                 var day = this.daysInMonth(mnth, year)
                 dategt = year+'/'+ mnth + '/1'
                 datelt = year+'/'+ mnth + '/' + day
                 var mnth_name =  monthNames[mnth - 1];
+                dategt = moment(dategt).format('YYYY/MM/DD');
+                datelt = moment(datelt).format('YYYY/MM/DD');
 
                 arr.forEach(function(invoice) {
                     let date = moment(invoice.Date).format('YYYY/MM/DD');
+                    // console.log("date", date, dategt, datelt)
                     if (date >= dategt) {
-                        if (date <= datelt) {
+                        if (date <= datelt) {                            
                             invoice_arr.push(invoice);
                         }
                     }
@@ -263,7 +298,13 @@ class custom {
         var monthNames = ["January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December"];
 
-        await app.service('custominvoice').find(config.id)
+        let query = {
+            settingId: config.id
+        }
+        if (data.contact) {
+            query['Name'] = data.contact
+        }
+        await app.service('custominvoice').find({query : query})
             .then(function(response) {
                 arr = response.data;
             })
@@ -279,15 +320,14 @@ class custom {
                 var mnth = moment(date2).format('MM')
                 var year = moment(date2).format('YYYY')
                 var dategt = year+'/'+ mnth + '/1'
-                // var dategt = '1/'+ mnth+ '/'+ year 
                 var datelt = moment(date2).format('YYYY/MM/DD')
                 var mnth_name =  monthNames[mnth - 1];
+                dategt = moment(dategt).format('YYYY/MM/DD');
 
                 arr.forEach(function(invoice) {
                     let date = moment(invoice.Date).format('YYYY/MM/DD');
                     if (date >= dategt) {
                         if (date <= datelt) {
-                            console.log("1")
                             invoice_arr.push(invoice);
                         }
                     }
@@ -299,9 +339,9 @@ class custom {
                 var year = moment(date1).format('YYYY')
                 var day = this.daysInMonth(mnth, year)
                 dategt = moment(date1).format('YYYY/MM/DD')
-                // datelt = day +'/'+ mnth + '/' + year
                 datelt = year+'/'+ mnth + '/' + day
                 var mnth_name =  monthNames[mnth - 1];
+                datelt = moment(datelt).format('YYYY/MM/DD');
 
                 arr.forEach(function(invoice) {
                     let date = moment(invoice.Date).format('YYYY/MM/DD');
@@ -315,13 +355,24 @@ class custom {
             else {
                 var mnth = parseInt(moment(date1).format('MM')) + i
                 var year = moment(date1).format('YYYY')
+                if (mnth > 12) {
+                    if ((mnth % 12 != 0)) {
+                      mnth = mnth % 12
+                      year = parseInt(moment(date1).format('YYYY')) + 1
+                    }
+                    else {
+                      mnth = 12
+                    }
+                }
                 var day = this.daysInMonth(mnth, year)
                 dategt = year+'/'+ mnth + '/1'
                 datelt = year+'/'+ mnth + '/' + day
                 // dategt = '1/' + mnth + year
                 // datelt = day +'/'+ mnth + '/' + year
                 var mnth_name =  monthNames[mnth - 1];
-                
+                dategt = moment(dategt).format('YYYY/MM/DD');
+                datelt = moment(datelt).format('YYYY/MM/DD');
+
                 arr.forEach(function(invoice) {
                     let date = moment(invoice.Date).format('YYYY/MM/DD');
                     if (date >= dategt) {
@@ -331,8 +382,6 @@ class custom {
                     }
                 })
             }
-
-            // console.log("############invoice_arr",invoice_arr)
 
             var status_amt = 0;
             invoice_arr.forEach(function(invoice) {

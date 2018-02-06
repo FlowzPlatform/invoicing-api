@@ -77,24 +77,24 @@ async function beforeFind(hook){
     hook.params.query['paymentAccounting.Invoice.InvoiceNumber'] = invNum;
   }
   console.log(">>>>>>>> ", hook.params.query)
- 
+
   // let Amount1 = hook.params.query.Amount
  // hook.params ={ query :{ paymentAccounting : {Amount: parseInt(hook.params.query.Amount)}}}
-  // hook.params.query.paymentAccounting={Amount : 500} 
+  // hook.params.query.paymentAccounting={Amount : 500}
 //  hook.app.service('transaction').filter({paymentAccounting : {Amount: 50}}).then(function(result){
-   
-  
+
+
   //  if(hook.params.query.paymentAccounting.Amount){
   //   hook.params.query['paymentAccounting.Amount'] = 50;
   //  }
 
-  // hook.params = { 
+  // hook.params = {
   //   query : filter(('paymentAccounting')('Contact')('Name').eq(hook.params.query.Name))
   // }
 //   })
- 
+
   //   console.log(result)
-    
+
   // }).catch(function(err){
   //   console.log(">> " , err)
   // });
@@ -116,10 +116,10 @@ async function beforeFind(hook){
     // if(hook.params.query.isActive == "true")
     // {
     //   hook.params.query.isActive = true;
-    //  // hook.params.query.id = 
+    //  // hook.params.query.id =
     // }
     // if(hook.params.query.configId){
-    //   hook.params.query.id ={$in : hook.params.query.configId} 
+    //   hook.params.query.id ={$in : hook.params.query.configId}
     // }
 
     // console.log(hook.params.query);
@@ -128,7 +128,7 @@ async function beforeFind(hook){
 
 validateUser =data =>{
     var options = {
-      uri: process.env.userDetailApi,
+      uri: process.env.userDetailURL,
       headers: {
         Authorization : apiHeaders.authorization
       }
