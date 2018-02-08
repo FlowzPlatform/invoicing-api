@@ -86,7 +86,7 @@ class Service {
 
   validateUser (){
     var options = {
-      uri: process.env.userDetailApi,
+      uri: process.env.userDetailURL,
       headers: {
         Authorization : apiHeaders.authorization
       }
