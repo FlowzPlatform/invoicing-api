@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-
 const xero = require('xero-node');
 // const config = require("../config");
 const Ajv = require('ajv');

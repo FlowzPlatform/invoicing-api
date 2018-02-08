@@ -27,6 +27,9 @@ const trackusersettings = require('./trackusersettings/trackusersettings.service
 
 const invite = require('./invite/invite.service.js');
 
+const invite = require('./invite/invite.service.js');
+
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(contacts);
@@ -42,6 +45,7 @@ module.exports = function () {
   app.configure(crmCase);
   app.configure(crmHistory);
   app.configure(relationshipcomments);
+
 
   app.configure(payment);
 
