@@ -27,7 +27,7 @@ const trackusersettings = require('./trackusersettings/trackusersettings.service
 
 const invite = require('./invite/invite.service.js');
 
-const invite = require('./invite/invite.service.js');
+
 
 
 module.exports = function () {
