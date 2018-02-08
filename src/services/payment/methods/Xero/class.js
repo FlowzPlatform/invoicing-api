@@ -3,6 +3,11 @@ const paymentConfig = require("../../../payment-plugin.json");
 
 const xero = require('xero-node');
 var rp = require('request-promise');
+const _ = require('lodash');
+var moment = require("moment");
+
+const feathersErrors = require('feathers-errors');
+const errors = feathersErrors.errors;
 
 class Xero1 {
     /**
@@ -29,7 +34,6 @@ class Xero1 {
           "consumerSecret": config.consumerSecret,
           "privateKey": keybuffer
         }
-        console.log("credentials",credentials);
         const xeroClient = new xero.PrivateApplication(credentials);
         resolve(xeroClient);
       })
@@ -65,13 +69,18 @@ class Xero1 {
 
         rp(options)
           .then(function (parsedBody) {
-            // console.log("inside then%%%%%%%%%%%",parsedBody)
-            resolve(parsedBody);
+            console.log("inside then%%%%%%%%%%%",parsedBody)
+            if(parsedBody.statusCode == 402){
+              reject(parsedBody)
+             }else{
+              resolve(parsedBody)
+             }
           })
           .catch(function (err) {
-            console.log("inside catch")
-            resolve({err:err});
+              console.log("###########")
+              console.log("@@@@@@@@@",err)
               // POST failed...
+            reject (err);
           });
       })
     }
@@ -93,40 +102,88 @@ class Xero1 {
         var myPayment;
         paymentObj.save()
             .then(function(payments) {
-                myPayment = payments.entities[0];
-                console.log("Save");
+              // console.log(">>>>>>>>>>>> payments " , payments)
+                myPayment = payments.response;
+                console.log("Payment Save");
                 resolve(myPayment);
             })
             .catch(function(err) {
                 console.log("Error in payment Xero")
-                 console.log(err);
-                resolve({err:'Not able to perform payment!! Check Payment data'});
+                console.log("#################",err);
+                //  console.log("#################",err.data.Message);
+                reject(err);
+                // throw new errors.NotAcceptable(err);
             });
       })
     }
 
     async createPayment(config,data) {
-      var xeroClient = await this.authentication(config);
-      var paymentConf = paymentConfig.credentials[data.gateway];
-      console.log("paymentConf",paymentConf);
-      var payment = await this.paymentGateway(data,paymentConf);
-      // console.log("payment",payment)
-      if (payment.err) {
-        var err = payment.err.message || payment.err.response.error_description
-        console.log("Error in payment",err);
-      }
-      else {
-        var status = payment.status || payment.messages.resultCode || payment.state
-        console.log("Status of payment", status);
-      }
-      var payment1;
-      if(status == 'succeeded' || status == 'Ok' || status == 'created') {
-        payment1 = await this.postPayment(data,xeroClient);
-      }
-      return new Promise(async function(resolve, reject) {
-        // console.log("@@@@@@@@@payment1",payment1)
-        resolve(payment1);
-      })
+        var xeroClient = await this.authentication(config);
+        var paymentConf = paymentConfig.credentials[data.gateway];
+        console.log("paymentConf",paymentConf);
+
+        if (paymentConf != undefined) {
+            //payment in gateway
+            var payment = await this.paymentGateway(data,paymentConf);
+            var status = payment.status || payment.state || payment.messages.resultCode
+            console.log("Status of payment", status);
+
+            //payment In accounting 
+            var payment1;
+            if(status == 'succeeded' || status == 'Ok' || status == 'created') {
+                payment1 = await this.postPayment(data,xeroClient);
+            }
+
+            return new Promise(async function(resolve, reject) {
+                // console.log("@@@@@@@@@  payment1",payment1)
+                // console.log("payment date",payment1.Payments[0].Date)
+                let myfinalObj = {};
+                let mObj = {
+                    'Gateway' : data.gateway
+                }
+                _.forEach(payment, (v, k) => {
+                    if (k == 'id' || k == 'amount' || k == 'balance_transaction' ||  k == 'captured' || k == 'created'|| k == 'currency'|| k == 'refunded'|| k == 'refunds' || 
+                        k == 'transactionResponse' || 
+                        k == 'create_time' || k == 'update_time' || k == 'state' || k == 'payer' || k == 'transactions') {
+                        mObj[k] = v
+                    }
+                })
+                let accObj = {
+                    'PaymentID' : payment1.Payments[0].PaymentID,
+                    'Amount' : payment1.Payments[0].Amount,
+                    'Account' : payment1.Payments[0].Account,
+                    'Invoice' : {
+                        'InvoiceID' : payment1.Payments[0].Invoice.InvoiceID,
+                        'InvoiceNumber' : payment1.Payments[0].Invoice.InvoiceNumber,
+                        'Date' : moment(payment1.Payments[0].Date).format('DD/MM/YYYY'),
+                        'DueDate' : payment1.Payments[0].Invoice.DueDateString,
+                        'LineItems' : payment1.Payments[0].Invoice.LineItems,
+                        'Status' : payment1.Payments[0].Invoice.Status
+                    },
+                    'Contact' : {
+                        'ContactID' : payment1.Payments[0].Invoice.Contact.ContactID,
+                        'Name' : payment1.Payments[0].Invoice.Contact.Name
+                    }
+                };
+
+                myfinalObj.settingId = config.id
+                myfinalObj.user = config.user
+                myfinalObj.paymentGateway = mObj
+                myfinalObj.paymentAccounting = accObj
+
+                console.log("payment transaction post obj",myfinalObj);
+
+                resolve({
+                    paymentGateway: payment,
+                    paymentAccounting: payment1,
+                    paymemntPostObj : myfinalObj
+                });
+            })
+        }
+        else {
+            throw new errors.NotFound("Gateway is not available");
+        }
+
     }
 
     async getPayment(config,data) {
@@ -138,8 +195,9 @@ class Xero1 {
           })
           .catch(function(err) {
               console.log("Error", typeof(err));
-              data = {err:'Authentication error!!! Check your connection and credentials.'};
-              resolve(err)
+            //   data = {err:'Authentication error!!! Check your connection and credentials.'};
+            //   resolve(err)
+            throw new errors.NotFound(err)
           })
       })
     }

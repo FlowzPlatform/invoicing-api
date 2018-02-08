@@ -24,7 +24,9 @@ const appHooks = require('./app.hooks');
 const rethinkdb = require('./rethinkdb');
 
 
+
 const subscription = require('flowz-subscription')
+
 
 const app = feathers();
 
@@ -61,9 +63,12 @@ app.configure(rest());
 
 // app.configure(auth({ secret: 'abcdefgabcdefg' }))
 // app.configure(jwt({service : "contacts"}))
+
 app.use(subscription.featherSubscription)
 
+
 // Set up our services (see `services/index.js`)
+//app.use(subscription.subscription)
 app.configure(services);
 app.configure(middleware);
 
@@ -73,6 +78,7 @@ app.use(handler());
 // Configure middleware (see `middleware/index.js`) - always has to be last
 
 app.hooks(appHooks);
+
 
 
 module.exports = app;

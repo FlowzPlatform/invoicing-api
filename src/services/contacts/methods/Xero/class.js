@@ -1,4 +1,4 @@
-var moment = require('moment');
+let moment = require('moment');
 // const config = require("../../../config.js");
 
 const xero = require('xero-node');
@@ -22,43 +22,46 @@ class Xero1 {
 
     authentication(config) {
       return new Promise(function(resolve, reject) {
-        var keybuffer = new Buffer(config.certificate, 'base64');
+        let keybuffer = new Buffer(config.certificate, 'base64');
         let credentials = {
-          "userAgent" : config.useragent,
-          "consumerKey": config.consumerKey,
-          "consumerSecret": config.consumerSecret,
-          "privateKey": keybuffer
+            "userAgent" : config.useragent,
+            "consumerKey": config.consumerKey,
+            "consumerSecret": config.consumerSecret,
+            "privateKey": keybuffer
         }
-        // console.log("credentials",credentials);
-        // if (config.credentials.privateKeyPath && !config.credentials.privateKey)
-        // config.credentials.privateKey = fs.readFileSync(config.credentials.privateKeyPath);
         const xeroClient = new xero.PrivateApplication(credentials);
         resolve(xeroClient);
       })
     }
 
-    
-
     async getAllContacts (config,data) {
       
-      var xeroClient = await this.authentication(config);
-      return new Promise((resolve, reject) => {
-          xeroClient.core.contacts.getContacts()
-          .then(function(invoices) {
-              resolve(invoices)
-          })
-          .catch(function(err) {
-              console.log("Error", typeof(err));
-              data = {err:'Authentication error!!! Check your connection and credentials.'};
-          })
-      })
+        let xeroClient = await this.authentication(config);
+        let filter = '';
+        if (data.Name) {
+            filter = 'Name = "' + data.Name + '"'
+        }
+        if (data.EmailAddress) {
+            filter += 'EmailAddress = "' + data.EmailAddress + '"'
+        }
+        console.log("############filter",filter);
+        return new Promise((resolve, reject) => {
+            xeroClient.core.contacts.getContacts({ where : filter})
+            .then(function(invoices) {
+                resolve(invoices)
+            })
+            .catch(function(err) {
+                console.log("Error", typeof(err));
+                resolve(err)
+            })
+        })
     }
 
     async createContact(config,data) {
-      var xeroClient = await this.authentication(config);
+      let xeroClient = await this.authentication(config);
         return new Promise((resolve, reject) => {
             console.log("params data",data)
-            var sampleContact = {
+            let sampleContact = {
                 Name: data.Name,
                 EmailAddress: data.EmailAddress,
                 Addresses: [ {
@@ -66,11 +69,12 @@ class Xero1 {
                     AddressLine1: data.AddressLine1,
                     AddressLine2: data.AddressLine2,
                     City: data.City,
+                    Region : data.State,
                     Country : data.Country,
                     PostalCode: data.PostalCode
                 } ],
                 Phones: [ {
-                    PhoneType: 'DDI',
+                    PhoneType: 'MOBILE',
                     PhoneNumber: data.PhoneNumber
                 } ]
             };
@@ -80,14 +84,12 @@ class Xero1 {
                     resolve(contacts.entities);
                 })
                 .catch(function(err) {
-                    console.log("Error", err);
-                    resolve(err);
+                    console.log("Error", err.data.Elements[0].ValidationErrors[0].Message);
+                    resolve(err.data.Elements[0].ValidationErrors[0].Message);
                     // data = { err: 'Authentication error!!! Check your connection and credentials.' };
                 })
         })
     }
-
-    
 }
 
 module.exports = function(options) {

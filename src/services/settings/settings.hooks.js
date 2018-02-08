@@ -45,19 +45,21 @@ module.exports = {
 
 async function  beforecreate (hook) {
   let res = await validateUser(hook);
-   console.log("dddddddddddddddddddd " , res)
+
   let response = await alreadyAvailable(hook , res)
   console.log(response)
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
     //hook.result = "created"
+
     if(hook.data.domain == 'custom' && response > 0){
       hook.result = "Custom Config is already available for this user"
     }else{
       hook.data.createdAt = new Date();
       hook.data.userId = res.data.data._id;
       hook.data.user = res.data.data.email;
+
     }
 
   }
@@ -144,8 +146,7 @@ beforepatch = async hook =>{
 
 // validateUser =data =>{
 async function validateUser(data) {
-  console.log(apiHeaders.authorization)
-  console.log(process.env.userDetailURL)
+
     var options = {
       uri: process.env.userDetailURL,
       headers: {
@@ -153,7 +154,7 @@ async function validateUser(data) {
       }
   };
   return new Promise((resolve , reject) =>{
-    
+
     // rp(options)
     // .then(function (parsedBody) {
     //     console.log(parsedBody)
@@ -189,4 +190,6 @@ function alreadyAvailable(hook , res) {
     })
   })
 
+
 } 
+
