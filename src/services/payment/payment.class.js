@@ -118,11 +118,13 @@ class Service {
                 throw new errors.NotAcceptable('user input not valid', validateSc.errors);
             }
     }
+
+
   
     //to get config from settings
     async getConfig(data) {
         var resp;
-        await this.app.service("settings").get(data.settingId)
+        await app.service("settings").get(data.settingId)
             .then(response => {
                 resp = response;
                 // console.log('users:', response);

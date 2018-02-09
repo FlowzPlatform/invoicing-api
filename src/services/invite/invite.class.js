@@ -80,7 +80,7 @@ class Service {
                     }
                 })
                 .then(async (result) => {
-                  self.sendEmail(data , res);
+                 // self.sendEmail(data , res);
                   resolve(result.data)
                 }).catch(function (err){
                   let errorObj = {};
@@ -115,34 +115,34 @@ class Service {
     
   }
 
-  sendEmail(data , res){
-    axios({
-        method: 'post',
-        url: baseUrl+'/auth/api/userdetails',
-        headers: {'Authorization': apiHeaders.authorization}
-    })
-    .then(async (result) => {
-      console.log("receiveEmail Data " , res.data.data[0].email)
-      console.log("sendEmail Data " , result.data.data.email)
-      axios({
-          method: 'post',
-          url: baseUrl+'/vmailmicro/sendEmail',
-          headers: {'Authorization': apiHeaders.authorization},
-          data : {"to":result.data.data.email,"from":res.data.data[0].email,"subject":"Invitation from Flowz","body":"Dear "+ res.data.data[0].username+", You have been invited by "+ result.data.data.email +"to Flowz"}
-      }).then(async (result) => {
-        return true;
-      }).catch(function(err){
-        console.log("err.response")
-        console.log(err.response)
-      })
+  // sendEmail(data , res){
+  //   axios({
+  //       method: 'post',
+  //       url: baseUrl+'/auth/api/userdetails',
+  //       headers: {'Authorization': apiHeaders.authorization}
+  //   })
+  //   .then(async (result) => {
+  //     console.log("receiveEmail Data " , res.data.data[0].email)
+  //     console.log("sendEmail Data " , result.data.data.email)
+  //     axios({
+  //         method: 'post',
+  //         url: baseUrl+'/vmailmicro/sendEmail',
+  //         headers: {'Authorization': apiHeaders.authorization},
+  //         data : {"to":result.data.data.email,"from":res.data.data[0].email,"subject":"Invitation from Flowz","body":"Dear "+ res.data.data[0].username+", You have been invited by "+ result.data.data.email +"to Flowz"}
+  //     }).then(async (result) => {
+  //       return true;
+  //     }).catch(function(err){
+  //       console.log("err.response")
+  //       console.log(err.response)
+  //     })
       
-    }).catch(function(err){
+  //   }).catch(function(err){
      
-      console.log(err.response)
-    })
+  //     console.log(err.response)
+  //   })
 
     
-  }
+  // }
 
   validateSchema(data, schemaName) {
     

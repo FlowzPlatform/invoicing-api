@@ -1,4 +1,3 @@
-
 var rp = require('request-promise');
 let errors = require('@feathersjs/errors') ;
 let axios = require("axios")
@@ -46,19 +45,21 @@ module.exports = {
 
 async function  beforecreate (hook) {
   let res = await validateUser(hook);
-  // console.log(res)
+
   let response = await alreadyAvailable(hook , res)
   console.log(response)
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
     //hook.result = "created"
-    if(response > 0){
+
+    if(hook.data.domain == 'custom' && response > 0){
       hook.result = "Custom Config is already available for this user"
     }else{
       hook.data.createdAt = new Date();
-      hook.data.userId = JSON.parse(res).data._id;
-      hook.data.user = JSON.parse(res).data.email;
+      hook.data.userId = res.data.data._id;
+      hook.data.user = res.data.data.email;
+
     }
 
   }
@@ -145,7 +146,7 @@ beforepatch = async hook =>{
 
 // validateUser =data =>{
 async function validateUser(data) {
-    
+
     var options = {
       uri: process.env.userDetailURL,
       headers: {
@@ -184,20 +185,11 @@ async function validateUser(data) {
 function alreadyAvailable(hook , res) {
   return new Promise((resolve , reject) =>{
     app.service('settings').find({query: {userId : res.data.data._id, domain:"custom"}}).then(settings => {
-          console.log(">>>>>>>>>>>>>>>>> " , settings.data.length)
+          // console.log(">>>>>>>>>>>>>>>>> " , settings.data.length)
           resolve(settings.data.length)
     })
   })
 
-}
 
-// checkDefaultConfig = (data , res) => {
-//   console.log(res)
+} 
 
-//   let findUser = JSON.parse(res).data._id;
-//   console.log(app.service('settings'))
-//   // app.service('settings').find({userId : findUser}).then(settings => {
-//   //   console.log(settings)
-//   // })
-//   return true;
-// }
