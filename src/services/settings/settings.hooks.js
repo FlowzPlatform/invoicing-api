@@ -185,7 +185,7 @@ async function validateUser(data) {
 function alreadyAvailable(hook , res) {
   return new Promise((resolve , reject) =>{
     app.service('settings').find({query: {userId : res.data.data._id, domain:"custom"}}).then(settings => {
-          console.log(">>>>>>>>>>>>>>>>> " , settings.data.length)
+          // console.log(">>>>>>>>>>>>>>>>> " , settings.data.length)
           resolve(settings.data.length)
     })
   })
