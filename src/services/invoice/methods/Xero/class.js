@@ -147,56 +147,82 @@ class Xero1 {
     }
 
     async createInvoice(config,data) {
-        var xeroClient = await this.authentication(config);
-        console.log("###########product arr",data.products);
-        var LineItems = [];
-        let duedate;
-        if (data.DueDate) {
-            duedate = data.DueDate
-        }
-        else {
-            duedate = new Date().toISOString().split("T")[0]
-        }
-        data.products.forEach(function(product) {
-            var lineItemData = {
-                Description: product.description,
-                Quantity: product.qty,
-                UnitAmount: product.amount,
-                AccountCode: '200'
+      var xeroClient = await this.authentication(config);
+      console.log("###########product arr",data.products);
+      var LineItems = [];
+      let duedate;
+      if (data.DueDate) {
+          duedate = data.DueDate
+      }
+      else {
+          duedate = new Date().toISOString().split("T")[0]
+      }
+      data.products.forEach(function(product) {
+        let desc = {
+          description : product.description,
+          title : product.title,
+          sku : product.sku,
+          additional_charges : product.additional_charges,
+          shipping_charges : product.shipping_charges,
+          tax : product.tax
+        };
+          var lineItemData = {
+              Description: JSON.stringify(desc),
+              Quantity: product.qty,
+              UnitAmount: product.amount,
+              AccountCode: '200'
+          };
+          LineItems.push(lineItemData);
+          if (product.additional_charges) {
+            lineItemData = {
+              Description: "additional_charges",
+              Quantity: "1",
+              UnitAmount: product.additional_charges,
+              AccountCode: '200'
             };
             LineItems.push(lineItemData);
-        })
-        var sampleInvoice = {
-            Type: 'ACCREC',
-            Contact: {
-                Name: data.Name
-            },
-            Status: 'AUTHORISED',
-            DueDate: duedate,
-            // LineItems: [{
-            //   Description: data.description,
-            //   Quantity: data.qty,
-            //   UnitAmount: data.amount,
-            //   AccountCode: '200'
-            // }]
-            LineItems : LineItems
-        };
-        console.log("sampleInvoice",sampleInvoice);
-        return new Promise((resolve, reject) => {
-            var invoiceObj = xeroClient.core.invoices.newInvoice(sampleInvoice);
-            var myInvoice;
-            invoiceObj.save()
-            .then(function(invoices) {
-                myInvoice = invoices.entities[0];
-                resolve(myInvoice);
-            })
-            .catch(function(err) {
-                console.log("Error in post invoice", typeof(err), err);
-                // data = {err:'Authentication error!!! Check your connection and credentials.'};
-                resolve(err);
-            })
-        })
-    }
+          }
+          if (product.shipping_charges) {
+            lineItemData = {
+              Description: "shipping_charges",
+              Quantity: "1",
+              UnitAmount: product.shipping_charges,
+              AccountCode: '200'
+            };
+            LineItems.push(lineItemData);
+          }
+      })
+      var sampleInvoice = {
+          Type: 'ACCREC',
+          Contact: {
+              Name: data.Name
+          },
+          Status: 'AUTHORISED',
+          DueDate: duedate,
+          // LineItems: [{
+          //   Description: data.description,
+          //   Quantity: data.qty,
+          //   UnitAmount: data.amount,
+          //   AccountCode: '200'
+          // }]
+          LineItems : LineItems
+      };
+      console.log("sampleInvoice",sampleInvoice);
+      return new Promise((resolve, reject) => {
+          var invoiceObj = xeroClient.core.invoices.newInvoice(sampleInvoice);
+          var myInvoice;
+          invoiceObj.save()
+          .then(function(invoices) {
+              myInvoice = invoices.entities[0];
+              resolve(myInvoice);
+          })
+          .catch(function(err) {
+              console.log("Error in post invoice", typeof(err), err);
+              // data = {err:'Authentication error!!! Check your connection and credentials.'};
+              resolve(err);
+          })
+      })
+  }
 
     async invoiceChart(filter, xeroClient) {
       var invoice_arr = [];

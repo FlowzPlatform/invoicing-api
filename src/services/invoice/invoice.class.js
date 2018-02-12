@@ -9,10 +9,24 @@ const feathersErrors = require('feathers-errors');
 const errors = feathersErrors.errors;
 var rp = require('request-promise');
 const axios = require('axios');
+const config = require("config");
 
 let baseUrl = process.env.baseUrl;
 
 var moment = require("moment");
+
+
+let r = require('rethinkdb')
+let connection;
+let response;
+r.connect({
+  host: config.get('rdb_host'),
+  port: config.get("rdb_port"),
+  db: 'invoicing_api'
+}, function(err, conn) {
+  if (err) throw err;
+  connection = conn
+})
 
 let schema1 = {
     findGetCreate : {
@@ -25,6 +39,8 @@ let schema1 = {
         "additionalProperties": true
     }
 };
+
+
 
 //For quickbook
 // var TokenProvider = require('refresh-token');
@@ -39,8 +55,10 @@ class Service {
         this.app = app;
     }
 
-    async find (params) {
+     
 
+    async find (params) {
+        console.log("invoice id inside params",params)
         let schemaName1 = schema1.findGetCreate ;
         this.validateSchema(params.query, schemaName1)
 
@@ -53,7 +71,7 @@ class Service {
     }
 
     async get (id, params) {
-        // console.log("invoice id inside get",id)
+         console.log("invoice id inside get",id)
         let schemaName1 = schema1.findGetCreate ;
         this.validateSchema(params.query, schemaName1)
 
@@ -65,6 +83,8 @@ class Service {
         console.log("config.domain",configdata[0].domain);
         let schema = require("./methods/"+configdata[0].domain+"/schema.js")
         let class1 = require("./methods/"+configdata[0].domain+"/class.js")
+
+        
         let obj = new class1();
 
         let schemaName = schema.get ;
@@ -89,8 +109,9 @@ class Service {
         let configdata = [];
         configdata.push(await this.getConfig(data));
     
-        let schema = require("./methods/"+configdata[0].domain+"/schema.js")
-        let class1 = require("./methods/"+configdata[0].domain+"/class.js")
+         let schema = require("./methods/"+configdata[0].domain+"/schema.js")
+         let class1 = require("./methods/"+configdata[0].domain+"/class.js")
+        
         let obj = new class1();
 
         let schemaName = schema.create ;
@@ -130,15 +151,46 @@ class Service {
     //to get config from settings
     async getConfig(data) {
         var resp;
+        console.log("LLLLLLLLLLLLLLLLLLLLLLLLL "  , data)
+       
 
-        await app.service("settings").get(data.settingId)
-            .then(response => {
-                resp = response;
-                // console.log('settings:', response);
-            }).catch(err => {
-                console.log(">>>>>>>>> " , err)
-                throw new errors.NotFound(err)
-            });
+        // await axios.get('http://localhost:3037/settings/'+data.settingId , {
+        //     headers: {
+        //         subscriptionId : '8b539be4-f7c2-47f0-9ae8-6677a5537bc4'
+        //     }
+        //   })
+        //   .then(function (response) {
+        //     console.log(response);
+        //     resp = response
+        //   })
+        //   .catch(function (error) {
+        //     console.log(error);
+        //     throw new errors.NotFound(error)
+        //   });
+        
+    //     await app.service("settings").get(data.settingId,  {  headers: { 
+    //         subscriptionid: '10ca1102-c78d-4f43-b93f-ceb59d909fb2' ,
+    //         authorization : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1YTU4NmE5MjQ1MGEzMTAwMTI0Y2U3Y2YiLCJpYXQiOjE1MTg0MjIxODIsImV4cCI6MTUxODUwODYxMiwiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsImlzcyI6ImZlYXRoZXJzIiwic3ViIjoiYW5vbnltb3VzIn0.rk2im5arpBxbUHzgp7gYndn-txZR2DFyFe70Atjo2xI' }
+    //   } 
+    //        )
+    //         .then(response => {
+    //             resp = response;
+    //              console.log('settings: >>>>>>>>>>>>>>>@@@@@@@@@@@>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', response);
+    //         }).catch(err => {
+    //             console.log(">>>>>>>>> ()()()()()()()()()()()()()()()()" , err)
+    //             throw new errors.NotFound(err)
+    //         });
+
+    await r.table('settings')
+    .get(data.settingId).run(connection , function(error , cursor){
+        if (error) throw error;
+
+        console.log(cursor)
+        resp = cursor
+        
+    })
+
+    
             
         return resp;
     }

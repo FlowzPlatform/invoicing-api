@@ -51,6 +51,7 @@
     "html-pdf": "^2.2.0",
     "lodash": "^4.17.4",
     "refresh-token": "^1.0.0",
+    "rethinkdb": "^2.3.3",
     "rethinkdbdash": "^2.3.31",
     "serve-favicon": "^2.4.5",
     "winston": "^2.4.0",

@@ -38,12 +38,16 @@ class Xero1 {
       
         let xeroClient = await this.authentication(config);
         let filter = '';
-        if (data.Name) {
-            filter = 'Name = "' + data.Name + '"'
-        }
-        if (data.EmailAddress) {
+        if(data.Name && data.EmailAddress ){
             filter += 'EmailAddress = "' + data.EmailAddress + '"'
+        }else if (data.EmailAddress) {
+            filter += 'EmailAddress = "' + data.EmailAddress + '"'
+        }else if (data.Name) {
+            filter = 'Name = "' + data.Name + '"'
+        }else{
+            filter = ''
         }
+
         console.log("############filter",filter);
         return new Promise((resolve, reject) => {
             xeroClient.core.contacts.getContacts({ where : filter})

@@ -12,6 +12,18 @@ let baseUrl = process.env.baseUrl;
 // let schema1 = require("./methods/schema.js")
 // let Xero1 = require("./methods/class.js")
 // let obj1 = new Xero1();
+const config = require("config");
+let r = require('rethinkdb')
+let connection;
+let response;
+r.connect({
+  host: config.get('rdb_host'),
+  port: config.get("rdb_port"),
+  db: 'invoicing_api'
+}, function(err, conn) {
+  if (err) throw err;
+  connection = conn
+})
 
 let schema1 = {
     findGetCreate : {
@@ -119,16 +131,29 @@ class Service {
 
     async getConfig(data) {
         var resp;
-        await app.service("settings").get(data.settingId)
-            .then(response => {
-                resp = response;
-                // console.log('users:', response);
-            }).catch(err => {
-                console.log("error in getconfig contact",err)
-                throw new errors.NotFound(err)
-            });
+        // await app.service("settings").get(data.settingId)
+        //     .then(response => {
+        //         resp = response;
+        //         // console.log('users:', response);
+        //     }).catch(err => {
+        //         console.log("error in getconfig contact",err)
+        //         throw new errors.NotFound(err)
+        //     });
 
-        return resp;
+        await r.table('settings')
+        .get(data.settingId).run(connection , function(error , cursor){
+            if (error) throw error;
+    
+            console.log(cursor)
+            resp = cursor
+            
+        })
+    
+        
+                
+            return resp;
+
+       
     }
 
 

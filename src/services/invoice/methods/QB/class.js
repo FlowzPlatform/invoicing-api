@@ -157,115 +157,172 @@ class QB1 {
       })
     }
 
-    async createInvoice(config,data,contactResponse) {
-      let arr;
-      var token = await this.getToken(config);
-      var value = contactResponse.data[0].Id;             //customer ref value
-      console.log("customer value",value);
-
-      let line = [];
-      let itemUrl;
-      let itemRequestObj;
-      let itemResult;
-      var itemJsondata;
+    async getItemValue(itemName, itemUrl, token, config) {
+      let itemRequestObj = await this.getRequestObj (itemUrl, token)
+      let itemResult = await this.make_api_call (itemRequestObj)
+      let itemJsondata = await JSON.parse(itemResult.body);
+      // console.log("reponse.........", itemJsondata.QueryResponse)
+      // console.log(" itemJsondata.QueryResponse.........", Object.keys(itemJsondata.QueryResponse).length)
       let itemValue;
-      // let self = this;
-      // data.products.forEach(async function(product) {
-      for (let [i, product] of data.products.entries()) { 
-        let amount = (product.qty) * (product.amount); 
-        console.log("@@@@@@@@@@@@@@@@@amount",amount)
-
-        //----------------to get all item in qb
-        itemUrl = api_uri + config.realmId + "/query?query=select * from Item where Name = '"+ product.description +"'";
+      if (Object.keys(itemJsondata.QueryResponse).length == 0) {
+        itemUrl = api_uri + config.realmId + "/item";
         console.log('Making API call to: ' + itemUrl);
-        itemRequestObj = await this.getRequestObj (itemUrl, token)
+        let body = JSON.stringify({
+          "Name": itemName,
+          "IncomeAccountRef": {
+            "value": "79",
+            "name": "Sales of Product Income"
+          },
+          "ExpenseAccountRef": {
+            "value": "80",
+            "name": "Cost of Goods Sold"
+          },
+          "AssetAccountRef": {
+            "value": "81",
+            "name": "Inventory Asset"
+          },
+          "Type": "Service",
+          "TrackQtyOnHand": true,
+          "QtyOnHand": 10,
+          "InvStartDate": "2015-01-01"
+        });
+        itemRequestObj = await this.postRequestObj (itemUrl, body, token);
         itemResult = await this.make_api_call (itemRequestObj)
         itemJsondata = await JSON.parse(itemResult.body);
-        // console.log("reponse.........", itemJsondata.QueryResponse)
-        // console.log(" itemJsondata.QueryResponse.........", Object.keys(itemJsondata.QueryResponse).length)
-        if (Object.keys(itemJsondata.QueryResponse).length == 0) {
-          itemUrl = api_uri + config.realmId + "/item";
-          console.log('Making API call to: ' + itemUrl);
-          let body = JSON.stringify({
-            "Name": product.description,
-            "IncomeAccountRef": {
-              "value": "79",
-              "name": "Sales of Product Income"
-            },
-            "ExpenseAccountRef": {
-              "value": "80",
-              "name": "Cost of Goods Sold"
-            },
-            "AssetAccountRef": {
-              "value": "81",
-              "name": "Inventory Asset"
-            },
-            "Type": "Service",
-            "TrackQtyOnHand": true,
-            "QtyOnHand": 10,
-            "InvStartDate": "2015-01-01"
-          });
-          itemRequestObj = await this.postRequestObj (itemUrl, body, token);
-          itemResult = await this.make_api_call (itemRequestObj)
-          itemJsondata = await JSON.parse(itemResult.body);
-          // console.log("________________________________________>>>>>item post response",itemJsondata)
-          if (itemJsondata.Fault) {
-            
-          }
-          else {
-            itemValue = itemJsondata.Item.Id;
-          }
+        // console.log("________________________________________>>>>>item post response",itemJsondata)
+        if (itemJsondata.Fault) {
+          
         }
         else {
-          itemValue = itemJsondata.QueryResponse.Item[0].Id;
+          itemValue = itemJsondata.Item.Id;
         }
-        ////////////////////////////////////////
+      }
+      else {
+        itemValue = itemJsondata.QueryResponse.Item[0].Id;
+      }
+      return itemValue;
+  }
 
+  async createInvoice(config,data,contactResponse) {
+    let arr;
+    var token = await this.getToken(config);
+    var value = contactResponse.data[0].Id;             //customer ref value
+    console.log("customer value",value);
+
+    let line = [];
+    let itemUrl;
+    let itemRequestObj;
+    let itemResult;
+    var itemJsondata;
+    let itemValue;
+    // let self = this;
+    // data.products.forEach(async function(product) {
+    for (let [i, product] of data.products.entries()) {
+      let desc = {
+        description : product.description,
+        title : product.title,
+        sku : product.sku,
+        additional_charges : product.additional_charges,
+        shipping_charges : product.shipping_charges,
+        tax : product.tax
+      };
+      let amount = (product.qty) * (product.amount); 
+      console.log("@@@@@@@@@@@@@@@@@amount",amount)
+
+      //----------------to get all item in qb
+      itemUrl = api_uri + config.realmId + "/query?query=select * from Item where Name = '"+ product.title +"'";
+      console.log('Making API call to: ' + itemUrl);
+      itemValue = await this.getItemValue(product.title, itemUrl, token,config)
+      console.log("itemValue",itemValue)
+      ////////////////////////////////////////
+
+      var lineData = {
+        "Amount" : amount,
+        "Description" : JSON.stringify(desc),
+        "DetailType": "SalesItemLineDetail",
+        "SalesItemLineDetail": {
+          // "ItemRef": {
+          //   "value": "2",
+          //   "name": "Services"
+          // },
+          "ItemRef": {
+            "value": itemValue
+          },
+          "UnitPrice" : product.amount,
+          "Qty" : product.qty
+        }
+      };
+      line.push(lineData);
+
+      if (product.additional_charges) {
+        itemUrl = api_uri + config.realmId + "/query?query=select * from Item where Name = '"+ product.title +"_additional_charges'";
+        console.log('Making API call to: ' + itemUrl);
+        itemValue = await this.getItemValue(product.title+"_additional_charges", itemUrl, token,config)
+        console.log("itemValue",itemValue)
+        amount = 1 * product.additional_charges;
         var lineData = {
           "Amount" : amount,
-          "Description" : product.description,
+          "Description" : "additional_charges",
           "DetailType": "SalesItemLineDetail",
           "SalesItemLineDetail": {
-            // "ItemRef": {
-            //   "value": "2",
-            //   "name": "Services"
-            // },
             "ItemRef": {
               "value": itemValue
             },
-            "UnitPrice" : product.amount,
-            "Qty" : product.qty
+            "UnitPrice" : product.additional_charges,
+            "Qty" : "1"
           }
         };
         line.push(lineData);
       }
 
-      var ref = {
-          "value": value,
-      };
-
-      var body = JSON.stringify({'Line': line, 'CustomerRef':ref});
-      console.log("body",body);
-      var url = api_uri + config.realmId + '/invoice'
-      console.log('Making API call to: ' + url)
-      var postrequestObj = await this.postRequestObj (url, body, token)
-      var result = await this.make_api_call (postrequestObj)
-      var jsondata = JSON.parse(result.body);
-      console.log("QB Invoice post response",jsondata);
-      if (jsondata.QueryResponse == undefined) {
-        // return(jsondata.fault.error[0].message);
-        return(jsondata);
+      if (product.shipping_charges) {
+        itemUrl = api_uri + config.realmId + "/query?query=select * from Item where Name = '"+ product.title +"_shipping_charges'";
+        console.log('Making API call to: ' + itemUrl);
+        itemValue = await this.getItemValue(product.title+"_shipping_charges", itemUrl, token, config)
+        console.log("itemValue",itemValue)
+        amount = 1 * product.shipping_charges;
+        var lineData = {
+          "Amount" : amount,
+          "Description" : "shipping_charges",
+          "DetailType": "SalesItemLineDetail",
+          "SalesItemLineDetail": {
+            "ItemRef": {
+              "value": itemValue
+            },
+            "UnitPrice" : product.shipping_charges,
+            "Qty" : "1"
+          }
+        };
+        line.push(lineData);
       }
-      else {
-        // var data1 = JSON.stringify(jsondata.Invoice, null, 2);
-        // arr = JSON.parse(data1);
-        // return arr;
-
-        arr = jsondata.Invoice;
-        return arr;
-      }
-      // return itemJsondata;
     }
+
+    var ref = {
+        "value": value,
+    };
+
+    var body = JSON.stringify({'Line': line, 'CustomerRef':ref});
+    console.log("body",body);
+    var url = api_uri + config.realmId + '/invoice'
+    console.log('Making API call to: ' + url)
+    var postrequestObj = await this.postRequestObj (url, body, token)
+    var result = await this.make_api_call (postrequestObj)
+    var jsondata = JSON.parse(result.body);
+    console.log("QB Invoice post response",jsondata);
+    if (jsondata.QueryResponse == undefined) {
+      // return(jsondata.fault.error[0].message);
+      return(jsondata);
+    }
+    else {
+      // var data1 = JSON.stringify(jsondata.Invoice, null, 2);
+      // arr = JSON.parse(data1);
+      // return arr;
+
+      arr = jsondata.Invoice;
+      return arr;
+    }
+    // return itemJsondata;
+  }
 
     async getInvoicesByFilter(config,data) {
       var token = await this.getToken(config);
