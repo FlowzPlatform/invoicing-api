@@ -61,11 +61,11 @@ async function beforeCreateInvoice(hook){
 		return result.total
 	})
 
-	console.log("#DueDate " ,  moment(hook.data.DueDate).format('DD/MM/YYYY'))
+	//console.log("#DueDate " ,  moment(hook.data.DueDate).format('DD/MM/YYYY'))
 	let incr = invoiceCount+1
 	
-	if(hook.data.Products.length > 0){
-		let maximum = _.map(hook.data.Products, function(o) { return o.qty * o.amount; });
+	if(hook.data.products.length > 0){
+		let maximum = _.map(hook.data.products, function(o) {return ((o.qty * o.amount) + o.additional_charges + o.shipping_charges) });
 		let Total = maximum.reduce(function(maximum, b) { return maximum + b; }, 0);
 		hook.data.Date = new Date();
 		hook.data.DueDate = new Date(hook.data.DueDate);

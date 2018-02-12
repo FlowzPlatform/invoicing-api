@@ -111,7 +111,7 @@ checkDefaultConfig = (data , res) => {
   console.log(res)
 
   let findUser = JSON.parse(res).data._id;
-  console.log(app.service('settings'))
+  
   // app.service('settings').find({userId : findUser}).then(settings => {
   //   console.log(settings)
   // })

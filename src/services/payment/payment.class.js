@@ -7,6 +7,20 @@ const errors = feathersErrors.errors;
 var rp = require('request-promise');
 const axios = require('axios');
 
+
+const config = require("config");
+let r = require('rethinkdb')
+let connection;
+let response;
+r.connect({
+  host: config.get('rdb_host'),
+  port: config.get("rdb_port"),
+  db: 'invoicing_api'
+}, function(err, conn) {
+  if (err) throw err;
+  connection = conn
+})
+
 let schema1 = {
     findGetCreate : {
         "properties" : {
@@ -124,14 +138,23 @@ class Service {
     //to get config from settings
     async getConfig(data) {
         var resp;
-        await app.service("settings").get(data.settingId)
-            .then(response => {
-                resp = response;
-                // console.log('users:', response);
-            }).catch(err => {
-                console.log(err)
-                throw new errors.NotFound(err)
-            });
+        // await app.service("settings").get(data.settingId)
+        //     .then(response => {
+        //         resp = response;
+        //         // console.log('users:', response);
+        //     }).catch(err => {
+        //         console.log(err)
+        //         throw new errors.NotFound(err)
+        //     });
+
+        await r.table('settings')
+        .get(data.settingId).run(connection , function(error , cursor){
+            if (error) throw error;
+    
+            console.log(cursor)
+            resp = cursor
+            
+        })
 
         return resp;
     }

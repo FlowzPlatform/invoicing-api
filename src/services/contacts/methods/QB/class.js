@@ -91,11 +91,16 @@ class QB1 {
         // if (data.Name || data.EmailAddress) {
         //     url += "Where"
         // }
-        if (data.Name) {
-            url += "Where DisplayName = '" + data.Name + "'"
-        }
-        if (data.EmailAddress) {
+       
+
+        if(data.Name && data.EmailAddress ){
             url += "Where PrimaryEmailAddr = '" + data.EmailAddress + "'"
+        }else if (data.EmailAddress) {
+            url += "Where PrimaryEmailAddr = '" + data.EmailAddress + "'"
+        }else if (data.Name) {
+            url += "Where DisplayName = '" + data.Name + "'"
+        }else{
+            
         }
         console.log('Making API call to: ' + url)
     

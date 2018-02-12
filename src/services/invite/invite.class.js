@@ -42,7 +42,7 @@ class Service {
   }
 
   create (data, params) {
-    
+    console.log("created called")
     let previous_packages ;
     let userId;
     let module = data.module;
@@ -80,9 +80,11 @@ class Service {
                     }
                 })
                 .then(async (result) => {
+                  console.log(result)
                  // self.sendEmail(data , res);
                   resolve(result.data)
                 }).catch(function (err){
+                  console.log(err)
                   let errorObj = {};
                   if(apiHeaders.authorization == undefined){
                     errorObj.statusText = "missing Authorization header";

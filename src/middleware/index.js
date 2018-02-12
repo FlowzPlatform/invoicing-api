@@ -19,10 +19,10 @@ module.exports = async function () {
   let registerAppModule = {
     
     'settings': ['create' , 'get' , 'find', 'update' , 'remove'],
-    'invoice': ['create' , 'get' , 'find',  'update' , 'remove'],
-    'contacts': ['create' , 'get' , 'find',  'update' , 'remove'],
-    'customcontacts': ['create' , 'find',  'get' , 'update' , 'remove'],
-    'custominvoice': ['create' , 'get' ,'find',  'update' , 'remove']
+    // 'invoice': ['create' , 'get' , 'find',  'update' , 'remove'],
+    // 'contacts': ['create' , 'get' , 'find',  'update' , 'remove'],
+    // 'customcontacts': ['create' , 'find',  'get' , 'update' , 'remove'],
+    // 'custominvoice': ['create' , 'get' ,'find',  'update' , 'remove']
   }
   subscription.moduleResource.registerAppModule = registerAppModule 
   subscription.moduleResource.appRoles = ['admin', 'accountant', 'client']
