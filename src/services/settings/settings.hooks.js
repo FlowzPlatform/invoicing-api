@@ -1,6 +1,19 @@
 var rp = require('request-promise');
 let errors = require('@feathersjs/errors') ;
-let axios = require("axios")
+let axios = require("axios");
+let r = require('rethinkdb');
+const config = require("config");
+let connection;
+let response;
+r.connect({
+  host: config.get('rdb_host'),
+  port: config.get("rdb_port"),
+  db: 'invoicing_api'
+}, function(err, conn) {
+  if (err) throw err;
+  connection = conn
+})
+
 module.exports = {
   before: {
     all: [],
@@ -150,6 +163,8 @@ beforepatch = async hook =>{
 // validateUser =data =>{
 async function validateUser(data) {
 
+    console.log("apiHeaders.authorizationapiHeaders.authorizationapiHeaders.authorization "  , apiHeaders.authorization)
+    console.log("apiHeaders.authorizationapiHeaders.authorizationapiHeaders.authorization "  , process.env.userDetailURL)
     var options = {
       uri: process.env.userDetailURL,
       headers: {
@@ -174,7 +189,7 @@ async function validateUser(data) {
               }
             })
             .then(function (response) {
-             // console.log(response)
+              console.log("response " , response)
                 resolve(response)
             })
             .catch(function (error) {
@@ -187,10 +202,24 @@ async function validateUser(data) {
 
 function alreadyAvailable(hook , res) {
   return new Promise((resolve , reject) =>{
-    app.service('settings').find({query: {userId : res.data.data._id, domain:"custom"}}).then(settings => {
-          // console.log(">>>>>>>>>>>>>>>>> " , settings.data.length)
-          resolve(settings.data.length)
+
+    r.table('settings')
+    .filter({userId : res.data.data._id, domain:"custom"}).run(connection , function(error , cursor){
+        if (error) throw error;
+        cursor.toArray(function(err, results) {
+          if (err) throw err;
+          console.log("<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>> "  , results)
+          resolve(results.length)
+      });
+        
+        
+        
     })
+
+    // app.service('settings').find({query: {userId : res.data.data._id, domain:"custom"}}).then(settings => {
+    //       // console.log(">>>>>>>>>>>>>>>>> " , settings.data.length)
+    //       resolve(settings.data.length)
+    // })
   })
 
 
