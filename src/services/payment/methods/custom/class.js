@@ -1,5 +1,5 @@
 
-const paymentConfig = require("../../../payment-plugin.json");
+const paymentConfig = require("../../../payment-plugin.js");
 
 const xero = require('xero-node');
 var rp = require('request-promise');

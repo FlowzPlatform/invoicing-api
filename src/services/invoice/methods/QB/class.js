@@ -1,6 +1,4 @@
 var moment = require('moment');
-// const config = require("../../../config.js");
-// const paymentConfig = require("../../../payment-plugin.json");
 
 //For quickbook
 var TokenProvider = require('refresh-token');

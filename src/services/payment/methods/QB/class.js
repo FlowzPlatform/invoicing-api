@@ -1,5 +1,5 @@
 
-const paymentConfig = require("../../../payment-plugin.json");
+const paymentConfig = require("../../../payment-plugin.js");
 
 var TokenProvider = require('refresh-token');
 var request = require('request');
