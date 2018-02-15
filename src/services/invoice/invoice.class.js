@@ -58,7 +58,7 @@ class Service {
      
 
     async find (params) {
-        console.log("invoice id inside params",params)
+        // console.log("invoice id inside params",params)
         let schemaName1 = schema1.findGetCreate ;
         this.validateSchema(params.query, schemaName1)
 
@@ -71,7 +71,7 @@ class Service {
     }
 
     async get (id, params) {
-         console.log("invoice id inside get",id)
+        //  console.log("invoice id inside get",id)
         let schemaName1 = schema1.findGetCreate ;
         this.validateSchema(params.query, schemaName1)
 
@@ -151,7 +151,7 @@ class Service {
     //to get config from settings
     async getConfig(data) {
         var resp;
-        console.log("LLLLLLLLLLLLLLLLLLLLLLLLL "  , data)
+        // console.log("LLLLLLLLLLLLLLLLLLLLLLLLL "  , data)
        
 
         // await axios.get('http://localhost:3037/settings/'+data.settingId , {

@@ -157,9 +157,9 @@ beforepatch = async hook =>{
 	if (hook.data.online_payment) {
 		let data = await getData(hook.data);
 		// console.log("response of get data",data);
+    let hookarr = Object.keys(hook.data.online_payment);
+    console.log("hookarr",hookarr)
 		if (data.online_payment) {
-			let hookarr = Object.keys(hook.data.online_payment);
-			console.log("hookarr",hookarr)
 			let gateway;
 			let arr = Object.keys(data.online_payment);
 			console.log("----------arr",arr);

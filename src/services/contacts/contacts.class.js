@@ -144,7 +144,7 @@ class Service {
         .get(data.settingId).run(connection , function(error , cursor){
             if (error) throw error;
     
-            console.log(cursor)
+            // console.log(cursor)
             resp = cursor
             
         })

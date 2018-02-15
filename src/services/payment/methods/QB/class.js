@@ -39,7 +39,12 @@ class QB1 {
       });
       return new Promise(function(resolve, reject) {
         tokenProvider.getToken(function (err, newToken) {
-          resolve(newToken)
+          if (err) {
+              console.log("==============",err);
+          }
+          else {
+            resolve(newToken)
+          }
         });
       })
     }
@@ -84,8 +89,23 @@ class QB1 {
       })
     }
 
-    async paymentGateway(data,paymentConf) {
+    async paymentGateway(data,paymentConf,config) {
+      let index;
+      if (config.online_payment) {
+        console.log("online_payment",config.online_payment[data.gateway]);
+        index = _.findIndex(config.online_payment[data.gateway], function(o) { return o.isDefault == true; });
+        console.log("_.findIndex",index);
+        if (index < 0) {
+            throw new errors.NotFound("Payment Credential is not available. Please configure atleast one credential!!")
+        }
+      }
+      else {
+        throw new errors.NotFound("Payment Credential is not available. Please configure atleast one credential!!")
+      }
       return new Promise(async function(resolve, reject) {
+        let paymentToken = config.online_payment[data.gateway][index]
+        console.log("configData",config.online_payment[data.gateway][index]);
+        // let paymentToken = config.online_payment[data.gateway];
         if (data.gateway == "paypal") {
           paymentConf.body_option.transactions[0].amount.total = data.amount;
           paymentConf.body_option.transactions[0].amount.details.subtotal = data.amount;
@@ -94,6 +114,8 @@ class QB1 {
           paymentConf.body_option.payer.funding_instruments[0].payment_card.expire_month = data.expMonth;
           paymentConf.body_option.payer.funding_instruments[0].payment_card.expire_year = data.expYear;
           paymentConf.body_option.payer.funding_instruments[0].payment_card.cvv2 = data.cvc;
+          paymentConf.headers["X-api-token"] = paymentToken.x_api_token;
+          paymentConf.headers["x-api-login"] = paymentToken.x_api_login;
         }
         else {
           paymentConf.body_option.amount = (data.amount * 100);
@@ -101,6 +123,13 @@ class QB1 {
           paymentConf.body_option.expMonth = data.expMonth;
           paymentConf.body_option.expYear = data.expYear;
           paymentConf.body_option.cvc = data.cvc;
+          if (data.gateway == "stripe") {
+            paymentConf.headers["x-api-token"] = paymentToken.x_api_token;
+          }
+          else {
+              paymentConf.headers["x-api-token"] = paymentToken.x_api_token;
+              paymentConf.headers["x-api-login"] = paymentToken.x_api_login;
+          }
         }
 
         var options = {
@@ -172,69 +201,82 @@ class QB1 {
     }
 
     async createPayment(config,data) {
-      var token = await this.getToken(config);
-      var paymentConf = paymentConfig.credentials[data.gateway];
-      // console.log("paymentConf",paymentConf)
-        var payment = await this.paymentGateway(data,paymentConf);
-         console.log("payment payment payment",payment)
-        // if (payment.err) {
-        //   var err = payment.err.message || payment.err.response.error_description
-        //   console.log("Error in payment",err);
-        // }
-        // else {
-        // console.log("#########",payment.state)
-          var status = payment.status || payment.state || payment.messages.resultCode
-          console.log("Status of payment", status);
-        // }
+        var token = await this.getToken(config);
+        var paymentConf = paymentConfig.credentials[data.gateway];
+        // console.log("paymentConf",paymentConf)
+        var payment = await this.paymentGateway(data,paymentConf,config);
+        console.log("payment response from gateway",payment);
+        var status;
+        var errorMsg;
+        //stripe invalid token error
+        if (payment.statusCode == 401) {
+            errorMsg = payment.message
+        }
+        //paypal internal service error
+        else if (payment.httpStatusCode == 500) {
+            errorMsg = payment.response.message
+        }
+        else {
+            status = payment.status || payment.state || payment.messages.resultCode
+        }
+        if (status == "Error") {
+            errorMsg = payment.messages.message[0].text
+        }
+        // var status = payment.status || payment.state || payment.messages.resultCode
+        console.log("Status of payment", status);
+        
         var payment1;
         if(status == 'succeeded' || status == 'Ok' || status == 'created') {
           var url = api_uri + config.realmId + '/payment'
           console.log('Making API call to: ' + url)
           payment1 = await this.postPayment(data,token,url);  
-        }
-      return new Promise(async function(resolve, reject) {
-        let jsondata = JSON.parse(payment1.body);
-        let myfinalObj = {};
-        let mObj = {
-            'Gateway' : data.gateway
-        }
-        _.forEach(payment, (v, k) => {
-            if (k == 'id' || k == 'amount' || k == 'balance_transaction' ||  k == 'captured' || k == 'created'|| k == 'currency'|| k == 'refunded'|| k == 'refunds' || 
-                k == 'transactionResponse' || 
-                k == 'create_time' || k == 'update_time' || k == 'state' || k == 'payer' || k == 'transactions') {
-                mObj[k] = v
+          return new Promise(async function(resolve, reject) {
+            let jsondata = JSON.parse(payment1.body);
+            let myfinalObj = {};
+            let mObj = {
+                'Gateway' : data.gateway
             }
-        })
-        // console.log(">>>>>>>>>>>>>>>>>>>>>jsondata",jsondata);
-
-        let accObj = {
-          'PaymentID' : jsondata.Payment.Id,
-          'Amount' : jsondata.Payment.TotalAmt,
-          'Account' : jsondata.Payment.DepositToAccountRef,
-          'Invoice' : {
-            'InvoiceID' : jsondata.Payment.Line[0].LinkedTxn[0].TxnId,
-            'Date' : jsondata.Payment.TxnDate,
-            'Status' : ''
-          },
-          'Contact' : {
-            'ContactID' : jsondata.Payment.CustomerRef.value,
-            'Name' : jsondata.Payment.CustomerRef.name
-          }
-        };
-
-        myfinalObj.settingId = config.id
-        myfinalObj.user = config.user
-        myfinalObj.paymentGateway = mObj
-        myfinalObj.paymentAccounting = accObj
-
-        // console.log("payment transaction post obj",myfinalObj);
-
-        resolve({
-          paymentGateway: payment,
-          paymentAccounting: jsondata,
-          paymemntPostObj : myfinalObj
-        });
-      })
+            _.forEach(payment, (v, k) => {
+                if (k == 'id' || k == 'amount' || k == 'balance_transaction' ||  k == 'captured' || k == 'created'|| k == 'currency'|| k == 'refunded'|| k == 'refunds' || 
+                    k == 'transactionResponse' || 
+                    k == 'create_time' || k == 'update_time' || k == 'state' || k == 'payer' || k == 'transactions') {
+                    mObj[k] = v
+                }
+            })
+            // console.log(">>>>>>>>>>>>>>>>>>>>>jsondata",jsondata);
+    
+            let accObj = {
+              'PaymentID' : jsondata.Payment.Id,
+              'Amount' : jsondata.Payment.TotalAmt,
+              'Account' : jsondata.Payment.DepositToAccountRef,
+              'Invoice' : {
+                'InvoiceID' : jsondata.Payment.Line[0].LinkedTxn[0].TxnId,
+                'Date' : jsondata.Payment.TxnDate,
+                'Status' : ''
+              },
+              'Contact' : {
+                'ContactID' : jsondata.Payment.CustomerRef.value,
+                'Name' : jsondata.Payment.CustomerRef.name
+              }
+            };
+    
+            myfinalObj.settingId = config.id
+            myfinalObj.user = config.user
+            myfinalObj.paymentGateway = mObj
+            myfinalObj.paymentAccounting = accObj
+    
+            // console.log("payment transaction post obj",myfinalObj);
+    
+            resolve({
+              paymentGateway: payment,
+              paymentAccounting: jsondata,
+              paymemntPostObj : myfinalObj
+            });
+          })
+        }
+        else {
+          throw new errors.BadRequest(errorMsg);
+        }
     }
 
     async getPayment(config,data) {
