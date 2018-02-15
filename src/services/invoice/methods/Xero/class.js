@@ -2,7 +2,7 @@ var moment = require('moment');
 // const config = require("../../../config.js");
 
 const xero = require('xero-node');
-const fs = require("fs");
+// const fs = require("fs");
 
 class Xero1 {
     /**
@@ -29,9 +29,6 @@ class Xero1 {
           "consumerSecret": config.consumerSecret,
           "privateKey": keybuffer
         }
-        // console.log("credentials",credentials);
-        // if (config.credentials.privateKeyPath && !config.credentials.privateKey)
-        // config.credentials.privateKey = fs.readFileSync(config.credentials.privateKeyPath);
         const xeroClient = new xero.PrivateApplication(credentials);
         resolve(xeroClient);
       })
@@ -42,34 +39,34 @@ class Xero1 {
       return new Date(year, month, 0).getDate();
     }
 
-    async getAllInvoice (config,data) {
-      var xeroClient = await this.authentication();
+    // async getAllInvoice (config,data) {
+    //   var xeroClient = await this.authentication();
+    //   return new Promise((resolve, reject) => {
+    //       xeroClient.core.invoices.getInvoices()
+    //       .then(function(invoices) {
+    //           resolve(invoices)
+    //       })
+    //       .catch(function(err) {
+    //           console.log("Error", typeof(err));
+    //           data = {err:'Authentication error!!! Check your connection and credentials.'};
+    //       })
+    //   })
+    // }
+
+    async getInvoiceById(config,id) {
+      var xeroClient = await this.authentication(config);
       return new Promise((resolve, reject) => {
-          xeroClient.core.invoices.getInvoices()
+        xeroClient.core.invoices.getInvoice(id)
           .then(function(invoices) {
               resolve(invoices)
           })
           .catch(function(err) {
-              console.log("Error", typeof(err));
-              data = {err:'Authentication error!!! Check your connection and credentials.'};
+              console.log("Error in get invoice by id", err);
+              // data = {err:'Authentication error!!! Check your connection and credentials.'};
+              resolve(err);
           })
       })
     }
-
-    async getInvoiceById(config,id) {
-        var xeroClient = await this.authentication(config);
-        return new Promise((resolve, reject) => {
-            xeroClient.core.invoices.getInvoice(id)
-            .then(function(invoices) {
-                resolve(invoices)
-            })
-            .catch(function(err) {
-                console.log("Error", typeof(err));
-                data = {err:'Authentication error!!! Check your connection and credentials.'};
-            })
-        })
-    }
-
 
     async getInvoicesByFilter(config,data) {
         // console.log("inside filter")
@@ -132,30 +129,19 @@ class Xero1 {
           }
         }
 
-        // var final_filter = '';
-        // if ( filterContact != '') {
-        //   if (filter != '') {
-        //     final_filter = filterContact + ' && ' + filter
-        //   }
-        //   else {
-        //     final_filter = filterContact
-        //   }
-        // }
-        // else {
-        //   final_filter = filter
-        // }
         console.log("############filter",filter);
 
         var xeroClient = await this.authentication(config);
         return new Promise((resolve, reject) => {
-            xeroClient.core.invoices.getInvoices({ where : filter})
+          xeroClient.core.invoices.getInvoices({ where : filter})
             .then(function(invoices) {
               // console.log("invoices",invoices);
                 resolve(invoices)
             })
             .catch(function(err) {
                 console.log("Error", typeof(err), err);
-                data = {err:'Authentication error!!! Check your connection and credentials.'};
+                // data = {err:'Authentication error!!! Check your connection and credentials.'};
+                resolve(err);
             })
         })
     }
@@ -164,47 +150,81 @@ class Xero1 {
       var xeroClient = await this.authentication(config);
       console.log("###########product arr",data.products);
       var LineItems = [];
+      let duedate;
+      if (data.DueDate) {
+          duedate = data.DueDate
+      }
+      else {
+          duedate = new Date().toISOString().split("T")[0]
+      }
       data.products.forEach(function(product) {
-        var lineItemData = {
-          Description: product.description,
-          Quantity: product.qty,
-          UnitAmount: product.amount,
-          AccountCode: '200'
+        let desc = {
+          description : product.description,
+          title : product.title,
+          sku : product.sku,
+          additional_charges : product.additional_charges,
+          shipping_charges : product.shipping_charges,
+          tax : product.tax
         };
-        LineItems.push(lineItemData);
+          var lineItemData = {
+              Description: JSON.stringify(desc),
+              Quantity: product.qty,
+              UnitAmount: product.amount,
+              AccountCode: '200'
+          };
+          LineItems.push(lineItemData);
+          if (product.additional_charges) {
+            lineItemData = {
+              Description: "additional_charges",
+              Quantity: "1",
+              UnitAmount: product.additional_charges,
+              AccountCode: '200'
+            };
+            LineItems.push(lineItemData);
+          }
+          if (product.shipping_charges) {
+            lineItemData = {
+              Description: "shipping_charges",
+              Quantity: "1",
+              UnitAmount: product.shipping_charges,
+              AccountCode: '200'
+            };
+            LineItems.push(lineItemData);
+          }
       })
       var sampleInvoice = {
-        Type: 'ACCREC',
-        Contact: {
-          Name: data.Name
-        },
-        Status: 'AUTHORISED',
-        DueDate: new Date().toISOString().split("T")[0],
-        // LineItems: [{
-        //   Description: data.description,
-        //   Quantity: data.qty,
-        //   UnitAmount: data.amount,
-        //   AccountCode: '200'
-        // }]
-        LineItems : LineItems
+          Type: 'ACCREC',
+          Contact: {
+              Name: data.Name
+          },
+          Status: 'AUTHORISED',
+          DueDate: duedate,
+          // LineItems: [{
+          //   Description: data.description,
+          //   Quantity: data.qty,
+          //   UnitAmount: data.amount,
+          //   AccountCode: '200'
+          // }]
+          LineItems : LineItems
       };
       console.log("sampleInvoice",sampleInvoice);
       return new Promise((resolve, reject) => {
-        var invoiceObj = xeroClient.core.invoices.newInvoice(sampleInvoice);
-        var myInvoice;
-        invoiceObj.save()
+          var invoiceObj = xeroClient.core.invoices.newInvoice(sampleInvoice);
+          var myInvoice;
+          invoiceObj.save()
           .then(function(invoices) {
               myInvoice = invoices.entities[0];
               resolve(myInvoice);
           })
           .catch(function(err) {
-              console.log("Error", typeof(err));
-              data = {err:'Authentication error!!! Check your connection and credentials.'};
+              console.log("Error in post invoice", typeof(err), err);
+              // data = {err:'Authentication error!!! Check your connection and credentials.'};
+              resolve(err);
           })
       })
-    }
+  }
 
-    invoiceChart(filter, xeroClient) {
+    async invoiceChart(filter, xeroClient) {
       var invoice_arr = [];
       return new Promise((resolve, reject) => {
         xeroClient.core.invoices.getInvoices({where : filter})
@@ -217,7 +237,8 @@ class Xero1 {
         })
         .catch(function(err) {
             console.log("Error", typeof(err));
-            data = {err:'Authentication error!!! Check your connection and credentials.'};
+            // data = {err:'Authentication error!!! Check your connection and credentials.'};
+            resolve(err);
         })
       })
     }
@@ -247,8 +268,8 @@ class Xero1 {
         }
       ];
 
-      var filter = '';
       for (var i=0; i <= month_len-1; i++) {
+        var filter = '';
         var invoice_arr = [];
         if ( i == (month_len-1)) {
           var mnth = moment(date2).format('MM')
@@ -256,10 +277,10 @@ class Xero1 {
           var dategt = year+','+ mnth + ',1'
           var datelt = moment(date2).format('YYYY,MM,DD')
           var mnth_name =  monthNames[mnth - 1];
-          filter = ' Date >= DateTime(' + dategt + ',00,00,00)' + 'AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           if (data.contact) {
-            filter += ' && Contact.Name = "'+ data.contact +'"'
+            filter = 'Contact.Name = "'+ data.contact +'" && '
           }
+          filter += 'Date >= DateTime(' + dategt + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           console.log("Filter####",filter);
           var arr = await this.invoiceChart(filter, xeroClient)
           invoice_arr.push(arr);
@@ -271,25 +292,34 @@ class Xero1 {
           dategt = moment(date1).format('YYYY,MM,DD')
           datelt = year+','+ mnth + ',' + day
           var mnth_name =  monthNames[mnth - 1];
-          filter = ' Date >= DateTime(' + dategt + ',00,00,00)' + 'AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           if (data.contact) {
-            filter += ' && Contact.Name = "'+ data.contact +'"'
+            filter = 'Contact.Name = "'+ data.contact +'" && '
           }
+          filter += 'Date >= DateTime(' + dategt + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           console.log("Filter####",filter);
           var arr = await this.invoiceChart(filter, xeroClient)
           invoice_arr.push(arr);
         }
         else {
-          var mnth = parseInt(moment(date1).format('MM')) + i
-          var year = moment(date1).format('YYYY')
+          let mnth = parseInt(moment(date1).format('MM')) + i
+          let year = moment(date1).format('YYYY');
+          if (mnth > 12) {
+            if ((mnth % 12 != 0)) {
+              mnth = mnth % 12
+              year = parseInt(moment(date1).format('YYYY')) + 1
+            }
+            else {
+              mnth = 12
+            }
+          }
           var day = this.daysInMonth(mnth, year)
           dategt = year+','+ mnth + ',1'
           datelt = year+','+ mnth + ',' + day
           var mnth_name =  monthNames[mnth - 1];
-          filter = ' Date >= DateTime(' + dategt + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           if (data.contact) {
-            filter += ' && Contact.Name = "'+ data.contact +'"'
+            filter = 'Contact.Name = "'+ data.contact +'" && '
           }
+          filter += 'Date >= DateTime(' + dategt + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           console.log("Filter####",filter);
           var arr = await this.invoiceChart(filter, xeroClient)
           invoice_arr.push(arr);
@@ -313,9 +343,12 @@ class Xero1 {
               // console.log("Unpaid invoice");
               authorize_amt += inv.Total;
             }
-            else {
+            else if (inv.Status == "DRAFT"){
               // console.log("Draft or Void invoice");
               draft_amt += inv.Total;
+            }
+            else {
+                
             }
           })
         })
@@ -373,9 +406,9 @@ class Xero1 {
       var monthNames = ["January", "February", "March", "April", "May", "June",
       "July", "August", "September", "October", "November", "December"];
 
-      var filter = '';
       var cashflow_arr = [];
       for (var i=0; i <= month_len-1; i++) {
+        var filter = '';
         var invoice_arr = [];
         if ( i == (month_len-1)) {
           var mnth = moment(date2).format('MM')
@@ -383,10 +416,10 @@ class Xero1 {
           var dategt = year+','+ mnth + ',1'
           var datelt = moment(date2).format('YYYY,MM,DD')
           var mnth_name =  monthNames[mnth - 1];
-          filter = ' Date >= DateTime(' + dategt + ',00,00,00)' + 'AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           if (data.contact) {
-            filter += ' && Contact.Name = "'+ data.contact +'"'
+            filter = 'Contact.Name = "'+ data.contact +'" && '
           }
+          filter += 'Date >= DateTime(' + dategt + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           console.log("Filter####",filter);
           var arr = await this.invoiceChart(filter, xeroClient)
           invoice_arr.push(arr);
@@ -398,25 +431,34 @@ class Xero1 {
           dategt = moment(date1).format('YYYY,MM,DD')
           datelt = year+','+ mnth + ',' + day
           var mnth_name =  monthNames[mnth - 1];
-          filter = ' Date >= DateTime(' + dategt + ',00,00,00)' + 'AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           if (data.contact) {
-            filter += ' && Contact.Name = "'+ data.contact +'"'
+            filter = 'Contact.Name = "'+ data.contact +'" && '
           }
+          filter += ' Date >= DateTime(' + dategt + ',00,00,00)' + 'AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           console.log("Filter####",filter);
           var arr = await this.invoiceChart(filter, xeroClient)
           invoice_arr.push(arr);
         }
         else {
           var mnth = parseInt(moment(date1).format('MM')) + i
-          var year = moment(date1).format('YYYY')
+          let year = moment(date1).format('YYYY');
+          if (mnth > 12) {
+            if ((mnth % 12 != 0)) {
+              mnth = mnth % 12
+              year = parseInt(moment(date1).format('YYYY')) + 1
+            }
+            else {
+              mnth = 12
+            }
+          }
           var day = this.daysInMonth(mnth, year)
           dategt = year+','+ mnth + ',1'
           datelt = year+','+ mnth + ',' + day
           var mnth_name =  monthNames[mnth - 1];
-          filter = ' Date >= DateTime(' + dategt + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           if (data.contact) {
-            filter += ' && Contact.Name = "'+ data.contact +'"'
+            filter = 'Contact.Name = "'+ data.contact +'" && '
           }
+          filter += 'Date >= DateTime(' + dategt + ',00,00,00)' + ' AND' + ' Date <=  DateTime(' + datelt + ',00,00,00)'
           console.log("Filter####",filter);
           var arr = await this.invoiceChart(filter, xeroClient)
           invoice_arr.push(arr);

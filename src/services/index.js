@@ -11,6 +11,24 @@ const relationshipcomments = require('./relationshipcomments/relationshipcomment
 
 const payment = require('./payment/payment.service.js');
 
+const transaction = require('./transaction/transaction.service.js');
+
+
+const customcustomer = require('./customcustomer/customcustomer.service.js');
+
+
+const custominvoice = require('./custominvoice/custominvoice.service.js');
+
+
+const exporttopdf = require('./exporttopdf/exporttopdf.service.js');
+
+
+const trackusersettings = require('./trackusersettings/trackusersettings.service.js');
+
+const invite = require('./invite/invite.service.js');
+
+
+
 
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
@@ -28,8 +46,15 @@ module.exports = function () {
   app.configure(crmHistory);
   app.configure(relationshipcomments);
 
-  
 
   app.configure(payment);
+
+  app.configure(transaction);
+
+  app.configure(customcustomer);
+  app.configure(custominvoice);
+  app.configure(exporttopdf);
+  app.configure(trackusersettings);
+  app.configure(invite);
 
 };

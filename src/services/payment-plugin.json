@@ -1,6 +1,6 @@
 
 {
-  "apiUrl" : "http://api.flowz.com/payment",
+  "apiUrl" : "http://api.flowzcluster.tk/payment",
   "credentials" : {
 
     "stripe" : {
@@ -75,8 +75,8 @@
 
           "headers": {
             "content-type" : "application/json",
-            "X-api-token" : "ENZqH3zPXTfSMmbwz7U58wYCOdRlaQKLUv-GhsHA9clcL9l5jHj43lN8aDZJNvk3EZmUOZkpYLOxdcBO",
-            "x-api-login" :  "Ab8KuYyzB2F67ofjjGNWBV3Pmooik890crPqPNIhWeM70WGG3TdaW-MDOycJWYNbHhlNjD0vdxGiI3nV",
+            "X-api-token" : "EN1ebKVIYSL7gQwlINTwqv0-cV7YN3nceWg883tnM-kcZafNCLNCW973wmMBPyTLbdZJ3yN2KvDLBsVt",
+            "x-api-login" :  "AYqQfJ_fFXDMLwqre1BJXFE9SumE-bsIUnd17AmTlwGcaCPHVn0Ka7YXObB41dQ-PI5SVAWyWq9d4WRe",
             "cache-control" : "no-cache"
           }
         }

@@ -9,6 +9,7 @@ module.exports = function () {
   const paginate = app.get('paginate');
 
   const options = {
+    id: 'userId',
     name: 'settings',
     Model,
     paginate
