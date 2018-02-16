@@ -1,6 +1,20 @@
 var rp = require('request-promise');
 let errors = require('@feathersjs/errors') ;
-let axios = require("axios")
+let axios = require("axios");
+let _ = require('lodash');
+let r = require('rethinkdb');
+const config = require("config");
+let connection;
+let response;
+r.connect({
+  host: config.get('rdb_host'),
+  port: config.get("rdb_port"),
+  db: 'invoicing_api'
+}, function(err, conn) {
+  if (err) throw err;
+  connection = conn
+})
+
 module.exports = {
   before: {
     all: [],
@@ -139,6 +153,74 @@ beforepatch = async hook =>{
   //console.log(hook)
   let res = await validateUser(hook);
   // console.log(res)
+  console.log("hook.data",hook.data);
+	if (hook.data.online_payment) {
+		let data = await getData(hook.data);
+		// console.log("response of get data",data);
+    let hookarr = Object.keys(hook.data.online_payment);
+    console.log("hookarr",hookarr)
+		if (data.online_payment) {
+			let gateway;
+			let arr = Object.keys(data.online_payment);
+			console.log("----------arr",arr);
+			console.log("hook.data.rowIndex",hook.data.rowIndex)
+			if (hook.data.rowIndex != null) {
+				// console.log("---------------inside if")
+				for (i in arr) {
+					if (arr[i] == hookarr[0]) {
+						// console.log("inside if");
+						gateway = hookarr[0];
+						console.log("gateway",gateway);
+						console.log("hook.data.online_payment[gateway].isDefault",hook.data.online_payment[gateway])
+						if (hook.data.online_payment[gateway].isDefault == true) {
+							console.log("data.online_payment.gateway",data.online_payment[gateway])
+							data.online_payment[gateway].forEach(function(alldata) {
+								console.log("alldata",alldata);
+								alldata.isDefault = false;
+							})
+						}
+						console.log("data.online_payment[gateway][rowIndex]",data.online_payment[gateway])
+						data.online_payment[gateway][hook.data.rowIndex] = hook.data.online_payment[gateway]
+						console.log("-------------------",data.online_payment[gateway])
+						//delete hook.data.rowIndex;
+						// // data.online_payment[gateway].push(hook.data.online_payment[gateway][0]);
+            hook.data.online_payment[gateway] = data.online_payment[gateway]
+            console.log("hook.data.online_payment[gateway]",hook.data.online_payment[gateway])
+					}
+				}
+			}
+			else {
+				// console.log("++++++++++inside else")
+				let findIndex = _.indexOf(arr, hookarr[0]);
+				// for (i in arr) {
+					if (findIndex >= 0) {
+						gateway = hookarr[0];
+						// console.log("inside if");
+		
+						console.log("data.online_payment.gateway",data.online_payment[gateway])
+						data.online_payment[gateway].forEach(function(alldata) {
+							// console.log("alldata",alldata);
+							alldata.isDefault = false;
+						})
+						// console.log("-------------------",data.online_payment[gateway])
+						// console.log("hook.data.online_payment[gateway]",hook.data.online_payment[gateway])
+						data.online_payment[gateway].push(hook.data.online_payment[gateway]);
+						hook.data.online_payment[gateway] = data.online_payment[gateway]
+						// console.log("======================",hook.data.online_payment);
+					}
+					else {
+						// console.log("hookarr[0]",hookarr[0])
+						console.log("++++++++++++++++",hook.data.online_payment[hookarr[0]]);
+            hook.data.online_payment[hookarr[0]] = [ hook.data.online_payment[hookarr[0]] ]		
+            console.log("--------------",hook.data.online_payment[hookarr[0]])				
+					}
+				// }
+			}
+		}
+		else {
+      hook.data.online_payment[hookarr[0]] = [ hook.data.online_payment[hookarr[0]] ]		
+		}
+	}
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
@@ -187,12 +269,39 @@ async function validateUser(data) {
 
 function alreadyAvailable(hook , res) {
   return new Promise((resolve , reject) =>{
-    app.service('settings').find({query: {userId : res.data.data._id, domain:"custom"}}).then(settings => {
-          // console.log(">>>>>>>>>>>>>>>>> " , settings.data.length)
-          resolve(settings.data.length)
+    r.table('settings')
+    .filter({userId : res.data.data._id, domain:"custom"}).run(connection , function(error , cursor){
+        if (error) throw error;
+        cursor.toArray(function(err, results) {
+          if (err) throw err;
+          // console.log("<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>> "  , results)
+          resolve(results.length)
+      });
     })
+    // app.service('settings').find({query: {userId : res.data.data._id, domain:"custom"}}).then(settings => {
+    //       console.log(">>>>>>>>>>>>>>>>> " , settings)
+    //       resolve(settings.data.length)
+    // })
   })
 
 
 } 
 
+function getData(data) {
+  return new Promise((resolve , reject) =>{
+    console.log("------------data",data)
+    r.table('settings')
+    .filter({id : data.id}).run(connection , function(error , cursor){
+        if (error) throw error;
+        cursor.toArray(function(err, results) {
+          if (err) throw err;
+          console.log("<<<<<<<<<<getData "  , results)
+          resolve(results[0])
+        });
+    })
+    // app.service('settings').find({query: {id : data.id}}).then(settings => {
+		// // console.log(">>>>>>>>>>>>>>>>> " , settings.data)
+		//   resolve(settings.data[0])
+    // })
+  })
+}

@@ -55,10 +55,8 @@ class Service {
         this.app = app;
     }
 
-     
-
     async find (params) {
-        console.log("invoice id inside params",params)
+        // console.log("invoice id inside params",params)
         let schemaName1 = schema1.findGetCreate ;
         this.validateSchema(params.query, schemaName1)
 
@@ -71,7 +69,7 @@ class Service {
     }
 
     async get (id, params) {
-         console.log("invoice id inside get",id)
+        //  console.log("invoice id inside get",id)
         let schemaName1 = schema1.findGetCreate ;
         this.validateSchema(params.query, schemaName1)
 
@@ -151,7 +149,7 @@ class Service {
     //to get config from settings
     async getConfig(data) {
         var resp;
-        console.log("LLLLLLLLLLLLLLLLLLLLLLLLL "  , data)
+        // console.log("LLLLLLLLLLLLLLLLLLLLLLLLL "  , data)
        
 
         // await axios.get('http://localhost:3037/settings/'+data.settingId , {
@@ -168,30 +166,27 @@ class Service {
         //     throw new errors.NotFound(error)
         //   });
         
-    //     await app.service("settings").get(data.settingId,  {  headers: { 
-    //         subscriptionid: '10ca1102-c78d-4f43-b93f-ceb59d909fb2' ,
-    //         authorization : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1YTU4NmE5MjQ1MGEzMTAwMTI0Y2U3Y2YiLCJpYXQiOjE1MTg0MjIxODIsImV4cCI6MTUxODUwODYxMiwiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsImlzcyI6ImZlYXRoZXJzIiwic3ViIjoiYW5vbnltb3VzIn0.rk2im5arpBxbUHzgp7gYndn-txZR2DFyFe70Atjo2xI' }
-    //   } 
-    //        )
-    //         .then(response => {
-    //             resp = response;
-    //              console.log('settings: >>>>>>>>>>>>>>>@@@@@@@@@@@>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', response);
-    //         }).catch(err => {
-    //             console.log(">>>>>>>>> ()()()()()()()()()()()()()()()()" , err)
-    //             throw new errors.NotFound(err)
-    //         });
+        //     await app.service("settings").get(data.settingId,  {  headers: { 
+        //         subscriptionid: '10ca1102-c78d-4f43-b93f-ceb59d909fb2' ,
+        //         authorization : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1YTU4NmE5MjQ1MGEzMTAwMTI0Y2U3Y2YiLCJpYXQiOjE1MTg0MjIxODIsImV4cCI6MTUxODUwODYxMiwiYXVkIjoiaHR0cHM6Ly95b3VyZG9tYWluLmNvbSIsImlzcyI6ImZlYXRoZXJzIiwic3ViIjoiYW5vbnltb3VzIn0.rk2im5arpBxbUHzgp7gYndn-txZR2DFyFe70Atjo2xI' }
+        //   } 
+        //        )
+        //         .then(response => {
+        //             resp = response;
+        //              console.log('settings: >>>>>>>>>>>>>>>@@@@@@@@@@@>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', response);
+        //         }).catch(err => {
+        //             console.log(">>>>>>>>> ()()()()()()()()()()()()()()()()" , err)
+        //             throw new errors.NotFound(err)
+        //         });
 
-    await r.table('settings')
-    .get(data.settingId).run(connection , function(error , cursor){
-        if (error) throw error;
+        await r.table('settings')
+        .get(data.settingId).run(connection , function(error , cursor){
+            if (error) throw error;
 
-        console.log(cursor)
-        resp = cursor
-        
-    })
-
-    
+            console.log(cursor)
+            resp = cursor
             
+        })
         return resp;
     }
 
