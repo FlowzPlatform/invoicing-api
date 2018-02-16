@@ -93,7 +93,7 @@ class QB1 {
       let index;
       if (config.online_payment) {
         console.log("online_payment",config.online_payment[data.gateway]);
-        index = _.findIndex(config.online_payment[data.gateway], function(o) { return o.isDefault == true; });
+        index = _.findIndex(config.online_payment[data.gateway], function(o) { return (o.isDefault === true && o.isDeleted !== true); });
         console.log("_.findIndex",index);
         if (index < 0) {
             throw new errors.NotFound("Payment Credential is not available. Please configure atleast one credential!!")
