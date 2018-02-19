@@ -126,7 +126,7 @@ async function errorGet(hook) {
 
 
  async function beforeFind(hook){
-  console.log(hook.params.query)
+  console.log("---------------",hook.params.query)
   let res = await validateUser(hook);
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
@@ -231,7 +231,7 @@ beforepatch = async hook =>{
 
 // validateUser =data =>{
 async function validateUser(data) {
-
+  console.log("process.env.userDetailURL",process.env.userDetailURL)
     var options = {
       uri: process.env.userDetailURL,
       headers: {
@@ -256,7 +256,7 @@ async function validateUser(data) {
               }
             })
             .then(function (response) {
-             // console.log(response)
+            //  console.log("11111111111111111111111",response.data)
                 resolve(response)
             })
             .catch(function (error) {

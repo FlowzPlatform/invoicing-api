@@ -183,7 +183,7 @@ class Service {
         .get(data.settingId).run(connection , function(error , cursor){
             if (error) throw error;
 
-            console.log(cursor)
+            // console.log(cursor)
             resp = cursor
             
         })
@@ -196,7 +196,7 @@ class Service {
         console.log("Inside invoice data",data);
 
         await app.service("contacts").find({query:data}).then(function(result){
-            console.log("parsedBody contact find---------------->",result[0])
+            // console.log("parsedBody contact find---------------->",result[0])
             resp = result[0];
         }).catch(function(err){
             console.log(">>>>>>>>>>>>>>> " , err)

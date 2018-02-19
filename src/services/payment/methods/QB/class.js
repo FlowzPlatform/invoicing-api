@@ -175,8 +175,8 @@ class QB1 {
         value = response.data[0].data[0].Id
       })
       .catch(function (error) {
-        // console.log("error",error);
-        throw new errors.NotAcceptable(err);
+        console.log("error",error);
+        throw new errors.NotAcceptable(error);
       });
 
       var line = [

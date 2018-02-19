@@ -395,7 +395,7 @@ class QB1 {
 
       return new Promise(async function(resolve, reject) {
         // console.log("@@@@@@@@@@@inside get invoice method");
-        // console.log("result",result);
+        // console.log("result",result.body);
         var jsondata = JSON.parse(result.body);
         // console.log("")
         if (jsondata.QueryResponse == undefined) {

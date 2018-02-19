@@ -105,7 +105,7 @@ class QB1 {
         let requestObj = await this.getRequestObj (url , token)
         let result = await this.make_api_call (requestObj)
         return new Promise(async function(resolve, reject) {
-            // console.log("@@@@@@@@@@@inside get invoice method");
+            // console.log("@@@@@@@@@@@inside get contacts method",result);
             let jsondata = JSON.parse(result.body);
             // console.log("@@@@@@@@@@@@@@@@@@@@@jsondata",jsondata);
             if (jsondata.QueryResponse == undefined) {
