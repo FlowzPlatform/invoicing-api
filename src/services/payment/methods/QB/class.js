@@ -167,16 +167,30 @@ class QB1 {
     async postPayment(data, token,url) {
       let value;
 
-      await axios.get(process.env.baseUrl+"contacts", {
-        params: data
+      // await axios.get(process.env.baseUrl+"contacts", {
+      //   params: data
+      // })
+      // .then(function (response) {
+      //   console.log("contact response",response.data[0]);
+      //   value = response.data[0].data[0].Id
+      // })
+      // .catch(function (error) {
+      //   console.log("error",error);
+      //   throw new errors.NotAcceptable(error);
+      // });
+
+      await axios({
+        method:'get',
+        url: process.env.baseUrl+'contacts',
+        params : data
       })
-      .then(function (response) {
-        console.log("contact response",response.data[0]);
-        value = response.data[0].data[0].Id
+      .then(function(response) {
+          console.log("contact response",response.data[0]);
+          value = response.data[0].data[0].Id
       })
       .catch(function (error) {
-        console.log("error",error);
-        throw new errors.NotAcceptable(error);
+          console.log("error",error);
+          throw new errors.NotAcceptable(error);
       });
 
       var line = [
