@@ -6,6 +6,9 @@ var r = require('rethinkdbdash')
 let errors = require('@feathersjs/errors') ;
 let axios = require('axios')
 let serviceUrl = 'http://' + config.host + ':' + config.port
+var cloudinary = require('cloudinary');
+let config1 = require('../../customConfig.js');
+
 module.exports = {
   before: {
     all: [],
@@ -67,6 +70,16 @@ beforecreate = async hook => {
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
+    cloudinary.config({ 
+      cloud_name: config1.default.cloudinary_cloud_name,
+      api_key: config1.default.cloudinary_api_key, 
+      api_secret: config1.default.cloudinary_api_secret 
+    });
+    await cloudinary.v2.uploader.upload(hook.data.fileupload,
+      function(error, result) {
+        console.log("cloudinary result",result);
+        hook.data.fileupload = result.url;
+      });
     hook.data.createdAt = new Date();
      hook.data.userId = JSON.parse(res).data._id;
      hook.data.user = JSON.parse(res).data.email;
@@ -75,7 +88,7 @@ beforecreate = async hook => {
 
 validateUser =data =>{
     var options = {
-      uri: process.env.userDetailURL,
+      uri: config1.default.userDetailURL,
       headers: {
         Authorization : apiHeaders.authorization
       }

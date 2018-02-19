@@ -11,7 +11,6 @@ var rp = require('request-promise');
 const axios = require('axios');
 const config = require("config");
 
-let baseUrl = process.env.baseUrl;
 
 var moment = require("moment");
 

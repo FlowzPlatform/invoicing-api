@@ -30,7 +30,7 @@ class QB1 {
             client_id:     config.client_id,
             client_secret: config.client_secret
         });
-        console.log("tokenProvider",tokenProvider);
+        // console.log("tokenProvider",tokenProvider);
         return new Promise(function(resolve, reject) {
             tokenProvider.getToken(function (err, newToken) {
                 if (newToken == undefined) {

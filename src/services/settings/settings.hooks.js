@@ -4,6 +4,8 @@ let axios = require("axios");
 let _ = require('lodash');
 let r = require('rethinkdb');
 const config = require("config");
+let config1 = require('../../customConfig.js');
+
 let connection;
 let response;
 r.connect({
@@ -231,9 +233,9 @@ beforepatch = async hook =>{
 
 // validateUser =data =>{
 async function validateUser(data) {
-  console.log("process.env.userDetailURL",process.env.userDetailURL)
+  console.log("config1.default.userDetailURL",config1.default.userDetailURL)
     var options = {
-      uri: process.env.userDetailURL,
+      uri: config1.default.userDetailURL,
       headers: {
         Authorization : apiHeaders.authorization
       }
@@ -249,7 +251,7 @@ async function validateUser(data) {
     //   console.log(err)
     //   resolve({"code" : 401 })
     // });
-    axios.get(process.env.userDetailURL, {
+    axios.get(config1.default.userDetailURL, {
               strictSSL: false,
               headers: {
                 "Authorization" : apiHeaders.authorization

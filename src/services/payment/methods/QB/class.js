@@ -179,19 +179,29 @@ class QB1 {
       //   throw new errors.NotAcceptable(error);
       // });
 
-      await axios({
-        method:'get',
-        url: process.env.baseUrl+'contacts',
-        params : data
+      // await axios({
+      //   method:'get',
+      //   url: process.env.baseUrl+'contacts',
+      //   params : data
+      // })
+      // .then(function(response) {
+      //     console.log("contact response",response.data[0]);
+      //     value = response.data[0].data[0].Id
+      // })
+      // .catch(function (error) {
+      //     console.log("error",error);
+      //     throw new errors.NotAcceptable(error);
+      // });
+
+      await app.service("contacts").find({query:data}).then(function(result){
+          console.log("contact response",result[0]);
+          value = result[0].data[0].Id
+          // console.log("parsedBody contact find---------------->",result[0])
+          // resp = result[0];
+      }).catch(function(err){
+          console.log(">>>>>>>>>>>>>>> " , err)
+          throw new errors.NotFound(err)
       })
-      .then(function(response) {
-          console.log("contact response",response.data[0]);
-          value = response.data[0].data[0].Id
-      })
-      .catch(function (error) {
-          console.log("error",error);
-          throw new errors.NotAcceptable(error);
-      });
 
       var line = [
         {
@@ -327,3 +337,4 @@ class QB1 {
 module.exports = function(options) {
     return new QB1(options);
 };
+

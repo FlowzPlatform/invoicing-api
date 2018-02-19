@@ -6,7 +6,6 @@ const ajv = new Ajv();
 const feathersErrors = require('feathers-errors');
 const errors = feathersErrors.errors;
 const axios = require('axios');
-let baseUrl = process.env.baseUrl;
 
 //for validating schema before find and get
 // let schema1 = require("./methods/schema.js")
