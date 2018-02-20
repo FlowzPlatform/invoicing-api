@@ -76,10 +76,16 @@ beforecreate = async hook => {
       api_secret: config1.default.cloudinary_api_secret 
     });
     await cloudinary.v2.uploader.upload(hook.data.fileupload,
+      { resource_type: "raw",folder: "crm/images"},
       function(error, result) {
-        console.log("cloudinary result",result);
-        hook.data.fileupload = result.url;
+        if(error){
+          console.log('&&&&&&&&&&',error)
+        }else{       
+          console.log(result);
+          hook.data.fileupload = result.url;
+        }
       });
+
     hook.data.createdAt = new Date();
      hook.data.userId = JSON.parse(res).data._id;
      hook.data.user = JSON.parse(res).data.email;
