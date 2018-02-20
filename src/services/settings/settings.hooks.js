@@ -135,7 +135,14 @@ async function errorGet(hook) {
   }else{
    //  let getMultipleDataRes = await getMultipleData(hook);
     // console.log(">>>>>>>>>>>>>>>> "  , res)
-    hook.params.query.userId = res.data.data._id;
+    
+    console.log("apiHeaders " , apiHeaders)
+    
+    //hook.params.query.userId = res.data.data._id;
+   hook.params.query.subscriptionId = apiHeaders.subscriptionid
+    
+    
+    
     hook.params.query.isDeleated = false;
     if(hook.params.query.isActive == "true")
     {
