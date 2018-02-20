@@ -9,6 +9,8 @@ const Ajv = require('ajv');
 const ajv = new Ajv();
 const feathersErrors = require('feathers-errors');
 const errors = feathersErrors.errors;
+let config = require('../../customConfig.js');
+
 
 let schema1 = {
     findGetCreate : {
@@ -128,7 +130,7 @@ async function beforeFind(hook){
 
 validateUser =data =>{
     var options = {
-      uri: process.env.userDetailURL,
+      uri: config.default.userDetailURL,
       headers: {
         Authorization : apiHeaders.authorization
       }

@@ -1,6 +1,4 @@
 var moment = require('moment');
-// const config = require("../../../config.js");
-// const paymentConfig = require("../../../payment-plugin.json");
 
 //For quickbook
 var TokenProvider = require('refresh-token');
@@ -38,7 +36,7 @@ class QB1 {
         client_id:     config.client_id,
         client_secret: config.client_secret
       });
-      console.log("tokenProvider",tokenProvider);
+      // console.log("tokenProvider",tokenProvider);
       return new Promise(function(resolve, reject) {
         tokenProvider.getToken(function (err, newToken) {
           console.log("Token######",newToken);
@@ -397,7 +395,7 @@ class QB1 {
 
       return new Promise(async function(resolve, reject) {
         // console.log("@@@@@@@@@@@inside get invoice method");
-        // console.log("result",result);
+        // console.log("result",result.body);
         var jsondata = JSON.parse(result.body);
         // console.log("")
         if (jsondata.QueryResponse == undefined) {
