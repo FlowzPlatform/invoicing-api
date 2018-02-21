@@ -1,10 +1,12 @@
 var rp = require('request-promise');
 let errors = require('@feathersjs/errors') ;
 let axios = require("axios");
+
 let _ = require('lodash');
 let r = require('rethinkdb');
 const config = require("config");
 let config1 = require('../../customConfig.js');
+
 
 let connection;
 let response;
@@ -63,7 +65,7 @@ async function  beforecreate (hook) {
   let res = await validateUser(hook);
 
   let response = await alreadyAvailable(hook , res)
-  console.log(response)
+  // console.log(response)
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
@@ -240,7 +242,9 @@ beforepatch = async hook =>{
 
 // validateUser =data =>{
 async function validateUser(data) {
+
   console.log("config1.default.userDetailURL",config1.default.userDetailURL)
+
     var options = {
       uri: config1.default.userDetailURL,
       headers: {
@@ -265,7 +269,9 @@ async function validateUser(data) {
               }
             })
             .then(function (response) {
-            //  console.log("11111111111111111111111",response.data)
+
+              // console.log("response " , response)
+
                 resolve(response)
             })
             .catch(function (error) {
@@ -278,17 +284,21 @@ async function validateUser(data) {
 
 function alreadyAvailable(hook , res) {
   return new Promise((resolve , reject) =>{
+    console.log("hook.data.subscriptionId",hook.data.subscriptionId)
+
     r.table('settings')
-    .filter({userId : res.data.data._id, domain:"custom"}).run(connection , function(error , cursor){
+    .filter({subscriptionId : hook.data.subscriptionId , domain:"custom"}).run(connection , function(error , cursor){
         if (error) throw error;
         cursor.toArray(function(err, results) {
           if (err) throw err;
-          // console.log("<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>> "  , results)
+
+          // console.log("<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>> "  , results.length)
           resolve(results.length)
       });
     })
     // app.service('settings').find({query: {userId : res.data.data._id, domain:"custom"}}).then(settings => {
     //       console.log(">>>>>>>>>>>>>>>>> " , settings)
+
     //       resolve(settings.data.length)
     // })
   })

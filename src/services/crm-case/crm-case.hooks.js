@@ -10,6 +10,15 @@ let serviceUrl = 'http://' + config.host + ':' + config.port
 let config1 = require('../../customConfig.js');
 
 
+<<<<<<< HEAD
+=======
+cloudinary.config({ 
+      cloud_name: config1.default.cloudinary_cloud_name,
+      api_key: config1.default.cloudinary_api_key, 
+      api_secret: config1.default.cloudinary_api_secret 
+    });
+
+>>>>>>> 04a584560bf1c2e975398d1e8d32704df95f44ee
 
 module.exports = {
   before: {
@@ -63,6 +72,10 @@ var getCrmCaseOldData = async( function(id) {
 // })
 
 var beforeUpdate = async hook => {
+<<<<<<< HEAD
+=======
+
+>>>>>>> 04a584560bf1c2e975398d1e8d32704df95f44ee
   console.log("inside before upload")
   let res = await validateUser(hook);
   res = JSON.parse(res);
@@ -80,8 +93,13 @@ var beforeUpdate = async hook => {
     console.log('res1-------->',res1.url)    
     var fileobj = {
       "filename":hook.data.fileupload[indexforUrl-1].filename,
+<<<<<<< HEAD
       "public_id":res1.public_id,
       "url":res1.url
+=======
+      "url":res1.url,
+      "public_id":res1.public_id
+>>>>>>> 04a584560bf1c2e975398d1e8d32704df95f44ee
     };
     console.log('res1-------->',res1.url)
     hook.data.fileupload[indexforUrl-1] = fileobj;
@@ -99,25 +117,44 @@ var beforeUpdate = async hook => {
     // console.log("res.....",res)
   }
   }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 04a584560bf1c2e975398d1e8d32704df95f44ee
 }
 
 
 beforecreate = async hook => {
   let res = await validateUser(hook);
+<<<<<<< HEAD
   res = JSON.parse(res);
+=======
+
+  res = JSON.parse(res);
+
+>>>>>>> 04a584560bf1c2e975398d1e8d32704df95f44ee
   var fileurl = []
   //let response = await checkDefaultConfig(hook , res)
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
+<<<<<<< HEAD
+=======
+
+>>>>>>> 04a584560bf1c2e975398d1e8d32704df95f44ee
     console.log('res-------------->',res.data.email)
     if(hook.data.fileupload != undefined){
       var res1 = await app.service('cloudinaryupload').create({file : hook.data.fileupload[0].url, folder:"crm/relationship/"+res.data.email})
       console.log('res1-------->',res1.url)
       var fileobj = {
         "filename": hook.data.fileupload[0].filename,
+<<<<<<< HEAD
         "public_id":res1.public_id,
         "url": res1.url
+=======
+        "url": res1.url,
+        "public_id":res1.public_id
+>>>>>>> 04a584560bf1c2e975398d1e8d32704df95f44ee
       };
       console.log('fileobj--->',hook.data.fileupload[0])
       hook.data.fileupload[0] = fileobj;
@@ -126,6 +163,10 @@ beforecreate = async hook => {
     hook.data.createdAt = new Date();
     hook.data.userId = res.data._id;
     hook.data.user = res.data.email;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 04a584560bf1c2e975398d1e8d32704df95f44ee
   }
 }
 
@@ -188,4 +229,7 @@ checkDefaultConfig = (data , res) => {
   //   console.log(settings)
   // })
   return true;
+
 }
+
+
