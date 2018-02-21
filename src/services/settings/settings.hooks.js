@@ -65,7 +65,7 @@ async function  beforecreate (hook) {
   let res = await validateUser(hook);
 
   let response = await alreadyAvailable(hook , res)
-  console.log(response)
+  // console.log(response)
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
@@ -270,7 +270,7 @@ async function validateUser(data) {
             })
             .then(function (response) {
 
-              console.log("response " , response)
+              // console.log("response " , response)
 
                 resolve(response)
             })
@@ -284,14 +284,15 @@ async function validateUser(data) {
 
 function alreadyAvailable(hook , res) {
   return new Promise((resolve , reject) =>{
+    console.log("hook.data.subscriptionId",hook.data.subscriptionId)
 
     r.table('settings')
-    .filter({userId : res.data.data._id, subscriptionId : hook.data.subscriptionId , domain:"custom"}).run(connection , function(error , cursor){
+    .filter({subscriptionId : hook.data.subscriptionId , domain:"custom"}).run(connection , function(error , cursor){
         if (error) throw error;
         cursor.toArray(function(err, results) {
           if (err) throw err;
 
-          // console.log("<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>> "  , results)
+          // console.log("<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>> "  , results.length)
           resolve(results.length)
       });
     })
