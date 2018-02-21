@@ -16,8 +16,6 @@ then
     echo $ENV_ID
     USERNAME="$DOCKER_USERNAME_FLOWZ";
     TAG="latest";
-    BASEURL="$BASEURL_MASTER";
-    USERDETAILAPI="$USERDETAILAPI_MASTER";
     DOMAINKEY="$DOMAINKEY_MASTER";
   }
 elif [ "$TRAVIS_BRANCH" = "develop" ]
@@ -28,8 +26,6 @@ then
       echo $ENV_ID
       USERNAME="$DOCKER_USERNAME";
       TAG="dev";
-      BASEURL="$BASEURL_DEVELOP";
-      USERDETAILAPI="$USERDETAILAPI_DEVELOP";
       DOMAINKEY="$DOMAINKEY_DEVELOP";
   }
 else
@@ -39,8 +35,6 @@ else
       echo $ENV_ID
       USERNAME="$DOCKER_USERNAME";
       TAG="qa";
-      BASEURL="$BASEURL_QA";
-      USERDETAILAPI="$USERDETAILAPI_QA";
       DOMAINKEY="$DOMAINKEY_QA";
   }
 fi
@@ -53,5 +47,5 @@ curl -u ""$RANCHER_USER":"$RANCHER_PASS"" \
 -H 'Accept: application/json' \
 -H 'Content-Type: application/json' \
 -d '{
-     "inServiceStrategy":{"launchConfig": {"imageUuid":"docker:'$USERNAME'/invoicing_api_backend_flowz:'$TAG'","kind": "container","labels":{"io.rancher.container.pull_image": "always","io.rancher.scheduler.affinity:host_label": "machine=cluster-flowz"},"ports": ["3037:3037/tcp"],"environment": {"RDB_HOST": "'"$RDB_HOST"'","RDB_PORT": "'"$RDB_PORT"'","baseUrl":"'"$BASEURL"'","userDetailURL":"'"$USERDETAILAPI"'","domainKey":"'"$DOMAINKEY"'"},"healthCheck": {"type": "instanceHealthCheck","healthyThreshold": 2,"initializingTimeout": 60000,"interval": 2000,"name": null,"port": 3037,"recreateOnQuorumStrategyConfig": {"type": "recreateOnQuorumStrategyConfig","quorum": 1},"reinitializingTimeout": 60000,"responseTimeout": 60000,"strategy": "recreateOnQuorum","unhealthyThreshold": 3},"networkMode": "managed"}},"toServiceStrategy":null}' \
+     "inServiceStrategy":{"launchConfig": {"imageUuid":"docker:'$USERNAME'/invoicing_api_backend_flowz:'$TAG'","kind": "container","labels":{"io.rancher.container.pull_image": "always","io.rancher.scheduler.affinity:host_label": "machine=cluster-flowz"},"ports": ["3037:3037/tcp"],"environment": {"RDB_HOST": "'"$RDB_HOST"'","RDB_PORT": "'"$RDB_PORT"'","domainKey":"'"$DOMAINKEY"'","cloudinary_cloud_name":"'"$cloudinary_cloud_name"'","cloudinary_api_key":"'"$cloudinary_api_key"'","cloudinary_api_secret":"'"$cloudinary_api_secret"'"},"healthCheck": {"type": "instanceHealthCheck","healthyThreshold": 2,"initializingTimeout": 60000,"interval": 2000,"name": null,"port": 3037,"recreateOnQuorumStrategyConfig": {"type": "recreateOnQuorumStrategyConfig","quorum": 1},"reinitializingTimeout": 60000,"responseTimeout": 60000,"strategy": "recreateOnQuorum","unhealthyThreshold": 3},"networkMode": "managed"}},"toServiceStrategy":null}' \
 http://rancher.flowz.com:8080/v2-beta/projects/$ENV_ID/services/$SERVICE_ID?action=upgrade

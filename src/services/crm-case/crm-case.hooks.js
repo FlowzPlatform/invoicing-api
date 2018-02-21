@@ -10,6 +10,12 @@ let serviceUrl = 'http://' + config.host + ':' + config.port
 let config1 = require('../../customConfig.js');
 
 
+cloudinary.config({ 
+      cloud_name: config1.default.cloudinary_cloud_name,
+      api_key: config1.default.cloudinary_api_key, 
+      api_secret: config1.default.cloudinary_api_secret 
+    });
+
 
 module.exports = {
   before: {
@@ -63,6 +69,7 @@ var getCrmCaseOldData = async( function(id) {
 // })
 
 var beforeUpdate = async hook => {
+
   console.log("inside before upload")
   let res = await validateUser(hook);
   res = JSON.parse(res);
@@ -99,17 +106,21 @@ var beforeUpdate = async hook => {
     // console.log("res.....",res)
   }
   }
+
 }
 
 
 beforecreate = async hook => {
   let res = await validateUser(hook);
+
   res = JSON.parse(res);
+
   var fileurl = []
   //let response = await checkDefaultConfig(hook , res)
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
+
     console.log('res-------------->',res.data.email)
     if(hook.data.fileupload != undefined){
       var res1 = await app.service('cloudinaryupload').create({file : hook.data.fileupload[0].url, folder:"crm/relationship/"+res.data.email})
@@ -126,6 +137,7 @@ beforecreate = async hook => {
     hook.data.createdAt = new Date();
     hook.data.userId = res.data._id;
     hook.data.user = res.data.email;
+
   }
 }
 
@@ -188,5 +200,7 @@ checkDefaultConfig = (data , res) => {
   //   console.log(settings)
   // })
   return true;
+
 }
+
 
