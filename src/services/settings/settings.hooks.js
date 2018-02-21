@@ -286,7 +286,7 @@ function alreadyAvailable(hook , res) {
   return new Promise((resolve , reject) =>{
 
     r.table('settings')
-    .filter({userId : res.data.data._id, domain:"custom"}).run(connection , function(error , cursor){
+    .filter({userId : res.data.data._id, subscriptionId : hook.data.subscriptionId , domain:"custom"}).run(connection , function(error , cursor){
         if (error) throw error;
         cursor.toArray(function(err, results) {
           if (err) throw err;
