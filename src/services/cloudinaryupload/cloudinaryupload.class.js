@@ -3,17 +3,12 @@
 let cloudinary = require('cloudinary');
 let config1 = require('../../customConfig.js');
 
-<<<<<<< HEAD
 
-
-
-=======
 cloudinary.config({ 
       cloud_name: config1.default.cloudinary_cloud_name,
       api_key: config1.default.cloudinary_api_key, 
       api_secret: config1.default.cloudinary_api_secret 
     });
->>>>>>> 04a584560bf1c2e975398d1e8d32704df95f44ee
 
 class Service {
   constructor (options) {
@@ -35,20 +30,6 @@ class Service {
     //   return Promise.all(data.map(current => this.create(current)));
     // }
 
-<<<<<<< HEAD
-    console.log("config1.default.cloudinary_cloud_name " , config1.default.cloudinary_cloud_name)
-    console.log("config1.default.cloudinary_api_key " , config1.default.cloudinary_api_key)
-    console.log("config1.default.cloudinary_api_secret " , config1.default.cloudinary_api_secret )
-
-
-    cloudinary.config({ 
-      cloud_name: "flowz",
-      api_key: "927244196696278", 
-      api_secret: "opuVCybVuOgwlQpitcluIiPreiA" 
-    });
-
-=======
->>>>>>> 04a584560bf1c2e975398d1e8d32704df95f44ee
     return new Promise((resolve , reject) => {
       cloudinary.v2.uploader.upload(data.file,
       { resource_type: "raw",folder: data.folder},
