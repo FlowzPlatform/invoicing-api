@@ -30,6 +30,11 @@ const invite = require('./invite/invite.service.js');
 
 
 
+const cloudinaryupload = require('./cloudinaryupload/cloudinaryupload.service.js');
+
+
+
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(contacts);
@@ -57,4 +62,5 @@ module.exports = function () {
   app.configure(trackusersettings);
   app.configure(invite);
 
+  app.configure(cloudinaryupload);
 };
