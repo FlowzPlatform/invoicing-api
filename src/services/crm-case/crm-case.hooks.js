@@ -6,8 +6,10 @@ var r = require('rethinkdbdash')
 let errors = require('@feathersjs/errors') ;
 let axios = require('axios')
 let serviceUrl = 'http://' + config.host + ':' + config.port
-var cloudinary = require('cloudinary');
+
 let config1 = require('../../customConfig.js');
+
+
 
 module.exports = {
   before: {
@@ -20,9 +22,11 @@ module.exports = {
       hook => beforecreate(hook)
     ],
     update: [
-	hook => beforeUpdate(hook)
+	// hook => beforeUpdate(hook)
 	],
-    patch: [],
+    patch: [
+    hook => beforeUpdate(hook)
+    ],
     remove: []
   },
 
@@ -52,43 +56,78 @@ var getCrmCaseOldData = async( function(id) {
   var data = await (axios.get(serviceUrl + '/crm-case/' + id))
   return data.data
 })
-var postToHistory = async( function(data) {
-  var res = await (axios.post(serviceUrl + '/crm-history', data))
-  return res.data
-})
-var beforeUpdate = async ( function(hook) {
-  var oldData = await (getCrmCaseOldData(hook.id))
-  var postHistory = await (postToHistory(oldData))
-  console.log('oldData', oldData, postHistory)
+
+// var postToHistory = async( function(data) {
+//   var res = await (axios.post(serviceUrl + '/crm-history', data))
+//   return res.data
+// })
+
+var beforeUpdate = async hook => {
+  console.log("inside before upload")
+  let res = await validateUser(hook);
+  res = JSON.parse(res);
+   if(res.code == 401){
+    throw new errors.NotAuthenticated('Invalid token');
+  }else{
+    var oldData = await (getCrmCaseOldData(hook.id))
+  // var postHistory = await (postToHistory(oldData))
+  console.log('oldData', oldData)
   console.log('hook.data..........', hook.data, hook.id)
-})
+  if(hook.data.fileupload != undefined){
+    var indexforUrl = hook.data.fileupload.length
+    var urlforCloudinary = hook.data.fileupload[indexforUrl-1].url
+    var res1 = await app.service('cloudinaryupload').create({file :hook.data.fileupload[indexforUrl-1].url, folder:"crm/relationship/"+res.data.email})   
+    console.log('res1-------->',res1.url)    
+    var fileobj = {
+      "filename":hook.data.fileupload[indexforUrl-1].filename,
+      "url":res1.url,
+      "public_id":res1.public_id
+    };
+    console.log('res1-------->',res1.url)
+    hook.data.fileupload[indexforUrl-1] = fileobj;
+    
+  }
+  if(hook.data.filename != undefined){
+    // console.log('hook.data.filename',hook.data.filename)
+    // oldData.fileupload.forEach((item,index) => {
+    //   if(item.filename == hook.data.filename){
+    //     delete oldData.fileupload[index]
+    //   }
+    // })
+    // console.log('___________________________',oldData)
+    // var res = await(hook.app.service("/crm-case").update(hook.id,oldData))
+    // console.log("res.....",res)
+  }
+  }
+}
 
 
 beforecreate = async hook => {
   let res = await validateUser(hook);
+
+  res = JSON.parse(res);
+
+  var fileurl = []
   //let response = await checkDefaultConfig(hook , res)
   if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
-    cloudinary.config({ 
-      cloud_name: config1.default.cloudinary_cloud_name,
-      api_key: config1.default.cloudinary_api_key, 
-      api_secret: config1.default.cloudinary_api_secret 
-    });
-    await cloudinary.v2.uploader.upload(hook.data.fileupload,
-      { resource_type: "raw",folder: "crm/images"},
-      function(error, result) {
-        if(error){
-          console.log('&&&&&&&&&&',error)
-        }else{       
-          console.log(result);
-          hook.data.fileupload = result.url;
-        }
-      });
-
+    console.log('res-------------->',res.data.email)
+    if(hook.data.fileupload != undefined){
+      var res1 = await app.service('cloudinaryupload').create({file : hook.data.fileupload[0].url, folder:"crm/relationship/"+res.data.email})
+      console.log('res1-------->',res1.url)
+      var fileobj = {
+        "filename": hook.data.fileupload[0].filename,
+        "url": res1.url,
+        "public_id":res1.public_id
+      };
+      console.log('fileobj--->',hook.data.fileupload[0])
+      hook.data.fileupload[0] = fileobj;
+    }
+    
     hook.data.createdAt = new Date();
-     hook.data.userId = JSON.parse(res).data._id;
-     hook.data.user = JSON.parse(res).data.email;
+    hook.data.userId = res.data._id;
+    hook.data.user = res.data.email;
   }
 }
 
@@ -100,13 +139,23 @@ validateUser =data =>{
       }
   };
   return new Promise((resolve , reject) =>{
-    rp(options)
-    .then(function (parsedBody) {
-        resolve(parsedBody)
-    })
-    .catch(function (err) {
-      resolve({"code" : 401 })
-    });
+    
+     axios({
+        method : 'GET',
+        url : config1.default.userDetailURL,
+        strictSSL: false,
+        headers: {
+            "Authorization" : apiHeaders.authorization
+        }
+     })
+     .then(function (response) {
+      //  console.log("11111111111111111111111",response.data)
+          resolve(response)
+      })
+      .catch(function (error) {
+        console.log("%%%%%%%%%%%%",error)
+          resolve({"code" : 401 })
+      });
   })
 }
 
@@ -135,4 +184,7 @@ checkDefaultConfig = (data , res) => {
   //   console.log(settings)
   // })
   return true;
+
 }
+
+

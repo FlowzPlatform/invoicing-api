@@ -27,6 +27,9 @@ const trackusersettings = require('./trackusersettings/trackusersettings.service
 
 const invite = require('./invite/invite.service.js');
 
+const cloudinaryupload = require('./cloudinaryupload/cloudinaryupload.service.js');
+
+
 
 
 
@@ -56,5 +59,7 @@ module.exports = function () {
   app.configure(exporttopdf);
   app.configure(trackusersettings);
   app.configure(invite);
+
+  app.configure(cloudinaryupload);
 
 };
