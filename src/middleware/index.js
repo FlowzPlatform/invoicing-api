@@ -18,7 +18,7 @@ module.exports = async function () {
   subscription.moduleResource.moduleName = 'crm'
   let registerAppModule = {
     
-    'settings': ['create' , 'get' , 'find', 'update' , 'remove'],
+    'settings': ['create'],
     // 'invoice': ['create' , 'get' , 'find',  'update' , 'remove'],
     // 'contacts': ['create' , 'get' , 'find',  'update' , 'remove'],
     // 'customcontacts': ['create' , 'find',  'get' , 'update' , 'remove'],
