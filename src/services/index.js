@@ -31,9 +31,6 @@ const cloudinaryupload = require('./cloudinaryupload/cloudinaryupload.service.js
 
 
 
-const cloudinaryupload = require('./cloudinaryupload/cloudinaryupload.service.js');
-
-
 
 
 module.exports = function () {
