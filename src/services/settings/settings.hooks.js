@@ -284,10 +284,10 @@ async function validateUser(data) {
 
 function alreadyAvailable(hook , res) {
   return new Promise((resolve , reject) =>{
-    console.log("hook.data.subscriptionId",hook.data.subscriptionId)
+   
 
     r.table('settings')
-    .filter({subscriptionId : hook.data.subscriptionId , domain:"custom"}).run(connection , function(error , cursor){
+    .filter({subscriptionId : apiHeaders.subscriptionid , domain:"custom"}).run(connection , function(error , cursor){
         if (error) throw error;
         cursor.toArray(function(err, results) {
           if (err) throw err;
