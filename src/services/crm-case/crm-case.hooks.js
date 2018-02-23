@@ -88,18 +88,20 @@ var beforeUpdate = async hook => {
     
   }
   if(hook.data.filename != undefined){
-    // console.log('hook.data.filename',hook.data.filename)
-    // oldData.fileupload.forEach((item,index) => {
-    //   if(item.filename == hook.data.filename){
-    //     delete oldData.fileupload[index]
-    //   }
-    // })
-    // console.log('___________________________',oldData)
-    // var res = await(hook.app.service("/crm-case").update(hook.id,oldData))
-    // console.log("res.....",res)
+    console.log('hook.data.filename',hook.data.filename)
+    oldData.fileupload.forEach((item,index) => {
+      if(item.filename == hook.data.filename){
+        oldData.fileupload.splice(index, 1);
+      }
+    })
+    console.log('___________________________',oldData)
+    var res1 = await(hook.app.service("/crm-case").update(hook.id,oldData))
+    console.log("res.....",res1)
+    hook.result = res1;
   }
   }
 }
+
 
 
 beforecreate = async hook => {
