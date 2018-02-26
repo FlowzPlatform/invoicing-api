@@ -90,7 +90,7 @@ var beforeUpdate = async hook => {
   if(hook.data.filename != undefined){
     console.log('hook.data.filename',hook.data.filename)
     oldData.fileupload.forEach((item,index) => {
-      if(item.filename == hook.data.filename){
+      if(item.url == hook.data.url){
         oldData.fileupload.splice(index, 1);
       }
     })

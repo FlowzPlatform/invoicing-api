@@ -170,6 +170,7 @@ class Xero1 {
               Description: JSON.stringify(desc),
               Quantity: product.qty,
               UnitAmount: product.amount,
+              TaxAmount: product.tax,
               AccountCode: '200'
           };
           LineItems.push(lineItemData);
@@ -178,6 +179,7 @@ class Xero1 {
               Description: "additional_charges",
               Quantity: "1",
               UnitAmount: product.additional_charges,
+              TaxAmount: 0,
               AccountCode: '200'
             };
             LineItems.push(lineItemData);
@@ -187,6 +189,7 @@ class Xero1 {
               Description: "shipping_charges",
               Quantity: "1",
               UnitAmount: product.shipping_charges,
+              TaxAmount: 0,
               AccountCode: '200'
             };
             LineItems.push(lineItemData);
