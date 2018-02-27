@@ -31,8 +31,8 @@ class Service {
     // }
 
     return new Promise((resolve , reject) => {
-      cloudinary.v2.uploader.upload(data.file,
-      { resource_type: "raw",folder: data.folder},
+      cloudinary.v2.uploader.upload(data.file.url,
+      { public_id: data.file.filename, resource_type: "raw",folder: data.folder},
       function(error, result) {
         if(error){
           console.log('&&&&&&&&&&',error)
