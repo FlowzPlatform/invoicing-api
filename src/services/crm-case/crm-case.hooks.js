@@ -80,7 +80,7 @@ var beforeUpdate = async hook => {
     console.log('res1-------->',res1.url)    
     var fileobj = {
       "filename":hook.data.fileupload[indexforUrl-1].filename,
-      "url":res1.url,
+      "url":res1.secure_url,
       "public_id":res1.public_id
     };
     console.log('res1-------->',res1.url)
@@ -120,7 +120,7 @@ beforecreate = async hook => {
       console.log('res1-------->',res1.url)
       var fileobj = {
         "filename": hook.data.fileupload[0].filename,
-        "url": res1.url,
+        "url": res1.secure_url,
         "public_id":res1.public_id
       };
       console.log('fileobj--->',hook.data.fileupload[0])
