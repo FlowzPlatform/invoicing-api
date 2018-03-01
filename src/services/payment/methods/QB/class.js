@@ -118,7 +118,7 @@ class QB1 {
           paymentConf.headers["x-api-login"] = paymentToken.x_api_login;
         }
         else {
-          paymentConf.body_option.amount = (data.amount * 100);
+          paymentConf.body_option.amount = (data.amount);
           paymentConf.body_option.cardNumber = data.cardNumber;
           paymentConf.body_option.expMonth = data.expMonth;
           paymentConf.body_option.expYear = data.expYear;
