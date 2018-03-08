@@ -65,7 +65,17 @@ async function beforeCreateInvoice(hook){
 	let incr = invoiceCount+1
 	
 	if(hook.data.products.length > 0){
-		let maximum = _.map(hook.data.products, function(o) {return ((o.qty * o.amount) + o.additional_charges + o.shipping_charges) });
+		let charges = 0;
+		
+		let maximum = _.map(hook.data.products, function(o) {
+			if (o.additional_charges) {
+				charges += o.additional_charges; 
+			}
+			if (o.shipping_charges) {
+				charges += o.shipping_charges; 
+			}
+			return ((o.qty * o.amount) + charges) 
+		});
 		let Total = maximum.reduce(function(maximum, b) { return maximum + b; }, 0);
 		hook.data.Date = new Date();
 		hook.data.DueDate = new Date(hook.data.DueDate);
