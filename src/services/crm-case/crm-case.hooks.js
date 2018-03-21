@@ -76,11 +76,11 @@ var beforeUpdate = async hook => {
   if(hook.data.fileupload != undefined){
     var indexforUrl = hook.data.fileupload.length
     var urlforCloudinary = hook.data.fileupload[indexforUrl-1].url
-    var res1 = await app.service('cloudinaryupload').create({file :hook.data.fileupload[indexforUrl-1].url, folder:"crm/relationship/"+res.data.email})   
+    var res1 = await app.service('cloudinaryupload').create({file :hook.data.fileupload[indexforUrl-1], folder:"crm/relationship/"+res.data.email})   
     console.log('res1-------->',res1.url)    
     var fileobj = {
       "filename":hook.data.fileupload[indexforUrl-1].filename,
-      "url":res1.url,
+      "url":res1.secure_url,
       "public_id":res1.public_id
     };
     console.log('res1-------->',res1.url)
@@ -90,7 +90,7 @@ var beforeUpdate = async hook => {
   if(hook.data.filename != undefined){
     console.log('hook.data.filename',hook.data.filename)
     oldData.fileupload.forEach((item,index) => {
-      if(item.filename == hook.data.filename){
+      if(item.url == hook.data.url){
         oldData.fileupload.splice(index, 1);
       }
     })
@@ -116,11 +116,11 @@ beforecreate = async hook => {
   }else{
     console.log('res-------------->',res.data.email)
     if(hook.data.fileupload != undefined){
-      var res1 = await app.service('cloudinaryupload').create({file : hook.data.fileupload[0].url, folder:"crm/relationship/"+res.data.email})
+      var res1 = await app.service('cloudinaryupload').create({file : hook.data.fileupload[0], folder:"crm/relationship/"+res.data.email})
       console.log('res1-------->',res1.url)
       var fileobj = {
         "filename": hook.data.fileupload[0].filename,
-        "url": res1.url,
+        "url": res1.secure_url,
         "public_id":res1.public_id
       };
       console.log('fileobj--->',hook.data.fileupload[0])
