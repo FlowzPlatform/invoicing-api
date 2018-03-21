@@ -146,10 +146,7 @@ class Service {
             // console.log(cursor)
             resp = cursor
             
-        })
-    
-        
-                
+        })  
             return resp;
 
        
