@@ -180,7 +180,7 @@ class Service {
             port: config.get("rdb_port"),
             db: 'invoicing_api'
           }, function(err, conn) {
-            if (err) throw err;
+            //if (err) throw err;
             connection = conn
           })
         await r.table('settings')
