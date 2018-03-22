@@ -39,9 +39,9 @@ class Xero1 {
         let xeroClient = await this.authentication(config);
         let filter = '';
         if(data.Name && data.EmailAddress ){
-            filter += 'EmailAddress = "' + data.EmailAddress + '"'
+            filter = 'EmailAddress = "' + data.EmailAddress + '"'
         }else if (data.EmailAddress) {
-            filter += 'EmailAddress = "' + data.EmailAddress + '"'
+            filter = 'EmailAddress = "' + data.EmailAddress + '"'
         }else if (data.Name) {
             filter = 'Name = "' + data.Name + '"'
         }else{
