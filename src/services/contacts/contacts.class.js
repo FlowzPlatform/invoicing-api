@@ -141,15 +141,12 @@ class Service {
 
         await r.table('settings')
         .get(data.settingId).run(connection , function(error , cursor){
-            if (error) throw error;
+            //if (error) throw error;
     
             // console.log(cursor)
             resp = cursor
             
-        })
-    
-        
-                
+        })  
             return resp;
 
        

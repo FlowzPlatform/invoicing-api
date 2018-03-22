@@ -18,14 +18,8 @@ var moment = require("moment");
 let r = require('rethinkdb')
 let connection;
 let response;
-r.connect({
-  host: config.get('rdb_host'),
-  port: config.get("rdb_port"),
-  db: 'invoicing_api'
-}, function(err, conn) {
-  if (err) throw err;
-  connection = conn
-})
+console.log("config.get('rdb_host'),config.get('rdb_host'),config.get('rdb_host'),config.get('rdb_host'), " , config.get('rdb_host'))
+
 
 let schema1 = {
     findGetCreate : {
@@ -55,14 +49,15 @@ class Service {
     }
 
     async find (params) {
-        // console.log("invoice id inside params",params)
+         
         let schemaName1 = schema1.findGetCreate ;
         this.validateSchema(params.query, schemaName1)
 
         let configdata = [];
+       
         configdata.push(await this.getConfig(params.query));
-        // console.log("setting response inside invoice find----------->",configdata);
-
+         //console.log("setting response inside invoice find----------->",configdata);
+        
         let response =  await this.getInvoice(configdata,params);
         return(response);
     }
@@ -178,9 +173,23 @@ class Service {
         //             throw new errors.NotFound(err)
         //         });
 
+         console.log("invoice id inside params ////// connection",connection)
+        // console.log("config.get('rdb_host'),config.get('rdb_host'),config.get('rdb_host'),config.get('rdb_host'), " , config.get('rdb_host'))
+        r.connect({
+            host: config.get('rdb_host'),
+            port: config.get("rdb_port"),
+            db: 'invoicing_api'
+          }, function(err, conn) {
+            //if (err) throw err;
+            connection = conn
+          })
         await r.table('settings')
         .get(data.settingId).run(connection , function(error , cursor){
-            if (error) throw error;
+
+           if (error){
+            console.log("error               " , error)
+           } 
+           //throw error;
 
             // console.log(cursor)
             resp = cursor
@@ -267,7 +276,9 @@ class Service {
             });
         }
         else if (params.query.stats) {
+            
             response = await obj.invoiceStats(configdata[0],params.query);
+            
             response1.push({
                 "configName": configdata[0].configName,
                 "configId": configdata[0].id,

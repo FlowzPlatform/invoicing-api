@@ -285,12 +285,19 @@ async function validateUser(data) {
 function alreadyAvailable(hook , res) {
   return new Promise((resolve , reject) =>{
    
-
+    r.connect({
+      host: config.get('rdb_host'),
+      port: config.get("rdb_port"),
+      db: 'invoicing_api'
+    }, function(err, conn) {
+      // if (err) throw err;
+      connection = conn
+    })
     r.table('settings')
     .filter({subscriptionId : apiHeaders.subscriptionid , domain:"custom"}).run(connection , function(error , cursor){
-        if (error) throw error;
+        // if (error) throw error;
         cursor.toArray(function(err, results) {
-          if (err) throw err;
+          // if (err) throw err;
 
           // console.log("<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>> "  , results.length)
           resolve(results.length)
@@ -309,14 +316,31 @@ function alreadyAvailable(hook , res) {
 function getData(data) {
   return new Promise((resolve , reject) =>{
     console.log("------------data",data)
+    r.connect({
+      host: config.get('rdb_host'),
+      port: config.get("rdb_port"),
+      db: 'invoicing_api'
+    }, function(err, conn) {
+       if (err){
+        
+       } 
+      //  throw err;
+       
+      connection = conn
+    })
     r.table('settings')
     .filter({id : data.id}).run(connection , function(error , cursor){
-        if (error) throw error;
-        cursor.toArray(function(err, results) {
-          if (err) throw err;
-          console.log("<<<<<<<<<<getData "  , results)
-          resolve(results[0])
-        });
+        if (error) {
+          console.log("error >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " , error)
+          // throw error;
+        } else{
+          cursor.toArray(function(err, results) {
+            // if (err) throw err;
+            console.log("<<<<<<<<<<getData "  , results)
+            resolve(results[0])
+          });
+        }
+        
     })
     // app.service('settings').find({query: {id : data.id}}).then(settings => {
 		// // console.log(">>>>>>>>>>>>>>>>> " , settings.data)
