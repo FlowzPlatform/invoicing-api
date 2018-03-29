@@ -29,7 +29,7 @@ const invite = require('./invite/invite.service.js');
 
 const cloudinaryupload = require('./cloudinaryupload/cloudinaryupload.service.js');
 
-
+const buildersettings = require('./buildersettings/buildersettings.service.js');
 
 
 
@@ -61,5 +61,6 @@ module.exports = function () {
   app.configure(invite);
 
   app.configure(cloudinaryupload);
+  app.configure(buildersettings);
 
 };
