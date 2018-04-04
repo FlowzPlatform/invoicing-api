@@ -17,6 +17,14 @@ var moment = require("moment");
 
 let r = require('rethinkdb')
 let connection;
+r.connect({
+    host: config.get('rdb_host'),
+    port: config.get("rdb_port"),
+    db: 'invoicing_api'
+  }, function(err, conn) {
+    //if (err) throw err;
+    connection = conn
+  })
 let response;
 console.log("config.get('rdb_host'),config.get('rdb_host'),config.get('rdb_host'),config.get('rdb_host'), " , config.get('rdb_host'))
 

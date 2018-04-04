@@ -138,7 +138,7 @@ async function errorGet(hook) {
    //  let getMultipleDataRes = await getMultipleData(hook);
     // console.log(">>>>>>>>>>>>>>>> "  , res)
     
-    console.log("apiHeaders " , apiHeaders)
+    // console.log("apiHeaders " , apiHeaders)
     
     //hook.params.query.userId = res.data.data._id;
    hook.params.query.subscriptionId = apiHeaders.subscriptionid
