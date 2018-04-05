@@ -18,7 +18,7 @@ module.exports =
       },
       "headers": {
         "content-type": "application/json",
-        "x-api-token": "sk_test_V8ZICJodc73pjyGVBBzA0Dkb",
+        "x-api-token": "",
         "cache-control": "no-cache"
       }
     },
@@ -36,8 +36,8 @@ module.exports =
 
       "headers" : {
         "content-type": "application/json",
-        "X-api-token" : "7u2c3W48QS6GgrQH",
-        "x-api-login" :  "6E5bm3MSd",
+        "X-api-token" : "",
+        "x-api-login" :  "",
         "cache-control": "no-cache"
       }
     },
@@ -76,8 +76,8 @@ module.exports =
 
           "headers": {
             "content-type" : "application/json",
-            "X-api-token" : "EN1ebKVIYSL7gQwlINTwqv0-cV7YN3nceWg883tnM-kcZafNCLNCW973wmMBPyTLbdZJ3yN2KvDLBsVt",
-            "x-api-login" :  "AYqQfJ_fFXDMLwqre1BJXFE9SumE-bsIUnd17AmTlwGcaCPHVn0Ka7YXObB41dQ-PI5SVAWyWq9d4WRe",
+            "X-api-token" : "",
+            "x-api-login" :  "",
             "cache-control" : "no-cache"
           }
         }
