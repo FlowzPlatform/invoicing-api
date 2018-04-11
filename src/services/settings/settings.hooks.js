@@ -290,19 +290,30 @@ function alreadyAvailable(hook , res) {
       port: config.get("rdb_port"),
       db: 'invoicing_api'
     }, function(err, conn) {
-      // if (err) throw err;
-      connection = conn
+       if (err) {
+         console.log("err", err)
+         reject (err);
+       }else{
+         connection = conn;
+         r.table('settings')
+        .filter({subscriptionId : apiHeaders.subscriptionid , domain:"custom"}).run(connection , function(error , cursor){
+         if (error){
+            console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>> " , error)
+            reject(error);
+         }else{
+          cursor.toArray(function(err, results) {
+            // if (err) throw err;
+  
+            // console.log("<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>> "  , results.length)
+            resolve(results.length)
+        });
+         }
+        
     })
-    r.table('settings')
-    .filter({subscriptionId : apiHeaders.subscriptionid , domain:"custom"}).run(connection , function(error , cursor){
-        // if (error) throw error;
-        cursor.toArray(function(err, results) {
-          // if (err) throw err;
-
-          // console.log("<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>> "  , results.length)
-          resolve(results.length)
-      });
+       };
+      
     })
+    
     // app.service('settings').find({query: {userId : res.data.data._id, domain:"custom"}}).then(settings => {
     //       console.log(">>>>>>>>>>>>>>>>> " , settings)
 

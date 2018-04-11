@@ -36,7 +36,7 @@ class Service {
       function(error, result) {
         if(error){
           console.log('&&&&&&&&&&',error)
-          resolve(error)
+          reject (error)
         }else{ 
         resolve (result)      
           // console.log(result);

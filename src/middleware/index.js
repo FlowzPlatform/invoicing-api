@@ -1,6 +1,7 @@
 const handler = require('feathers-errors/handler');
 const notFound = require('feathers-errors/not-found');
 const subscription = require('flowz-subscription')
+const flowzError = require('flowz-error-handler');
 module.exports.subscription = subscription
 
 
@@ -50,5 +51,6 @@ module.exports = async function () {
       
   //   })
   // }
+  app.use(flowzError());
 };
 
