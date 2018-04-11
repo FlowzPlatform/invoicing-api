@@ -1,10 +1,18 @@
 
-const paymentConfig = require("../../../payment-plugin.json");
+const paymentConfig = require("../../../payment-plugin.js");
 
 var TokenProvider = require('refresh-token');
 var request = require('request');
 var rp = require('request-promise');
 const axios = require('axios');
+const _ = require('lodash');
+var moment = require("moment");
+
+const feathersErrors = require('feathers-errors');
+const errors = feathersErrors.errors;
+
+let api_uri = 'https://sandbox-quickbooks.api.intuit.com/v3/company/';
+let token_uri = 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer';
 
 class QB1 {
     /**
@@ -24,14 +32,19 @@ class QB1 {
 
     async getToken(config) {
       console.log("inside get token");
-      var tokenProvider = new TokenProvider('https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer' , {
+      var tokenProvider = new TokenProvider(token_uri , {
         refresh_token: config.refresh_token,
         client_id:     config.client_id,
         client_secret: config.client_secret
       });
       return new Promise(function(resolve, reject) {
         tokenProvider.getToken(function (err, newToken) {
-          resolve(newToken)
+          if (err) {
+              console.log("==============",err);
+          }
+          else {
+            resolve(newToken)
+          }
         });
       })
     }
@@ -44,7 +57,7 @@ class QB1 {
           'Accept': 'application/json'
         }
       }
-      console.log("requestObj",getReqObj);
+      // console.log("requestObj",getReqObj);
       return getReqObj;
     }
 
@@ -58,7 +71,7 @@ class QB1 {
           'Accept': 'application/json',
           'Content-Type' : 'application/json'
         }
-      }
+      };
       return postReqObj;
     }
 
@@ -70,13 +83,29 @@ class QB1 {
             resolve(response);
           }, function (err) {
             // console.log("Error",err);
-            resolve({isError:true, err:err});
+            // resolve(err);
+            throw new errors.NotAcceptable(err);
         })
       })
     }
 
-    async paymentGateway(data,paymentConf) {
+    async paymentGateway(data,paymentConf,config) {
+      let index;
+      if (config.online_payment) {
+        console.log("online_payment",config.online_payment[data.gateway]);
+        index = _.findIndex(config.online_payment[data.gateway], function(o) { return (o.isDefault === true && o.isDeleted !== true); });
+        console.log("_.findIndex",index);
+        if (index < 0) {
+            throw new errors.NotFound("Payment Credential is not available. Please configure atleast one credential!!")
+        }
+      }
+      else {
+        throw new errors.NotFound("Payment Credential is not available. Please configure atleast one credential!!")
+      }
       return new Promise(async function(resolve, reject) {
+        let paymentToken = config.online_payment[data.gateway][index]
+        console.log("configData",config.online_payment[data.gateway][index]);
+        // let paymentToken = config.online_payment[data.gateway];
         if (data.gateway == "paypal") {
           paymentConf.body_option.transactions[0].amount.total = data.amount;
           paymentConf.body_option.transactions[0].amount.details.subtotal = data.amount;
@@ -85,13 +114,22 @@ class QB1 {
           paymentConf.body_option.payer.funding_instruments[0].payment_card.expire_month = data.expMonth;
           paymentConf.body_option.payer.funding_instruments[0].payment_card.expire_year = data.expYear;
           paymentConf.body_option.payer.funding_instruments[0].payment_card.cvv2 = data.cvc;
+          paymentConf.headers["X-api-token"] = paymentToken.Client_Id;
+          paymentConf.headers["x-api-login"] = paymentToken.Secret;
         }
         else {
-          paymentConf.body_option.amount = (data.amount * 100);
+          paymentConf.body_option.amount = (data.amount);
           paymentConf.body_option.cardNumber = data.cardNumber;
           paymentConf.body_option.expMonth = data.expMonth;
           paymentConf.body_option.expYear = data.expYear;
           paymentConf.body_option.cvc = data.cvc;
+          if (data.gateway == "stripe") {
+            paymentConf.headers["x-api-token"] = paymentToken.Secret_Key;
+          }
+          else {
+              paymentConf.headers["x-api-token"] = paymentToken.Transaction_Key;
+              paymentConf.headers["x-api-login"] = paymentToken.Signature_Key;
+          }
         }
 
         var options = {
@@ -105,14 +143,23 @@ class QB1 {
         console.log("options",options);
 
         rp(options)
-          .then(function (parsedBody) {
-            // console.log("inside then%%%%%%%%%%%",parsedBody)
-            resolve(parsedBody);
+          .then(function (parsedBody , err) {
+             console.log("inside then%%%%%%%%%%%",parsedBody)
+             if(parsedBody.statusCode == 402){
+              reject(parsedBody)
+             }else{
+              resolve(parsedBody)
+             }
+            
           })
           .catch(function (err) {
-            console.log("inside catch")
-            resolve({err:err});
               // POST failed...
+             console.log("inside catch " , err)
+             reject(err);
+            //  if (err.statusCode == 500) {
+            //   reject(err);
+            //  }
+            //throw new errors.NotAcceptable(err);
           });
       })
     }
@@ -120,16 +167,41 @@ class QB1 {
     async postPayment(data, token,url) {
       let value;
 
-      await axios.get(process.env.baseUrl+"contacts", {
-        params: data
+      // await axios.get(process.env.baseUrl+"contacts", {
+      //   params: data
+      // })
+      // .then(function (response) {
+      //   console.log("contact response",response.data[0]);
+      //   value = response.data[0].data[0].Id
+      // })
+      // .catch(function (error) {
+      //   console.log("error",error);
+      //   throw new errors.NotAcceptable(error);
+      // });
+
+      // await axios({
+      //   method:'get',
+      //   url: process.env.baseUrl+'contacts',
+      //   params : data
+      // })
+      // .then(function(response) {
+      //     console.log("contact response",response.data[0]);
+      //     value = response.data[0].data[0].Id
+      // })
+      // .catch(function (error) {
+      //     console.log("error",error);
+      //     throw new errors.NotAcceptable(error);
+      // });
+
+      await app.service("contacts").find({query:data}).then(function(result){
+          console.log("contact response",result[0]);
+          value = result[0].data[0].Id
+          // console.log("parsedBody contact find---------------->",result[0])
+          // resp = result[0];
+      }).catch(function(err){
+          console.log(">>>>>>>>>>>>>>> " , err)
+          throw new errors.NotFound(err)
       })
-      .then(function (response) {
-        console.log("contact response",response.data[0]);
-        value = response.data[0].data[0].Id
-      })
-      .catch(function (error) {
-        console.log("error",error);
-      });
 
       var line = [
         {
@@ -147,43 +219,95 @@ class QB1 {
       var TotalAmt = data.amount;
       var body = JSON.stringify({'Line': line, 'CustomerRef':ref, 'TotalAmt':TotalAmt});
       var requestObj = await this.postRequestObj (url,body, token)
-      console.log("requestObj@@@@",requestObj);
       // Make API call
       var result = await this.make_api_call (requestObj)
       return(result);
     }
 
     async createPayment(config,data) {
-      var token = await this.getToken(config);
-      var paymentConf = paymentConfig.credentials[data.gateway];
-      // console.log("paymentConf",paymentConf)
-        var payment = await this.paymentGateway(data,paymentConf);
-        // console.log("payment",payment)
-        if (payment.err) {
-          var err = payment.err.message || payment.err.response.error_description
-          console.log("Error in payment",err);
+        var token = await this.getToken(config);
+        var paymentConf = paymentConfig.credentials[data.gateway];
+        // console.log("paymentConf",paymentConf)
+        var payment = await this.paymentGateway(data,paymentConf,config);
+        console.log("payment response from gateway",payment);
+        var status;
+        var errorMsg;
+        //stripe invalid token error
+        if (payment.statusCode == 401) {
+            errorMsg = payment.message
+        }
+        //paypal internal service error
+        else if (payment.httpStatusCode == 500) {
+            errorMsg = payment.response.message
         }
         else {
-          var status = payment.status
-          console.log("Status of payment", status);
+            status = payment.status || payment.state || payment.messages.resultCode
         }
+        if (status == "Error") {
+            errorMsg = payment.messages.message[0].text
+        }
+        // var status = payment.status || payment.state || payment.messages.resultCode
+        console.log("Status of payment", status);
+        
         var payment1;
         if(status == 'succeeded' || status == 'Ok' || status == 'created') {
-          var url = 'https://sandbox-quickbooks.api.intuit.com/v3/company/' + config.realmId + '/payment'
+          var url = api_uri + config.realmId + '/payment'
           console.log('Making API call to: ' + url)
           payment1 = await this.postPayment(data,token,url);  
+          return new Promise(async function(resolve, reject) {
+            let jsondata = JSON.parse(payment1.body);
+            let myfinalObj = {};
+            let mObj = {
+                'Gateway' : data.gateway
+            }
+            _.forEach(payment, (v, k) => {
+                if (k == 'id' || k == 'amount' || k == 'balance_transaction' ||  k == 'captured' || k == 'created'|| k == 'currency'|| k == 'refunded'|| k == 'refunds' || 
+                    k == 'transactionResponse' || 
+                    k == 'create_time' || k == 'update_time' || k == 'state' || k == 'payer' || k == 'transactions') {
+                    mObj[k] = v
+                }
+            })
+            // console.log(">>>>>>>>>>>>>>>>>>>>>jsondata",jsondata);
+    
+            let accObj = {
+              'PaymentID' : jsondata.Payment.Id,
+              'Amount' : jsondata.Payment.TotalAmt,
+              'Account' : jsondata.Payment.DepositToAccountRef,
+              'Invoice' : {
+                'InvoiceID' : jsondata.Payment.Line[0].LinkedTxn[0].TxnId,
+                'Date' : jsondata.Payment.TxnDate,
+                'Status' : ''
+              },
+              'Contact' : {
+                'ContactID' : jsondata.Payment.CustomerRef.value,
+                'Name' : jsondata.Payment.CustomerRef.name
+              }
+            };
+    
+            myfinalObj.settingId = config.id
+            myfinalObj.user = config.user
+            myfinalObj.paymentGateway = mObj
+            myfinalObj.paymentAccounting = accObj
+    
+            // console.log("payment transaction post obj",myfinalObj);
+    
+            resolve({
+              paymentGateway: payment,
+              paymentAccounting: jsondata,
+              paymemntPostObj : myfinalObj
+            });
+          })
         }
-      return new Promise(async function(resolve, reject) {
-        var jsondata = JSON.parse(payment1.body);
-        resolve(jsondata);
-      })
+        else {
+          throw new errors.BadRequest(errorMsg);
+        }
     }
 
     async getPayment(config,data) {
       var token = await this.getToken(config);
-         console.log("token",token);
+        //  console.log("token",token);
 
-         var url = 'https://sandbox-quickbooks.api.intuit.com/v3/company/' + config.realmId + '/query?query=select * from Payment'
+         var url = api_uri + config.realmId + '/query?query=select * from Payment'
         console.log('Making API call to: ' + url)
 
         var requestObj = await this.getRequestObj (url, token)
@@ -213,3 +337,4 @@ class QB1 {
 module.exports = function(options) {
     return new QB1(options);
 };
+
