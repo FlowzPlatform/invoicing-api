@@ -87,7 +87,7 @@ class custom {
             resolve(parsedBody);
           })
           .catch(function (err) {
-            console.log("inside catch")
+            console.log("inside catch",err)
             reject(err);
               // POST failed...
           });
@@ -171,6 +171,9 @@ class custom {
       //paypal internal service error
       else if (payment.httpStatusCode == 500) {
           errorMsg = payment.response.message
+      }
+      else if (payment.httpStatusCode == 401) {
+          errorMsg = payment.response.error_description
       }
       else {
           status = payment.status || payment.state || payment.messages.resultCode
