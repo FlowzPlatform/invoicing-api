@@ -8,7 +8,7 @@ module.exports = {
     all: [],
     find: [],
     get: [],
-    create:[ hook=>Validation(hook),hook=>PoGenerateCal(hook),hook=>POSettingValidation(hook)],
+    create:[ hook=>Validation(hook),hook=>PoGenerateCal(hook),hook=>POSettingValidation(hook),hook=>POEmail(hook)],
     update: [],
     patch: [],
     remove: []
@@ -18,7 +18,7 @@ module.exports = {
     all: [],
     find: [],
     get: [],
-    create: [hook=>POEmail(hook)],
+    create: [],
     update: [],
     patch: [],
     remove: []

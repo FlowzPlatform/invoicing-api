@@ -11,9 +11,9 @@ var validate= async function(context) {
     }
   
     //  // Check if there is `supplier_id` property
-    //  if(!data.supplier_id) {
-    //   throw new BadRequest('supplier_id text must exist');
-    // }
+     if(!data.products) {
+      throw new BadRequest('No product found');
+    }
 
      // Check if there is `supplier_id` property
      if(!data.owner_id) {
@@ -25,9 +25,9 @@ var validate= async function(context) {
     if(typeof data.subscription_id !== 'string' || data.subscription_id.trim() === '') {
       throw new BadRequest('subscription_id text is invalid');
     }
-    // if(typeof data.supplier_id !== 'string' || data.supplier_id.trim() === '') {
-    //   throw new BadRequest('supplier_id text is invalid');
-    // }
+    if(data.products.length ==0) {
+      throw new BadRequest('No product found');
+    }
     if(typeof data.owner_id !== 'string' || data.owner_id.trim() === '') {
       throw new BadRequest('owner_id text is invalid');
     }
@@ -46,12 +46,9 @@ var validate= async function(context) {
       products: data.products,
       owner_id: data.owner_id,
       special_information: data.special_information,
-      user_info: data.user_info
+      user_info: data.user_info    
     }
   
-    context.data
-        
-
     return context;
   }; 
 
@@ -66,17 +63,21 @@ var validate= async function(context) {
       orderProductLIst.forEach(items => {
         
         var supplier_id=items.product_description.supplier_id
-
+        
         if(supplier_id)
         {
-        //    let supplierIndexOf =tempSupllierIds.indexOf(supplier_id);
+            var poNewId=generateCustomId("PO",[data.subscription_id,,supplier_id,data.order_id])
+            console.log("PO Ids:--",poNewId)
+            //    let supplierIndexOf =tempSupllierIds.indexOf(supplier_id);
            var posObj=poArray[supplier_id];
            if(posObj)
            {
-                
+                posObj.PO_id=poNewId
+                posObj.EmailStatus="Initiated"
                 posObj.products.push(items)
            }else{
             var product= {
+                PO_id:poNewId,
                 created_at:date,
                 subscription_id: data.subscription_id,
                 website_id: data.website_id,
@@ -88,23 +89,44 @@ var validate= async function(context) {
                 owner_id: data.owner_id,
                 products:[items],
                 special_information: data.special_information,
-                user_info: data.user_info
+                user_info: data.user_info,
+                EmailStatus:"Initiated"
               }
               poArray[supplier_id]=product
            }
         }
     
       });
-    
-      console.log("PoArray::--",poArray)
+      
       context.data=poArray;
       return context
   } 
 
-var  checkPOSettingValidation = async function(context) {
+  var generateCustomId=function(prefix,idsArray)
+  {
+    let id=prefix;
+
+    idsArray.forEach(element => {
+       
+        id=id.concat("_"+element.substr(element.length-5));
+    });
+    return id;
+  }
+
+var arrayConstructor = [].constructor;
+var objectConstructor = {}.constructor;
+
+var checkPOSettingValidation = async function(context) {
     const { data } = context;
-    console.log("data-->",data)
+    // console.log("data-->",data)
     let suppliersIds=Object.keys(data)
+    // console.log("subscription_id-->",data[suppliersIds[0]].subscription_id)
+    // console.log("owner_id-->",data[suppliersIds[0]].owner_id)
+    // console.log("website_id-->",data[suppliersIds[0]].website_id)
+
+    let subscriptionId=data[suppliersIds[0]].subscription_id
+    let ownerId=data[suppliersIds[0]].owner_id
+    let websiteId=data[suppliersIds[0]].website_id
     var poArray=[]
     console.log("suppliersIds-->",suppliersIds)
 
@@ -112,6 +134,9 @@ var  checkPOSettingValidation = async function(context) {
     return context.app.service('/po-settings').find(
         {query: 
             {
+                subscription_id:subscriptionId,
+                owner_id:ownerId,
+                website_id:websiteId,
                 supplier_id: 
                 {
                     $in:suppliersIds
@@ -126,10 +151,10 @@ var  checkPOSettingValidation = async function(context) {
         for (let index = 0; index < suppliersIds.length; index++) {
             const element = suppliersIds[index];
             var isAutoMode = _.result(_.find(result.data, function(obj) {
-                return obj.supplier_id === element;
-            }), 'isAuto');
+                return obj.supplier_id === element ;
+            }), 'po_generate_mode');
             
-            if(isAutoMode)
+            if(isAutoMode=='auto')
             {
                 console.log('----------Po generate in auto mode--------------',element)
 
@@ -156,24 +181,73 @@ var  checkPOSettingValidation = async function(context) {
   var poEmailSent=async function(context)
   {
     const { data } = context;
+    // console.log("Auto Email Config",data)
+    let emailUrl=config.emailConfig.emailUrl;
+                
+    let body=  {"to":"","from":"webmaster1@gmail.com","subject":"Invitation from Flowz","body":"dfdsfs"}
 
-    console.log("Auto Email Config",data)
-    if(data.id){
-        let emailUrl=config.emailConfig.emailUrl;
-        let body=  {"to":"igandhi@officebrain.com","from":"webmaster1@gmail.com","subject":"Invitation from Flowz","body":"dfdsfs"}
-        return await axios.post(emailUrl, body)
-            .then(function(response) {
-                if (response.data.code == 200) {
-                    
-                    return context
-                }
-            })
-            .catch(function(error) {
-                console.log("Error Code:---",error.message)
-                return context
-            });
+    // if (data.constructor === arrayConstructor){
+        console.log("<----Array--------->");
+        let axiosArray=[]
+        data.forEach(el => {
+            // if(el.id)
+            // {
+                // console.log("Auto el.id",el.id)
+            body.to=el.user_info.email
+            axiosArray.push(axios.post(emailUrl, body))
+            // }
+        });
+        if(axiosArray.length>0){
+            return await axios.all(axiosArray).then(values=>{
+                console.log("<----Email Successfully--------->");
+                // console.log("Values:---",values)
+                let counter=0;
+                values.forEach(value => {
+                    context.data[counter].EmailStatus="Sent"
+                    counter++;                
+                });
+                    console.log("context.data--------->",context.data);
+                    return context;    
+            }).catch(error=>{
+                console.log("resultArray error--------->",error.message);
+            
+                return context;
+            }) 
+        }
+    // }else{
+    //     console.log("<----Object--------->");
+            // if(data.id){
+            //     body.to=data.user_info.email
 
-    }
+            //     return await axios.post(emailUrl, body)
+            //         .then(function(response) {
+            //             console.log("Respon--------->",response.data)
+                      
+            //             // context.data.emailSent=true
+                            
+            //             // if (response.data.code == 200) {
+            //             //     context.data.emailSent=true
+            //             //     console.log("Email--------->",context)
+            //             //     return context
+            //             // }
+            //         })
+            //         .catch(function(error) {
+            //             console.log("Error Code:---",error.message)
+            //             context.app.service('/po-settings').patch(data.id,
+            //                 {
+            //                     $set: {
+            //                         EmailStatus: "Sent"
+            //                     }
+            //                 }).then(result => {
+            //                     console.log("Email--------->", context)
+
+            //                     return context
+            //                 })
+            //             // return context
+            //         });
+
+            // }
+    // }
     
   }
   
