@@ -42,10 +42,7 @@ module.exports = function () {
   app.configure(settings);
   app.configure(invoice);
 
-
-
   app.configure(upload);
-
 
   app.configure(crmService);
   app.configure(crmCase);

@@ -1,7 +1,7 @@
 // Initializes the `purchase-order` service on path `/purchase-order`
 const createService = require('feathers-rethinkdb');
 const hooks = require('./purchase-order.hooks');
-
+const filters = require('./purchase-order.filters');
 module.exports = function () {
   const app = this;
   const Model = app.get('rethinkdbClient');
@@ -20,6 +20,8 @@ module.exports = function () {
   const service = app.service('purchase-order');
 
   service.hooks(hooks);
-
   
+  if (service.filter) {
+    service.filter(filters);
+  }
 };

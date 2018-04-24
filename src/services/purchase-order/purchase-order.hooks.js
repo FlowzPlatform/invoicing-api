@@ -2,6 +2,7 @@ const Validation  = require('./purchase-order-validation').validateObj;
 const  POSettingValidation  = require('./purchase-order-validation').checkPOSettingValidationObj;
 const  POEmail  = require('./purchase-order-validation').poEmailSentObj;
 const  PoGenerateCal  = require('./purchase-order-validation').poGenerateCalObj;
+const  POUpdateInMyOrder  = require('./purchase-order-validation').POUpdateInMyOrderObj;
 
 module.exports = {
   before: {
@@ -18,7 +19,7 @@ module.exports = {
     all: [],
     find: [],
     get: [],
-    create: [],
+    create: [hook=>POUpdateInMyOrder(hook)],
     update: [],
     patch: [],
     remove: []
