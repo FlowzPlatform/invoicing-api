@@ -49,7 +49,7 @@ var validate= async function(context) {
       special_information: data.special_information,
       user_info: data.user_info    ,
       user_billing_info:data.user_billing_info,
-      ismanual:true
+      ismanual:data.ismanual
     }  
     return context;
   }; 
@@ -124,13 +124,15 @@ var checkPOSettingValidation = async function(context) {
     // console.log("subscription_id-->",data[suppliersIds[0]].subscription_id)
     // console.log("distributor_id -->",data[suppliersIds[0]].distributor_id )
     // console.log("website_id-->",data[suppliersIds[0]].website_id)
-
-    let subscriptionId=data[suppliersIds[0]].subscription_id
-    let distId=data[suppliersIds[0]].distributor_id
-    let websiteId=data[suppliersIds[0]].website_id
-    let ismanual=data[suppliersIds[0]].ismanual
+   
+    // let subscriptionId=data[suppliersIds[0]].subscription_id
+    // let distId=data[suppliersIds[0]].distributor_id
+    // let websiteId=data[suppliersIds[0]].website_id
+    // let ismanual=data[suppliersIds[0]].ismanual
+   
+    let {subscription_id:subscriptionId,distributor_id:distId,website_id:websiteId,ismanual:ismanual=false}=data[suppliersIds[0]];
     var poArray=[]
-    console.log("suppliersIds-->",suppliersIds)
+   
 
     let date=new Date();
 
@@ -246,7 +248,7 @@ var checkPOSettingValidation = async function(context) {
             
             })
             .catch(function (error) {
-                console.log('error',error)
+                console.log('error',error.message)
             })
     }
   }
