@@ -48,7 +48,8 @@ var validate= async function(context) {
       distributor_id : data.owner_id,
       special_information: data.special_information,
       user_info: data.user_info    ,
-      user_billing_info:data.user_billing_info
+      user_billing_info:data.user_billing_info,
+      ismanual:true
     }  
     return context;
   }; 
@@ -87,12 +88,12 @@ var validate= async function(context) {
                 quantity: data.quantity,
                 total: data.total,
                 distributor_id : data.distributor_id,
-                
                 products:[items],
                 special_information: data.special_information,
                 user_info: data.user_info,
                 EmailStatus:"Initiated",
-                user_billing_info:data.user_billing_info
+                user_billing_info:data.user_billing_info,
+                ismanual:data.ismanual
               }
               poArray[supplier_id]=product
            }
@@ -127,53 +128,70 @@ var checkPOSettingValidation = async function(context) {
     let subscriptionId=data[suppliersIds[0]].subscription_id
     let distId=data[suppliersIds[0]].distributor_id
     let websiteId=data[suppliersIds[0]].website_id
+    let ismanual=data[suppliersIds[0]].ismanual
     var poArray=[]
     console.log("suppliersIds-->",suppliersIds)
 
     let date=new Date();
-    return context.app.service('/po-settings').find(
-        {
-            query: 
-            {
-                subscription_id:subscriptionId,
-                distributor_id :distId,
-                // website_id:websiteId,
-                supplier_id: 
-                {
-                    $in:suppliersIds
-                } 
-            }
-        }).then(result => {
-         console.log("result-->",result)
-    
-        if(result && result.total==0)
-            throw new BadRequest('CRM Purcahse order Setting not available');
-      
+
+    if (ismanual) {
         for (let index = 0; index < suppliersIds.length; index++) {
             const element = suppliersIds[index];
-            var isAutoMode = _.result(_.find(result.data, function(obj) {
-                return obj.supplier_id === element ;
-            }), 'po_generate_mode');
-            
-            if(isAutoMode=='auto')
-            {
-                console.log('----------Po generate in auto mode--------------',element)
-                var poObj=data[element]
-                poObj.PO_generate_date= date
-                poObj.PO_generate_mode= "Auto"
-                poArray.push(poObj);
-            }
-
+            console.log('----------Po generate in manual  mode--------------', element)
+            var poObj = data[element]
+            delete poObj.ismanual
+            poObj.PO_generate_date = date
+            poObj.PO_generate_mode = "Manual"
+            poArray.push(poObj);
         }
-
-        if(poArray.length>0){
-            context.data=poArray;
+        if (poArray.length > 0) {
+            context.data = poArray;
             return context
         }
-        else
-            throw new BadRequest('CRM Purcahse order generate in Manual Mode');
-   
-  })
+    } else {
+        return context.app.service('/po-settings').find(
+            {
+                query:
+                    {
+                        subscription_id: subscriptionId,
+                        distributor_id: distId,
+                        // website_id:websiteId,
+                        supplier_id:
+                            {
+                                $in: suppliersIds
+                            }
+                    }
+            }).then(result => {
+                console.log("result-->", result)
+
+                if (result && result.total == 0)
+                    throw new BadRequest('CRM Purcahse order Setting not available');
+
+                for (let index = 0; index < suppliersIds.length; index++) {
+                    const element = suppliersIds[index];
+                    var isAutoMode = _.result(_.find(result.data, function (obj) {
+                        return obj.supplier_id === element;
+                    }), 'po_generate_mode');
+
+                    if (isAutoMode == 'auto') {
+                        console.log('----------Po generate in auto mode--------------', element)
+                        var poObj = data[element]
+                        poObj.PO_generate_date = date
+                        poObj.PO_generate_mode = "Auto"
+                        poArray.push(poObj);
+                    }
+
+                }
+
+                if (poArray.length > 0) {
+                    context.data = poArray;
+                    return context
+                }
+                else
+                    throw new BadRequest('CRM Purcahse order generate in Manual Mode');
+
+            })
+    }
 }
 
   var poEmailSent=async function(context)
