@@ -7,7 +7,9 @@ const  POUpdateInMyOrder  = require('./purchase-order-validation').POUpdateInMyO
 module.exports = {
   before: {
     all: [],
-    find: [],
+    find:[
+      hook=>beforeFind(hook)
+    ],
     get: [],
     create:[ hook=>Validation(hook),hook=>PoGenerateCal(hook),hook=>POSettingValidation(hook),hook=>POEmail(hook)],
     update: [],
@@ -35,3 +37,9 @@ module.exports = {
     remove: []
   }
 };
+
+function beforeFind(hook){
+  let po_id =hook.params.query.PO_id
+  if(po_id)
+    hook.params.query.PO_id ={$eq : po_id}
+}

@@ -132,14 +132,13 @@ var checkPOSettingValidation = async function(context) {
    
     let {subscription_id:subscriptionId,distributor_id:distId,website_id:websiteId,ismanual:ismanual=false}=data[suppliersIds[0]];
     var poArray=[]
-   
 
     let date=new Date();
 
     if (ismanual) {
         for (let index = 0; index < suppliersIds.length; index++) {
             const element = suppliersIds[index];
-            console.log('----------Po generate in manual  mode--------------', element)
+            console.log('------------Po generate in manual  mode--------------', element)
             var poObj = data[element]
             delete poObj.ismanual
             poObj.PO_generate_date = date
@@ -202,18 +201,14 @@ var checkPOSettingValidation = async function(context) {
     // console.log("Auto Email Config",data)
     let emailUrl=config.emailConfig.emailUrl;
                 
-    let body=  {"to":"","from":"webmaster1@gmail.com","subject":"Invitation from Flowz","body":"dfdsfs"}
+  
 
     // if (data.constructor === arrayConstructor){
         console.log("<----Array--------->");
         let axiosArray=[]
         data.forEach(el => {
-            // if(el.id)
-            // {
-                // console.log("Auto el.id",el.id)
-            body.to=el.user_info.email
+            let body=  {"to":el.user_info.email,"from":"webmaster1@gmail.com","subject":`Purchase Order Generated for Order Id :- ${data.order_id}` ,"body":`PO order generated succesfully, View more.. Click on link https://crm.${process.env.domainKey}/purchase-order?PO_id=${el.PO_id}`}
             axiosArray.push(axios.post(emailUrl, body))
-            // }
         });
         if(axiosArray.length>0){
             return await axios.all(axiosArray).then(values=>{
