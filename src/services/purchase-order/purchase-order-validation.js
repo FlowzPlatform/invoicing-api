@@ -136,7 +136,7 @@ var checkPOSettingValidation = async function(context) {
     // let websiteId=data[suppliersIds[0]].website_id
     // let isManual=data[suppliersIds[0]].isManual
    
-    let {subscriptionId:subscriptionId,distributorId:distId,website_id:websiteId,isManual:isManual=false}=data[suppliersIds[0]];
+    let {subscriptionId:subscriptionId,distributorId:distId,websiteId:websiteId,isManual:isManual=false}=data[suppliersIds[0]];
     var poArray=[]
 
     let date=new Date();
@@ -156,14 +156,14 @@ var checkPOSettingValidation = async function(context) {
             return context
         }
     } else {
-        console.log("subscription_id",subscriptionId,distId)
+        console.log("subscription_id",subscriptionId,distId , websiteId)
         return context.app.service('/po-settings').find(
             {
                 query:
                     {
                         subscriptionId: subscriptionId,
                         distributorId: distId,
-                        // website_id:websiteId,
+                        websiteId:websiteId,
                         supplierId:
                             {
                                 $in: suppliersIds
