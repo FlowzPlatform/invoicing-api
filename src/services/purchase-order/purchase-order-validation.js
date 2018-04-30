@@ -37,19 +37,20 @@ var validate= async function(context) {
     // This prevents people from adding other properties to our database
     context.data = {
       created_at:new Date(),
-      subscription_id: data.subscription_id,
-      website_id: data.website_id,
+      subscriptionId: data.subscription_id,
+      websiteId: data.website_id,
       websiteName: data.websiteName,
-      order_id: data.id,
-      setting_id: data.setting_id,
+      orderId: data.id,
+      settingId: data.setting_id,
       quantity: data.quantity,
       total: data.total,
       products: data.products,
-      distributor_id : data.owner_id,
+      distributorId : data.owner_id,
       special_information: data.special_information,
       user_info: data.user_info    ,
       user_billing_info:data.user_billing_info,
-      ismanual:data.ismanual
+       distributor_email : data.distributor_email,
+      isManual:data.isManual
     }  
     return context;
   }; 
@@ -65,9 +66,12 @@ var validate= async function(context) {
         
         var supplier_id=items.product_description.supplier_id
         
+        console.log("data.subscription_id",data.subscriptionId)
+        console.log("supplier_id",supplier_id)
+        console.log("data.order_id",data.orderId)
         if(supplier_id)
-        {
-            var poNewId=generateCustomId("PO",[data.subscription_id,supplier_id,data.order_id])
+        {   
+            var poNewId=generateCustomId("PO",[data.subscriptionId,supplier_id,data.orderId])
             console.log("PO Ids:--",poNewId)
             //    let supplierIndexOf =tempSupllierIds.indexOf(supplier_id);
            var posObj=poArray[supplier_id];
@@ -80,20 +84,22 @@ var validate= async function(context) {
             var product= {
                 PO_id:poNewId,
                 created_at:date,
-                subscription_id: data.subscription_id,
-                website_id: data.website_id,
+                subscriptionId: data.subscriptionId,
+                websiteId: data.websiteId,
                 websiteName: data.websiteName,
-                order_id: data.order_id,
-                setting_id: data.setting_id,
+                orderId: data.orderId,
+                settingId: data.settingId,
                 quantity: data.quantity,
                 total: data.total,
-                distributor_id : data.distributor_id,
+                distributorId : data.distributorId,
                 products:[items],
                 special_information: data.special_information,
                 user_info: data.user_info,
                 EmailStatus:"Initiated",
                 user_billing_info:data.user_billing_info,
-                ismanual:data.ismanual
+                isManual:data.isManual,
+                 distributor_email : data.distributor_email
+
               }
               poArray[supplier_id]=product
            }
@@ -108,9 +114,9 @@ var validate= async function(context) {
 var generateCustomId=function(prefix,idsArray)
 {
     let id=prefix;
-
+    console.log("idsArray",idsArray)
     idsArray.forEach(element => {
-        
+        console.log("element",element);
         id=id.concat("_"+element.substr(element.length-5));
     });
     return id;
@@ -128,19 +134,19 @@ var checkPOSettingValidation = async function(context) {
     // let subscriptionId=data[suppliersIds[0]].subscription_id
     // let distId=data[suppliersIds[0]].distributor_id
     // let websiteId=data[suppliersIds[0]].website_id
-    // let ismanual=data[suppliersIds[0]].ismanual
+    // let isManual=data[suppliersIds[0]].isManual
    
-    let {subscription_id:subscriptionId,distributor_id:distId,website_id:websiteId,ismanual:ismanual=false}=data[suppliersIds[0]];
+    let {subscriptionId:subscriptionId,distributorId:distId,website_id:websiteId,isManual:isManual=false}=data[suppliersIds[0]];
     var poArray=[]
 
     let date=new Date();
 
-    if (ismanual) {
+    if (isManual) {
         for (let index = 0; index < suppliersIds.length; index++) {
             const element = suppliersIds[index];
             console.log('------------Po generate in manual  mode--------------', element)
             var poObj = data[element]
-            delete poObj.ismanual
+            delete poObj.isManual
             poObj.PO_generate_date = date
             poObj.PO_generate_mode = "Manual"
             poArray.push(poObj);
@@ -150,14 +156,15 @@ var checkPOSettingValidation = async function(context) {
             return context
         }
     } else {
+        console.log("subscription_id",subscriptionId,distId)
         return context.app.service('/po-settings').find(
             {
                 query:
                     {
-                        subscription_id: subscriptionId,
-                        distributor_id: distId,
+                        subscriptionId: subscriptionId,
+                        distributorId: distId,
                         // website_id:websiteId,
-                        supplier_id:
+                        supplierId:
                             {
                                 $in: suppliersIds
                             }
@@ -168,13 +175,19 @@ var checkPOSettingValidation = async function(context) {
                 if (result && result.total == 0)
                     throw new BadRequest('CRM Purcahse order Setting not available');
 
+                // let isAuto = (auto) => {
+                //     auto
+                // }
+
                 for (let index = 0; index < suppliersIds.length; index++) {
                     const element = suppliersIds[index];
                     var isAutoMode = _.result(_.find(result.data, function (obj) {
-                        return obj.supplier_id === element;
+                        return obj.supplierId === element;
                     }), 'po_generate_mode');
 
-                    if (isAutoMode == 'auto') {
+
+                    console.log("isAutoModeisAutoModeisAutoModeisAutoModeisAutoModeisAutoMode " , isAutoMode)
+                    if (isAutoMode == 'Auto') {
                         console.log('----------Po generate in auto mode--------------', element)
                         var poObj = data[element]
                         poObj.PO_generate_date = date
@@ -207,7 +220,8 @@ var checkPOSettingValidation = async function(context) {
         console.log("<----Array--------->");
         let axiosArray=[]
         data.forEach(el => {
-            let body=  {"to":el.user_info.email,"from":"webmaster1@gmail.com","subject":`Purchase Order Generated for Order Id :- ${data.order_id}` ,"body":`PO order generated succesfully, View more.. Click on link https://crm.${process.env.domainKey}/purchase-order?PO_id=${el.PO_id}`}
+            let {product_description:{supplier_info:{email :toMail } }}=el.products[0]
+            let body=  {"to":toMail,"from":"webmaster1@gmail.com","cc":el.distributor_email,"subject":`Purchase Order Generated for Order Id :- ${data.order_id}` ,"body":`PO order generated succesfully, View more.. Click on link https://crm.${process.env.domainKey}/purchase-order?PO_id=${el.PO_id}`}
             axiosArray.push(axios.post(emailUrl, body))
         });
         if(axiosArray.length>0){
@@ -222,7 +236,7 @@ var checkPOSettingValidation = async function(context) {
                     // console.log("context.data--------->",context.data);
                     return context;    
             }).catch(error=>{
-                console.log("resultArray error--------->",error.message);
+                console.log("Email error--------->",error.message);
             
                 return context;
             })
