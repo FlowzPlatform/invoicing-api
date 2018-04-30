@@ -32,6 +32,9 @@ const cloudinaryupload = require('./cloudinaryupload/cloudinaryupload.service.js
 const buildersettings = require('./buildersettings/buildersettings.service.js');
 
 
+const purchaseOrder = require('./purchase-order/purchase-order.service.js');
+
+const poSettings = require('./po-settings/po-settings.service.js');
 
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
@@ -39,10 +42,7 @@ module.exports = function () {
   app.configure(settings);
   app.configure(invoice);
 
-
-
   app.configure(upload);
-
 
   app.configure(crmService);
   app.configure(crmCase);
@@ -63,4 +63,7 @@ module.exports = function () {
   app.configure(cloudinaryupload);
   app.configure(buildersettings);
 
+  
+  app.configure(purchaseOrder);
+  app.configure(poSettings);
 };
