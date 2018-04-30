@@ -16,5 +16,8 @@ module.exports = {
     "client_id" : process.env.client_id,
     "client_secret" : process.env.client_secret,
     "realmId" : "193514591409719"
+  },
+  emailConfig:{
+    "emailUrl":"https://api."+process.env.domainKey+"/vmailmicro/sendPassword"
   }
 };
