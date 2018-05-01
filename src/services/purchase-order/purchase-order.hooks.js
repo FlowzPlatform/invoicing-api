@@ -9,7 +9,7 @@ module.exports = {
     all: [],
     find:[],
     get: [],
-    create:[ hook=>Validation(hook),hook=>PoGenerateCal(hook),hook=>POSettingValidation(hook),hook=>POEmail(hook)],
+    create:[ hook=>Validation(hook),hook=>PoGenerateCal(hook),hook=>POSettingValidation(hook)],
     update: [],
     patch: [],
     remove: []

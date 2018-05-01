@@ -173,7 +173,7 @@ var checkPOSettingValidation = async function(context) {
                 console.log("result-->", result)
 
                 if (result && result.total == 0)
-                    throw new BadRequest('CRM Purcahse order Setting not available');
+                context.result={"status":404,"message":"PO setting not found"}  
 
                 // let isAuto = (auto) => {
                 //     auto
@@ -184,11 +184,7 @@ var checkPOSettingValidation = async function(context) {
                     var isAutoMode = _.result(_.find(result.data, function (obj) {
                         return obj.supplierId === element;
                     }), 'po_generate_mode');
-
-
-                    console.log("isAutoModeisAutoModeisAutoModeisAutoModeisAutoModeisAutoMode " , isAutoMode)
                     if (isAutoMode == 'Auto') {
-                        console.log('----------Po generate in auto mode--------------', element)
                         var poObj = data[element]
                         poObj.PO_generate_date = date
                         poObj.PO_generate_mode = "Auto"
@@ -199,10 +195,12 @@ var checkPOSettingValidation = async function(context) {
 
                 if (poArray.length > 0) {
                     context.data = poArray;
-                    return context
+
+                    let con= poEmailSent(context)
+                    return con
                 }
                 else
-                    throw new BadRequest('CRM Purcahse order generate in Manual Mode');
+                context.result={"status":404,"message":"PO setting not found"}  
 
             })
     }
@@ -221,7 +219,7 @@ var checkPOSettingValidation = async function(context) {
         let axiosArray=[]
         data.forEach(el => {
             let {product_description:{supplier_info:{email :toMail } }}=el.products[0]
-            let body=  {"to":toMail,"from":"webmaster1@gmail.com","cc":el.distributor_email,"subject":`Purchase Order Generated for Order Id :- ${data.order_id}` ,"body":`PO order generated succesfully, View more.. Click on link https://crm.${process.env.domainKey}/purchase-order?PO_id=${el.PO_id}`}
+            let body=  {"to":toMail,"from":el.distributor_email,"subject":`Purchase Order Generated for Order Id :- ${data.order_id}` ,"body":`PO order generated succesfully, View more.. Click on link https://crm.${process.env.domainKey}/purchase-order?PO_id=${el.PO_id}`}
             axiosArray.push(axios.post(emailUrl, body))
         });
         if(axiosArray.length>0){
