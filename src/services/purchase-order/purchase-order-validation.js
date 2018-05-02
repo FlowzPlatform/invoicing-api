@@ -41,6 +41,7 @@ var validate= async function(context) {
       websiteId: data.website_id,
       websiteName: data.websiteName,
       orderId: data.order_id,
+      order_unique_id: data.id,
       settingId: data.setting_id,
       quantity: data.quantity,
       total: data.total,
@@ -88,6 +89,7 @@ var validate= async function(context) {
                 websiteId: data.websiteId,
                 websiteName: data.websiteName,
                 orderId: data.orderId,
+                order_unique_id: data.order_unique_id,
                 settingId: data.settingId,
                 quantity: data.quantity,
                 total: data.total,
@@ -153,7 +155,8 @@ var checkPOSettingValidation = async function(context) {
         }
         if (poArray.length > 0) {
             context.data = poArray;
-            return context
+            let con= poEmailSent(context)
+            return con
         }
     } else {
         console.log("subscription_id",subscriptionId,distId , websiteId)
@@ -217,9 +220,17 @@ var checkPOSettingValidation = async function(context) {
     // if (data.constructor === arrayConstructor){
         console.log("<----Array--------->");
         let axiosArray=[]
+      
+
         data.forEach(el => {
             let {product_description:{supplier_info:{email :toMail } }}=el.products[0]
-            let body=  {"to":toMail,"from":el.distributor_email,"subject":`Purchase Order Generated for Order Id :- ${data.order_id}` ,"body":`PO order generated succesfully, View more.. Click on link https://crm.${process.env.domainKey}/purchase-order?PO_id=${el.PO_id}`}
+            let emailBody = `<div ref="email">
+            <h2>Purchase Order</h2>
+            <p style="font-size:16px">Purchase Order Generated for Order Id :- ${el.orderId}</p>
+            <p style="font-size:16px">To view the Purchase order please click below Button.</p>
+            <a href=" https://crm.${process.env.domainKey}/#/purchase-order-received?PO_id=${el.PO_id}" style="background-color:#EB7035;border:1px solid #EB7035;border-radius:3px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:16px;line-height:44px;text-align:center;text-decoration:none;width:150px;-webkit-text-size-adjust:none;mso-hide:all;">View PO</a>  
+            </div>`
+            let body=  {"to":toMail,"cc":el.distributor_email,"from":"obsoftcare@gmail.com","subject":`Purchase Order Generated for Order Id :- ${el.orderId}` ,"body":emailBody}
             axiosArray.push(axios.post(emailUrl, body))
         });
         if(axiosArray.length>0){
@@ -247,7 +258,7 @@ var checkPOSettingValidation = async function(context) {
             axios({
                 method: 'PATCH',
                 // url: " http://172.16.160.229:3032/myOrders/d578a83e-7f5f-47ae-b64f-e4bdc019826b",//+data.order_id
-                url:    "http://"+process.env.domainKey+"/myOrders/"+data.order_id,
+                url:    "https://api."+process.env.domainKey+"/serverapi/myOrders/"+data.order_unique_id,
                 data: { "po_detail":{ [data.products[0].product_description.supplier_id] : {PO_id:data.PO_id}}}
             })  
             .then(function (response) {
