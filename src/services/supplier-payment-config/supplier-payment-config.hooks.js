@@ -1,4 +1,3 @@
-import { isArray } from 'util';
 
 var rp = require('request-promise');
 let errors = require('@feathersjs/errors') ;
