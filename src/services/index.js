@@ -36,6 +36,8 @@ const purchaseOrder = require('./purchase-order/purchase-order.service.js');
 
 const poSettings = require('./po-settings/po-settings.service.js');
 
+const supplierPaymentConfig = require('./supplier-payment-config/supplier-payment-config.service.js');
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(contacts);
@@ -63,7 +65,8 @@ module.exports = function () {
   app.configure(cloudinaryupload);
   app.configure(buildersettings);
 
-  
+
   app.configure(purchaseOrder);
   app.configure(poSettings);
+  app.configure(supplierPaymentConfig);
 };
