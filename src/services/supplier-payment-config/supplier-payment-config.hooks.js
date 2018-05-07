@@ -67,14 +67,104 @@ async function beforeCreate (hook) {
   }
 }
 
-async function beforePatch (hook) {
-  let result = await getData(hook)
-  let FinalData = await updateData (result, hook.data)  
-}
+  beforePatch = async hook =>{
+    //console.log(hook)
+    let res = await validateUser(hook);
+    // console.log(res)
+    console.log("hook.data",hook.data);
+    if (hook.data.online_payment) {
+      let data = await getData(hook.data);
+      // console.log("response of get data",data);
+      let hookarr = Object.keys(hook.data.online_payment);
+      console.log("hookarr",hookarr)
+      if (data.online_payment) {
+        let gateway;
+        let arr = Object.keys(data.online_payment);
+        console.log("----------arr",arr);
+        console.log("hook.data.rowIndex",hook.data.rowIndex)
+        if (hook.data.rowIndex != null) {
+          // console.log("---------------inside if")
+          for (i in arr) {
+            if (arr[i] == hookarr[0]) {
+              // console.log("inside if");
+              gateway = hookarr[0];
+              console.log("gateway",gateway);
+              console.log("hook.data.online_payment[gateway].isDefault",hook.data.online_payment[gateway])
+              if (hook.data.online_payment[gateway].isDefault == true) {
+                console.log("data.online_payment.gateway",data.online_payment[gateway])
+                data.online_payment[gateway].forEach(function(alldata) {
+                  console.log("alldata",alldata);
+                  alldata.isDefault = false;
+                })
+              }
+              console.log("data.online_payment[gateway][rowIndex] if",data.online_payment[gateway])
+              data.online_payment[gateway][hook.data.rowIndex] = hook.data.online_payment[gateway]
+              console.log("-------------------",data.online_payment[gateway])
+              delete hook.data.rowIndex;
+              
+              if(hook.data.rowIndex){
+                hook.data.online_payment[gateway] = [hook.data.online_payment[gateway]]
+              }else{
+                hook.data.online_payment[gateway]= data.online_payment[gateway]
+              }
+               //;
+              
+              console.log("hook.data.online_payment[gateway] if",hook.data.online_payment[gateway])
+            }
+          }
+        }
+        else {
+          // console.log("++++++++++inside else")
+          let findIndex = _.indexOf(arr, hookarr[0]);
+          // for (i in arr) {
+            if (findIndex >= 0) {
+              gateway = hookarr[0];
+              // console.log("inside if");
+      
+              console.log("data.online_payment.gateway else",data.online_payment[gateway])
+              console.log("hook.data.online_payment[gateway] else" , hook.data.online_payment[gateway])
+              data.online_payment[gateway].forEach(function(alldata) {
+                // console.log("alldata",alldata);
+                alldata.isDefault = false;
+              })
+              // console.log("-------------------",data.online_payment[gateway])
+              // console.log("hook.data.online_payment[gateway]",hook.data.online_payment[gateway])
+              //data.online_payment[gateway].push(hook.data.online_payment[gateway]);
+              hook.data.online_payment[gateway] = hook.data.online_payment[gateway]
+              // console.log("======================",hook.data.online_payment);
+            }
+            else {
+              // console.log("hookarr[0]",hookarr[0])
+              console.log("++++++++++++++++",hook.data.online_payment[hookarr[0]]);
+              if(hook.data.rowIndex){
+                
+                hook.data.online_payment[hookarr[0]] = [ hook.data.online_payment[hookarr[0] ]]	
+              }else{
+                hook.data.online_payment[gateway]= data.online_payment[gateway]
+              }
+             	
+              console.log("--------------",hook.data.online_payment[hookarr[0]])				
+            }
+          // }
+        }
+      }
+      else {
+        hook.data.online_payment[hookarr[0]] = [ hook.data.online_payment[hookarr[0]] ]		
+      }
+    }
+    // if(res.code == 401){
+    //   throw new errors.NotAuthenticated('Invalid token');
+    // }else{
+    //   hook.data.updatedAt = new Date();
+    //   hook.data.updatedBy = res.data.data.email
+    // }
+  }
+
 
 async function afterCreate(hook){
- // console.log(hook.result)  
-  let responseDataKey = Object.keys(hook.result.responseData[0].online_payment)
+  console.log(")))))))))))))))))))))) ",hook.result)  
+  if(hook.result.responseData != undefined){
+    let responseDataKey = Object.keys(hook.result.responseData[0].online_payment)
   let responseDataKeyFromUser = Object.keys(hook.result.online_payment)
 
   console.log("responseDataKey ",responseDataKey);
@@ -104,6 +194,8 @@ async function afterCreate(hook){
       }).catch(function (error) {
         //console.log(error)
       })
+  }
+  
  
 }
 
@@ -142,7 +234,7 @@ function alreadyAvailable(hook) {
   })
 } 
 
-function getData (hook) {
+function getData (data) {
   return new Promise((resolve , reject) =>{
    
     r.connect({
@@ -156,7 +248,7 @@ function getData (hook) {
         }else{
           connection = conn;
           r.table('supplierPaymentConfig')
-              .filter({id : hook.data.id }).run(connection , function(error , cursor){
+              .filter({id : data.id }).run(connection , function(error , cursor){
                 if (error){
                   console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>> " , error)
                   reject(error);
@@ -174,53 +266,6 @@ function getData (hook) {
       
     })
   })
-}
-
-function alreadyAvailableGateway (hook) {
-  return new Promise((resolve , reject) =>{
-   
-    r.connect({
-      host: config.get('rdb_host'),
-      port: config.get("rdb_port"),
-      db: 'invoicing_api'
-    }, function(err, conn) {
-       if (err) {
-         console.log("err", err)
-         reject (err);
-       }else{
-         connection = conn;
-         r.table('supplierPaymentConfig')
-        .filter({supplier_id : hook.data.online_payment }).run(connection , function(error , cursor){
-         if (error){
-            console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>> " , error)
-            reject(error);
-         }else{
-             cursor.toArray(function(err, results) {
-                if (err) throw err;
-
-                 // console.log("<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>> "  , results)
-            resolve(results.length)
-        });
-         }
-        
-    })
-       };
-      
-    })
-  }) 
-}
-
-function updateData (oldData, newData) {
-  let oldDatakey = Object.keys(oldData.online_payment)
-  console.log("--------oldData----------", oldData,   '*********',  oldDatakey)
-  let newDatakey = Object.keys(newData.online_payment)
-  console.log("--------newData----------", newData , '////////**********', newDatakey)  
-  let isInArray = oldDatakey.includes(newDatakey)
-  // if (isArray) {
-
-  // } else {
-
-  // }
 }
 
 function checkAccountName (responseData, data, gateway) {
