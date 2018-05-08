@@ -63,55 +63,79 @@ var validate= async function(context) {
         var date=new Date();
       var orderProductLIst=data.products;
 
-      orderProductLIst.forEach(items => {
-        
-        var supplier_id=items.product_description.supplier_id
-        
-        console.log("data.subscription_id",data.subscriptionId)
-        console.log("supplier_id",supplier_id)
-        console.log("data.order_id",data.orderId)
-        if(supplier_id)
-        {   
-            var poNewId=generateCustomId("PO",[data.subscriptionId,supplier_id,data.orderId])
-            console.log("PO Ids:--",poNewId)
-            //    let supplierIndexOf =tempSupllierIds.indexOf(supplier_id);
-           var posObj=poArray[supplier_id];
-           if(posObj)
-           {    
-                posObj.PO_id=poNewId
-                posObj.EmailStatus="Initiated"
-                posObj.products.push(items)
-           }else{
-            var product= {
-                PO_id:poNewId,
-                created_at:date,
-                subscriptionId: data.subscriptionId,
-                websiteId: data.websiteId,
-                websiteName: data.websiteName,
-                orderId: data.orderId,
-                order_unique_id: data.order_unique_id,
-                settingId: data.settingId,
-                quantity: data.quantity,
-                total: data.total,
-                distributorId : data.distributorId,
-                products:[items],
-                special_information: data.special_information,
-                user_info: data.user_info,
-                EmailStatus:"Initiated",
-                user_billing_info:data.user_billing_info,
-                isManual:data.isManual,
-                 distributor_email : data.distributor_email
-
-              }
-              poArray[supplier_id]=product
-           }
-        }
-    
-      });
+      let totalOrderCount=Promise.resolve(countOrderId(context,data.order_unique_id))
       
-      context.data=poArray;
-      return context
+      return  totalOrderCount.then(function (count) {
+        orderProductLIst.forEach(items => {
+            
+            var supplier_id=items.product_description.supplier_id
+            
+            console.log("data.subscription_id",data.subscriptionId)
+            console.log("supplier_id",supplier_id)
+            console.log("data.order_id",data.orderId)
+            if(supplier_id)
+            {   
+                var poNewId=generateCustomId("PO",[data.subscriptionId,supplier_id,data.order_unique_id,String(count+1)])
+                console.log("PO Ids:--",poNewId)
+                //    let supplierIndexOf =tempSupllierIds.indexOf(supplier_id);
+               var posObj=poArray[supplier_id];
+               if(posObj)
+               {    
+                    posObj.PO_id=poNewId
+                    posObj.EmailStatus="Initiated"
+                    posObj.products.push(items)
+               }else{
+                var product= {
+                    PO_id:poNewId,
+                    created_at:date,
+                    subscriptionId: data.subscriptionId,
+                    websiteId: data.websiteId,
+                    websiteName: data.websiteName,
+                    orderId: data.orderId,
+                    order_unique_id: data.order_unique_id,
+                    settingId: data.settingId,
+                    quantity: data.quantity,
+                    total: data.total,
+                    distributorId : data.distributorId,
+                    products:[items],
+                    special_information: data.special_information,
+                    user_info: data.user_info,
+                    EmailStatus:"Initiated",
+                    user_billing_info:data.user_billing_info,
+                    isManual:data.isManual,
+                     distributor_email : data.distributor_email
+    
+                  }
+                  poArray[supplier_id]=product
+               }
+            }
+        
+          });
+          
+          context.data=poArray;
+          return context
+      })
+
+     
   } 
+
+  var countOrderId=function(context,orderID)
+  {
+      return  new Promise(function(resolve, reject){
+        context.app.service('/purchase-order').find({
+            query:
+                {
+                    $limit: 0,
+                    order_unique_id: orderID               
+                },
+               
+        }).then(result=>{
+            console.log("Count Result:--",result)
+            resolve(result.total)
+        })
+      })
+      
+  }
 
 var generateCustomId=function(prefix,idsArray)
 {
@@ -119,7 +143,7 @@ var generateCustomId=function(prefix,idsArray)
     console.log("idsArray",idsArray)
     idsArray.forEach(element => {
         console.log("element",element);
-        id=id.concat("_"+element.substr(element.length-5));
+        id=id.concat("_"+(element.length<=5 ? element : element.substr(element.length-5)));
     });
     return id;
 }
