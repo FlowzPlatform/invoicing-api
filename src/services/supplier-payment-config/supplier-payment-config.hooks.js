@@ -7,6 +7,8 @@ let _ = require('lodash');
 let r = require('rethinkdb');
 const config = require("config");
 let config1 = require('../../customConfig.js');
+let domainKey = process.env.domainKey;
+let baseUrl = "http://api."+domainKey;
 
 
 let connection;
@@ -186,7 +188,7 @@ async function afterCreate(hook){
       
       axios({
         method: 'PATCH',
-        url: "http://localhost:3037/supplier-payment-config/"+hook.result.responseData[0].id,
+        url: baseUrl + "/supplier-payment-config/" + hook.result.responseData[0].id,
         data: hook.result.responseData[0]
       })  
       .then(function (response) {
