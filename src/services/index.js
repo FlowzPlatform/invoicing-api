@@ -38,6 +38,8 @@ const poSettings = require('./po-settings/po-settings.service.js');
 
 const supplierPaymentConfig = require('./supplier-payment-config/supplier-payment-config.service.js');
 
+const poInvoice = require('./po-invoice/po-invoice.service.js');
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(contacts);
@@ -69,4 +71,5 @@ module.exports = function () {
   app.configure(purchaseOrder);
   app.configure(poSettings);
   app.configure(supplierPaymentConfig);
+  app.configure(poInvoice);
 };
