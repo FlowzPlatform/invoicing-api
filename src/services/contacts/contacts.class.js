@@ -130,6 +130,14 @@ class Service {
 
     async getConfig(data) {
         var resp;
+        r.connect({
+          host: config.get('rdb_host'),
+          port: config.get("rdb_port"),
+          db: 'invoicing_api'
+        }, function(err, conn) {
+          if (err) throw err;
+          connection = conn
+        })
         // await app.service("settings").get(data.settingId)
         //     .then(response => {
         //         resp = response;
