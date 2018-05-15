@@ -64,8 +64,8 @@ class Xero1 {
                 paymentConf.body_option.payer.funding_instruments[0].payment_card.expire_month = data.expMonth;
                 paymentConf.body_option.payer.funding_instruments[0].payment_card.expire_year = data.expYear;
                 paymentConf.body_option.payer.funding_instruments[0].payment_card.cvv2 = data.cvc;
-                paymentConf.headers["X-api-token"] = paymentToken.x_api_token;
-                paymentConf.headers["x-api-login"] = paymentToken.x_api_login;
+                paymentConf.headers["X-api-token"] = paymentToken.Client_Id;
+                paymentConf.headers["x-api-login"] = paymentToken.Secret;
             }
             else {
                 paymentConf.body_option.amount = (data.amount);
@@ -74,11 +74,11 @@ class Xero1 {
                 paymentConf.body_option.expYear = data.expYear;
                 paymentConf.body_option.cvc = data.cvc;
                 if (data.gateway == "stripe") {
-                    paymentConf.headers["x-api-token"] = paymentToken.x_api_token;
+                    paymentConf.headers["x-api-token"] = paymentToken.Secret_Key;
                 }
                 else {
-                    paymentConf.headers["x-api-token"] = paymentToken.x_api_token;
-                    paymentConf.headers["x-api-login"] = paymentToken.x_api_login;
+                    paymentConf.headers["x-api-token"] = paymentToken.Transaction_Key;
+                    paymentConf.headers["x-api-login"] = paymentToken.Signature_Key;
                 }
             }
             var options = {
