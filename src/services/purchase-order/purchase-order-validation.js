@@ -52,39 +52,48 @@ var validate= async function(context) {
       user_billing_info:data.user_billing_info,
        distributor_email : data.distributor_email,
       isManual:data.isManual
-    }  
+    }
     return context;
-  }; 
+}; 
 
-  var poGenerateCal=function(context)
-  { 
+var poGenerateCal=function(context)
+{ 
     const { data } = context;
-      var poArray={};
-        var date=new Date();
-      var orderProductLIst=data.products;
+    var poArray={};
+    var date=new Date();
+    var orderProductLIst=data.products;
+    let qty = 0;
+    let total = 0;
+    orderProductLIst.forEach(items => {
+            
+        var supplier_id=items.product_description.supplier_id
+        
+        console.log("data.subscription_id",data.subscriptionId)
+        console.log("supplier_id",supplier_id)
+        console.log("data.order_id",data.orderId)
 
-      let totalOrderCount=Promise.resolve(countOrderId(context,data.order_unique_id))
-      
-      return  totalOrderCount.then(function (count) {
-        orderProductLIst.forEach(items => {
-            
-            var supplier_id=items.product_description.supplier_id
-            
-            console.log("data.subscription_id",data.subscriptionId)
-            console.log("supplier_id",supplier_id)
-            console.log("data.order_id",data.orderId)
-            if(supplier_id)
-            {   
-                var poNewId=generateCustomId("PO",[data.subscriptionId,supplier_id,data.order_unique_id,String(count+1)])
-                console.log("PO Ids:--",poNewId)
-                //    let supplierIndexOf =tempSupllierIds.indexOf(supplier_id);
-               var posObj=poArray[supplier_id];
-               if(posObj)
-               {    
-                    posObj.PO_id=poNewId
-                    posObj.EmailStatus="Initiated"
-                    posObj.products.push(items)
-               }else{
+        console.log('product qty', item.total_qty)
+        console.log('product unit_price', item.unit_price)
+        if(supplier_id)
+        {   
+            var poNewId=generateCustomId("PO",[data.subscriptionId,supplier_id,data.orderId])
+            console.log("PO Ids:--",poNewId)
+            //    let supplierIndexOf =tempSupllierIds.indexOf(supplier_id);
+            var posObj=poArray[supplier_id];
+
+            if(posObj)
+            {    
+                qty += item.total_qty;
+                total += item.total_qty * item.unit_price
+                //  posObj.PO_id=poNewId
+                //posObj.EmailStatus="Initiated"
+                posObj.quantity = qty;
+                posObj.total = total;
+                posObj.products.push(items)
+            }else{
+                qty = item.total_qty;
+                total = qty * item.unit_price;
+
                 var product= {
                     PO_id:poNewId,
                     created_at:date,
@@ -94,8 +103,8 @@ var validate= async function(context) {
                     orderId: data.orderId,
                     order_unique_id: data.order_unique_id,
                     settingId: data.settingId,
-                    quantity: data.quantity,
-                    total: data.total,
+                    quantity: qty,
+                    total: total,
                     distributorId : data.distributorId,
                     products:[items],
                     special_information: data.special_information,
@@ -103,21 +112,16 @@ var validate= async function(context) {
                     EmailStatus:"Initiated",
                     user_billing_info:data.user_billing_info,
                     isManual:data.isManual,
-                     distributor_email : data.distributor_email
-    
-                  }
-                  poArray[supplier_id]=product
-               }
+                    distributor_email : data.distributor_email
+                }
+                poArray[supplier_id]=product
             }
+        }
         
-          });
-          
-          context.data=poArray;
-          return context
-      })
-
-     
-  } 
+    });
+    context.data=poArray;
+    return context
+}
 
   var countOrderId=function(context,orderID)
   {
