@@ -146,6 +146,14 @@ class Service {
         //         console.log("error in getconfig contact",err)
         //         throw new errors.NotFound(err)
         //     });
+        r.connect({
+        host: config.get('rdb_host'),
+        port: config.get("rdb_port"),
+        db: 'invoicing_api'
+      }, function(err, conn) {
+        if (err) throw err;
+        connection = conn
+      })
 
         await r.table('settings')
         .get(data.settingId).run(connection , function(error , cursor){

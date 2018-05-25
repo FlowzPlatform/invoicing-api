@@ -121,7 +121,25 @@ var poGenerateCal=function(context)
     });
     context.data=poArray;
     return context
-} 
+}
+
+  var countOrderId=function(context,orderID)
+  {
+      return  new Promise(function(resolve, reject){
+        context.app.service('/purchase-order').find({
+            query:
+                {
+                    $limit: 0,
+                    order_unique_id: orderID               
+                },
+               
+        }).then(result=>{
+            console.log("Count Result:--",result)
+            resolve(result.total)
+        })
+      })
+      
+  }
 
 var generateCustomId=function(prefix,idsArray)
 {
@@ -129,7 +147,7 @@ var generateCustomId=function(prefix,idsArray)
     console.log("idsArray",idsArray)
     idsArray.forEach(element => {
         console.log("element",element);
-        id=id.concat("_"+element.substr(element.length-5));
+        id=id.concat("_"+(element.length<=5 ? element : element.substr(element.length-5)));
     });
     return id;
 }
