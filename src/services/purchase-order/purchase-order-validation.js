@@ -72,8 +72,8 @@ var poGenerateCal=function(context)
         console.log("supplier_id",supplier_id)
         console.log("data.order_id",data.orderId)
 
-        console.log('product qty', item.total_qty)
-        console.log('product unit_price', item.unit_price)
+        console.log('product qty', items.total_qty)
+        console.log('product unit_price', items.unit_price)
         if(supplier_id)
         {   
             var poNewId=generateCustomId("PO",[data.subscriptionId,supplier_id,data.orderId])
@@ -83,16 +83,16 @@ var poGenerateCal=function(context)
 
             if(posObj)
             {    
-                qty += item.total_qty;
-                total += item.total_qty * item.unit_price
+                qty += items.total_qty;
+                total += items.total_qty * items.unit_price
                 //  posObj.PO_id=poNewId
                 //posObj.EmailStatus="Initiated"
                 posObj.quantity = qty;
                 posObj.total = total;
                 posObj.products.push(items)
             }else{
-                qty = item.total_qty;
-                total = qty * item.unit_price;
+                qty = items.total_qty;
+                total = qty * items.unit_price;
 
                 var product= {
                     PO_id:poNewId,
@@ -123,23 +123,23 @@ var poGenerateCal=function(context)
     return context
 }
 
-  var countOrderId=function(context,orderID)
-  {
-      return  new Promise(function(resolve, reject){
-        context.app.service('/purchase-order').find({
-            query:
-                {
-                    $limit: 0,
-                    order_unique_id: orderID               
-                },
+//   var countOrderId=function(context,orderID)
+//   {
+//       return  new Promise(function(resolve, reject){
+//         context.app.service('/purchase-order').find({
+//             query:
+//                 {
+//                     $limit: 0,
+//                     order_unique_id: orderID               
+//                 },
                
-        }).then(result=>{
-            console.log("Count Result:--",result)
-            resolve(result.total)
-        })
-      })
+//         }).then(result=>{
+//             console.log("Count Result:--",result)
+//             resolve(result.total)
+//         })
+//       })
       
-  }
+//   }
 
 var generateCustomId=function(prefix,idsArray)
 {
