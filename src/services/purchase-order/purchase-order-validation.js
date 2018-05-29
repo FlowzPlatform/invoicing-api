@@ -251,14 +251,19 @@ var checkPOSettingValidation = async function(context) {
       
 
         data.forEach(el => {
-            let {product_description:{supplier_info:{email :toMail } }}=el.products[0]
+            let { product_description: { supplier_info: { email: toMail, supplier_name: supplierName } } } = el.products[0];
+
+            let { websiteName: websiteName, website_id: websiteId, distributor_email: distributorEmail = '' } = el;
+
             let emailBody = `<div ref="email">
-            <h2>Purchase Order</h2>
-            <p style="font-size:16px">Purchase Order Generated for Order Id :- ${el.orderId}</p>
-            <p style="font-size:16px">To view the Purchase order please click below Button.</p>
-            <a href=" https://crm.${process.env.domainKey}/#/purchase-order-received?PO_id=${el.PO_id}" style="background-color:#EB7035;border:1px solid #EB7035;border-radius:3px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:16px;line-height:44px;text-align:center;text-decoration:none;width:150px;-webkit-text-size-adjust:none;mso-hide:all;">View PO</a>  
-            </div>`
-            let body=  {"to":toMail,"cc":el.distributor_email,"from":"obsoftcare@gmail.com","subject":`Purchase Order Generated for Order Id :- ${el.orderId}` ,"body":emailBody}
+            <h3>Dear ${(supplierName && supplierName.length > 0) ? supplierName : toMail}</h3>
+            <p style="font-size:16px">You have received purchase order for website <b>${(websiteName && websiteName.length > 0) ? websiteName : websiteId}</b> for distributor <b>${distributorEmail}</b></p>
+            <p style="font-size:16px">To view the Purchase order detail:</p>
+            <a href=" https://crm.${process.env.domainKey}/#/purchase-order-received?PO_id=${el.PO_id}" style="background-color:#EB7035;border:1px solid #EB7035;border-radius:3px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:14px;line-height:30px;text-align:center;text-decoration:none;width:90px;-webkit-text-size-adjust:none;mso-hide:all;">View Order</a>    
+            <p style="font-size:16px">Regards</p>
+            </div>`;
+            // let body = { "to": toMail, "cc": el.distributor_email, "from": "obsoftcare@gmail.com", "subject": `Purchase order for website`, "body": emailBody }
+            let body = { "to": 'kdalsania@officebrain.com', "cc": el.distributor_email, "from": "obsoftcare@gmail.com", "subject":`Purchase order for website` ,"body":emailBody}
             axiosArray.push(axios.post(emailUrl, body))
         });
         if(axiosArray.length>0){
