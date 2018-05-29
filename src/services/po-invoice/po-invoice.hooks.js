@@ -94,21 +94,22 @@ async function  afterCreate (hook) {
     app.service('po-invoice').patch(hook.data.id,  {'invoiceId': hook.data.invoiceId } )
     .then( function (res){
       console.log("in then", res)
-      if(Object.keys(hook.data.paymentInfo).length === 0){
+      if (Object.keys(hook.data.paymentInfo).length === 0) {
         emailbody = `<div ref='email'>
-        <h2>Purchase Order</h2>
-        <p style='font-size:16px'>Your Invoice ${hook.data.invoiceId} amounting to ${hook.data.total_amount} is generated regarding to PO ${hook.data.PO_id} from ${hook.data.supplier_email}</p>
-        <p style='font-size:16px'>For more Information <a href='https://crm.${process.env.domainKey}/#/po_invoice?route=PO Invoice' style='font-size:16px'>click here</a></p>  
-        </div>`;
-      }else{
+                      <h3>Dear </h3>
+                      <p style='font-size:16px'>Your have received invoice for purchase order ${hook.data.PO_id} from supplier ${hook.data.supplier_email}</p>
+                      <p style='font-size:16px'>Please contact supplier for further detail</p>  
+                      <p style='font-size:16px'>Regards</p>
+                      </div>`;
+      } else {
         emailbody = `<div ref='email'>
-        <h2>Purchase Order</h2>
-        <p style='font-size:16px'>Your Invoice ${hook.data.invoiceId} amounting to ${hook.data.total_amount} is generated regarding to PO ${hook.data.PO_id} from ${hook.data.supplier_email}</p>
-        <p style='font-size:16px'>To Pay the Invoice of Purchase order please click below Button.</p>
-        <a href='https://crm.${process.env.domainKey}/#/po_invoice?route=PO Invoice' style='background-color:#EB7035;border:1px solid #EB7035;border-radius:3px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:16px;line-height:44px;text-align:center;text-decoration:none;width:150px;-webkit-text-size-adjust:none;mso-hide:all;'>Pay Now</a>  
-        </div>`; 
+                      <h3>Dear </h3>
+                      <p style='font-size:16px'>Your have received invoice for purchase order ${hook.data.PO_id} from supplier ${hook.data.supplier_email}</p>
+                      <p style='font-size:16px'>You can review & pay invoice from your CRM  account </p>  
+                      <p style='font-size:16px'>Regards</p>
+                      </div>`;
       }
-      let body = { 'to': hook.data.distributor_email, 'from': hook.data.supplier_email, 'subject': `Invoice Generated for PO Id :- ${hook.data.PO_id}`, 'body': emailbody }
+      let body = { 'to': hook.data.distributor_email, 'from': hook.data.supplier_email, 'subject': `Invoice for  PO Id :- ${hook.data.PO_id}`, 'body': emailbody }
       // let body = {'to':'kdalsania@officebrain.com', 'from':hook.data.supplier_email, 'subject':`Invoice Generated for PO Id :- ${hook.data.PO_id}`, 'body':emailbody}
       // console.log('config.emailConfig.emailUrl',config.emailConfig.emailUrl);
       axios({
