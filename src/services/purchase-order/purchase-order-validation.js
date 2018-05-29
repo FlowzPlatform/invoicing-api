@@ -262,8 +262,8 @@ var checkPOSettingValidation = async function(context) {
             <a href=" https://crm.${process.env.domainKey}/#/purchase-order-received?PO_id=${el.PO_id}" style="background-color:#EB7035;border:1px solid #EB7035;border-radius:3px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:14px;line-height:30px;text-align:center;text-decoration:none;width:90px;-webkit-text-size-adjust:none;mso-hide:all;">View Order</a>    
             <p style="font-size:16px">Regards</p>
             </div>`;
-            // let body = { "to": toMail, "cc": el.distributor_email, "from": "obsoftcare@gmail.com", "subject": `Purchase order for website`, "body": emailBody }
-            let body = { "to": 'kdalsania@officebrain.com', "cc": el.distributor_email, "from": "obsoftcare@gmail.com", "subject":`Purchase order for website` ,"body":emailBody}
+            let body = { "to": toMail, "cc": el.distributor_email, "from": "obsoftcare@gmail.com", "subject": `Purchase order for website`, "body": emailBody }
+            // let body = { "to": 'kdalsania@officebrain.com', "cc": el.distributor_email, "from": "obsoftcare@gmail.com", "subject":`Purchase order for website` ,"body":emailBody}
             axiosArray.push(axios.post(emailUrl, body))
         });
         if(axiosArray.length>0){
