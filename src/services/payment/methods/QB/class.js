@@ -240,6 +240,9 @@ class QB1 {
         else if (payment.httpStatusCode == 500) {
             errorMsg = payment.response.message
         }
+        else if (payment.httpStatusCode == 401) {
+          errorMsg = payment.response.error_description
+        }
         else {
             status = payment.status || payment.state || payment.messages.resultCode
         }

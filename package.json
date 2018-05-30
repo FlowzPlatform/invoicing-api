@@ -47,6 +47,7 @@
     "feathers-rest": "^1.8.0",
     "feathers-rethinkdb": "^0.4.3",
     "feathers-socketio": "^2.0.1",
+    "flowz-error-handler": "0.0.1",
     "flowz-subscription": "^0.1.8",
     "fs-blob-store": "^5.2.1",
     "helmet": "^3.8.2",
