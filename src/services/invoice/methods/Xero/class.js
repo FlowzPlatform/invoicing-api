@@ -56,6 +56,7 @@ class Xero1 {
 
     async getInvoiceById(config,id) {
       let xeroClient = await this.authentication(config);
+      console.log("iddddddddddddddddddddddd----------",id);
       return new Promise((resolve, reject) => {
         xeroClient.core.invoices.getInvoice(id)
           .then(function(invoices) {

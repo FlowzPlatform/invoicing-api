@@ -20,7 +20,6 @@ var validate= async function(context) {
       throw new BadRequest('owner_id text must exist');
     }
 
-  
     // Check if it is a string and not just whitespace
     if(typeof data.subscription_id !== 'string' || data.subscription_id.trim() === '') {
       throw new BadRequest('subscription_id text is invalid');
@@ -52,7 +51,7 @@ var validate= async function(context) {
       user_billing_info:data.user_billing_info,
        distributor_email : data.distributor_email,
       isManual:data.isManual
-    }
+    };
     return context;
 }; 
 
@@ -93,8 +92,12 @@ var poGenerateCal=function(context)
             }else{
                 qty = items.total_qty;
                 total = qty * items.unit_price;
+                let supplier_info = items.product_description.supplier_info;
+                console.log("supplier_info", supplier_info)
+                supplier_info.supplier_id = items.product_description.supplier_id;
+                // supplier_info['supplier_id'] = items.supplier_id;
 
-                var product= {
+                var product = {
                     PO_id:poNewId,
                     created_at:date,
                     subscriptionId: data.subscriptionId,
@@ -112,7 +115,8 @@ var poGenerateCal=function(context)
                     EmailStatus:"Initiated",
                     user_billing_info:data.user_billing_info,
                     isManual:data.isManual,
-                    distributor_email : data.distributor_email
+                    distributor_email : data.distributor_email,
+                    supplier_info: supplier_info
                 }
                 poArray[supplier_id]=product
             }
@@ -237,18 +241,16 @@ var checkPOSettingValidation = async function(context) {
     }
 }
 
-  var poEmailSent=async function(context)
-  {
+var poEmailSent=async function(context)
+{
     const { data } = context;
     // console.log("Auto Email Config",data)
     let emailUrl=config.emailConfig.emailUrl;
                 
-  
-
     // if (data.constructor === arrayConstructor){
         console.log("<----Array--------->");
         let axiosArray=[]
-      
+        
 
         data.forEach(el => {
             let { product_description: { supplier_info: { email: toMail, supplier_name: supplierName } } } = el.products[0];
@@ -283,26 +285,28 @@ var checkPOSettingValidation = async function(context) {
                 return context;
             })
         }    
-  }
-  var POUpdateInMyOrder=async function(context)
-  {
+}
+var POUpdateInMyOrder=async function(context)
+{
     var { data } = context
     if(data.id){
-            axios({
-                method: 'PATCH',
-                // url: " http://172.16.160.229:3032/myOrders/d578a83e-7f5f-47ae-b64f-e4bdc019826b",//+data.order_id
-                url:    "https://api."+process.env.domainKey+"/serverapi/myOrders/"+data.order_unique_id,
-                data: { "po_detail":{ [data.products[0].product_description.supplier_id] : {PO_id:data.PO_id}}}
-            })  
-            .then(function (response) {
-                // console.log('response------------------------>',response)
-            
-            })
-            .catch(function (error) {
-                console.log('error',error.message)
-            })
+        data.PO_id = data.PO_id + '_' + data.id.substr(-5);
+        await app.service('purchase-order').patch(data.id, { 'PO_id': data.PO_id });
+        axios({
+            method: 'PATCH',
+            // url: " http://172.16.160.229:3032/myOrders/d578a83e-7f5f-47ae-b64f-e4bdc019826b",//+data.order_id
+            url:    "https://api."+process.env.domainKey+"/serverapi/myOrders/"+data.order_unique_id,
+            data: { "po_detail":{ [data.products[0].product_description.supplier_id] : {PO_id:data.PO_id}}}
+        })  
+        .then(function (response) {
+            // console.log('response------------------------>',response)
+        
+        })
+        .catch(function (error) {
+            console.log('error',error.message)
+        })
     }
-  }
+}
 module.exports.validateObj = validate;
 module.exports.checkPOSettingValidationObj = checkPOSettingValidation;
 module.exports.poEmailSentObj = poEmailSent;
