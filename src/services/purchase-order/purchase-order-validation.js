@@ -35,22 +35,23 @@ var validate= async function(context) {
     // Change the data to be only the text
     // This prevents people from adding other properties to our database
     context.data = {
-      created_at:new Date(),
-      subscriptionId: data.subscription_id,
-      websiteId: data.website_id,
-      websiteName: data.websiteName,
-      orderId: data.order_id,
-      order_unique_id: data.id,
-      settingId: data.setting_id,
-      quantity: data.quantity,
-      total: data.total,
-      products: data.products,
-      distributorId : data.owner_id,
-      special_information: data.special_information,
-      user_info: data.user_info    ,
-      user_billing_info:data.user_billing_info,
-       distributor_email : data.distributor_email,
-      isManual:data.isManual
+        created_at:new Date(),
+        subscriptionId: data.subscription_id,
+        websiteId: data.website_id,
+        websiteName: data.websiteName,
+        orderId: data.order_id,
+        order_unique_id: data.id,
+        settingId: data.setting_id,
+        quantity: data.quantity,
+        total: data.total,
+        products: data.products,
+        distributorId : data.owner_id,
+        special_information: data.special_information,
+        user_info: data.user_info    ,
+        user_billing_info:data.user_billing_info,
+        distributor_email : data.distributor_email,
+        distributor_info : data.distributor_info,
+        isManual:data.isManual
     };
     return context;
 }; 
@@ -58,6 +59,7 @@ var validate= async function(context) {
 var poGenerateCal=function(context)
 { 
     const { data } = context;
+    // console.log("data--------------",data);
     var poArray={};
     var date=new Date();
     var orderProductLIst=data.products;
@@ -67,12 +69,12 @@ var poGenerateCal=function(context)
             
         var supplier_id=items.product_description.supplier_id
         
-        console.log("data.subscription_id",data.subscriptionId)
-        console.log("supplier_id",supplier_id)
-        console.log("data.order_id",data.orderId)
+        // console.log("data.subscription_id",data.subscriptionId)
+        // console.log("supplier_id",supplier_id)
+        // console.log("data.order_id",data.orderId)
 
-        console.log('product qty', items.total_qty)
-        console.log('product unit_price', items.unit_price)
+        // console.log('product qty', items.total_qty)
+        // console.log('product unit_price', items.unit_price)
         if(supplier_id)
         {   
             var poNewId=generateCustomId("PO",[data.subscriptionId,supplier_id,data.orderId])
@@ -82,18 +84,18 @@ var poGenerateCal=function(context)
 
             if(posObj)
             {    
-                qty += items.total_qty;
-                total += items.total_qty * items.unit_price
+                qty += parseFloat(items.total_qty);
+                total += parseFloat(items.total_qty) * parseFloat(items.unit_price)
                 //  posObj.PO_id=poNewId
                 //posObj.EmailStatus="Initiated"
                 posObj.quantity = qty;
                 posObj.total = total;
                 posObj.products.push(items)
             }else{
-                qty = items.total_qty;
-                total = qty * items.unit_price;
+                qty = parseFloat(items.total_qty);
+                total = qty * parseFloat(items.unit_price);
                 let supplier_info = items.product_description.supplier_info;
-                console.log("supplier_info", supplier_info)
+                // console.log("distributor_info", data.distributor_info)
                 supplier_info.supplier_id = items.product_description.supplier_id;
                 // supplier_info['supplier_id'] = items.supplier_id;
 
@@ -116,6 +118,7 @@ var poGenerateCal=function(context)
                     user_billing_info:data.user_billing_info,
                     isManual:data.isManual,
                     distributor_email : data.distributor_email,
+                    distributor_info: data.distributor_info,
                     supplier_info: supplier_info
                 }
                 poArray[supplier_id]=product
@@ -123,6 +126,7 @@ var poGenerateCal=function(context)
         }
         
     });
+    // console.log("poArray", poArray)
     context.data=poArray;
     return context
 }
