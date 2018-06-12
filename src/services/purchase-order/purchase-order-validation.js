@@ -191,8 +191,6 @@ var checkPOSettingValidation = async function(context) {
         }
         if (poArray.length > 0) {
             context.data = poArray;
-            let con= poEmailSent(context)
-            return con
         }
     } else {
         console.log("subscription_id",subscriptionId,distId , websiteId)
@@ -234,9 +232,6 @@ var checkPOSettingValidation = async function(context) {
 
                 if (poArray.length > 0) {
                     context.data = poArray;
-
-                    let con= poEmailSent(context)
-                    return con
                 }
                 else
                 context.result={"status":404,"message":"PO setting not found"}  
@@ -245,57 +240,88 @@ var checkPOSettingValidation = async function(context) {
     }
 }
 
-var poEmailSent=async function(context)
+var poEmailSent = async function(context)
 {
-    const { data } = context;
+    console.log('-------------context',context.EmailStatus, context.PO_id);
+    // const { data } = context;
     // console.log("Auto Email Config",data)
     let emailUrl=config.emailConfig.emailUrl;
                 
     // if (data.constructor === arrayConstructor){
-        console.log("<----Array--------->");
+        // console.log("<----Array--------->",data);
         let axiosArray=[]
         
+    //---------------------------------------------------
+    let { product_description: { supplier_info: { email: toMail, supplier_name: supplierName } } } = context.products[0];
 
-        data.forEach(el => {
-            let { product_description: { supplier_info: { email: toMail, supplier_name: supplierName } } } = el.products[0];
+    let { websiteName: websiteName, website_id: websiteId, distributor_email: distributorEmail = '' } = context;
 
-            let { websiteName: websiteName, website_id: websiteId, distributor_email: distributorEmail = '' } = el;
-
-            let emailBody = `<div ref="email">
+    let emailBody = `<div ref="email">
             <h3>Dear ${(supplierName && supplierName.length > 0) ? supplierName : toMail}</h3>
             <p style="font-size:16px">You have received purchase order for website <b>${(websiteName && websiteName.length > 0) ? websiteName : websiteId}</b> for distributor <b>${distributorEmail}</b></p>
             <p style="font-size:16px">To view the Purchase order detail:</p>
-            <a href=" https://crm.${process.env.domainKey}/#/purchase-order-received?PO_id=${el.PO_id}" style="background-color:#EB7035;border:1px solid #EB7035;border-radius:3px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:14px;line-height:30px;text-align:center;text-decoration:none;width:90px;-webkit-text-size-adjust:none;mso-hide:all;">View Order</a>    
+            <a href=" https://crm.${process.env.domainKey}/#/purchase-order-received?PO_id=${context.PO_id}" style="background-color:#EB7035;border:1px solid #EB7035;border-radius:3px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:14px;line-height:30px;text-align:center;text-decoration:none;width:90px;-webkit-text-size-adjust:none;mso-hide:all;">View Order</a>    
             <p style="font-size:16px">Regards</p>
             </div>`;
-            let body = { "to": toMail, "cc": el.distributor_email, "from": "obsoftcare@gmail.com", "subject": `Purchase order for website`, "body": emailBody }
-            // let body = { "to": 'kdalsania@officebrain.com', "cc": el.distributor_email, "from": "obsoftcare@gmail.com", "subject":`Purchase order for website` ,"body":emailBody}
-            axiosArray.push(axios.post(emailUrl, body))
-        });
-        if(axiosArray.length>0){
-            return await axios.all(axiosArray).then(values=>{
-                console.log("<----Email Successfully--------->");
-                // console.log("Values:---",values)
-                let counter=0;
-                values.forEach(value => {
-                    context.data[counter].EmailStatus="Sent"
-                    counter++;                
-                });
-                    // console.log("context.data--------->",context.data);
-                    return context;    
-            }).catch(error=>{
-                console.log("Email error--------->",error.message);
+    let body = { "to": toMail, "cc": context.distributor_email, "from": "obsoftcare@gmail.com", "subject": `Purchase order for website`, "body": emailBody }
+    await axios.post(emailUrl, body)
+    .then(function(response) {
+        context.EmailStatus = "Sent";
+        console.log("inside then context",context.EmailStatus);
+        // console.log()
+        // return context;
+    })
+    .catch(function(error) {
+        console.log("inside catch context", context);
+        // return context;
+    })
+    return context;
+    //---------------------------------------------------
+
+
+    // context.forEach(el => {
+    //         let { product_description: { supplier_info: { email: toMail, supplier_name: supplierName } } } = el.products[0];
+
+    //         let { websiteName: websiteName, website_id: websiteId, distributor_email: distributorEmail = '' } = el;
+
+    //         let emailBody = `<div ref="email">
+    //         <h3>Dear ${(supplierName && supplierName.length > 0) ? supplierName : toMail}</h3>
+    //         <p style="font-size:16px">You have received purchase order for website <b>${(websiteName && websiteName.length > 0) ? websiteName : websiteId}</b> for distributor <b>${distributorEmail}</b></p>
+    //         <p style="font-size:16px">To view the Purchase order detail:</p>
+    //         <a href=" https://crm.${process.env.domainKey}/#/purchase-order-received?PO_id=${el.PO_id}" style="background-color:#EB7035;border:1px solid #EB7035;border-radius:3px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:14px;line-height:30px;text-align:center;text-decoration:none;width:90px;-webkit-text-size-adjust:none;mso-hide:all;">View Order</a>    
+    //         <p style="font-size:16px">Regards</p>
+    //         </div>`;
+    //         let body = { "to": toMail, "cc": el.distributor_email, "from": "obsoftcare@gmail.com", "subject": `Purchase order for website`, "body": emailBody }
+    //         // let body = { "to": 'kdalsania@officebrain.com', "cc": el.distributor_email, "from": "obsoftcare@gmail.com", "subject":`Purchase order for website` ,"body":emailBody}
+    //         axiosArray.push(axios.post(emailUrl, body))
+    //     });
+    //     if(axiosArray.length>0){
+    //         return await axios.all(axiosArray).then(values=>{
+    //             console.log("<----Email Successfully--------->");
+    //             // console.log("Values:---",values)
+    //             let counter=0;
+    //             values.forEach(value => {
+    //                 context.data[counter].EmailStatus="Sent"
+    //                 counter++;                
+    //             });
+    //                 // console.log("context.data--------->",context.data);
+    //                 return context;    
+    //         }).catch(error=>{
+    //             console.log("Email error--------->",error.message);
             
-                return context;
-            })
-        }    
+    //             return context;
+    //         })
+    //     }    
 }
 var POUpdateInMyOrder=async function(context)
 {
-    var { data } = context
+    let { data } = context
     if(data.id){
         data.PO_id = data.PO_id + '_' + data.id.substr(-5);
-        await app.service('purchase-order').patch(data.id, { 'PO_id': data.PO_id });
+        console.log("--------data.id",data.id);
+        let mail = await poEmailSent(data);
+        console.log('email status',mail);
+        await app.service('purchase-order').patch(data.id, { 'PO_id': data.PO_id, 'EmailStatus': mail.EmailStatus });
         axios({
             method: 'PATCH',
             // url: " http://172.16.160.229:3032/myOrders/d578a83e-7f5f-47ae-b64f-e4bdc019826b",//+data.order_id
