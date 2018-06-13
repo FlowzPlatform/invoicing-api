@@ -86,8 +86,8 @@ async function  beforecreate (hook) {
  async function beforeGet(hook){
   //hook.result = "any data"
   //console.log(hook)
-  console.log(hook.params)
-  console.log("someone called me get")
+  console.log("hook.params inside setting get",hook.params)
+  // console.log("someone called me get")
 }
 
 async function errorGet(hook) {
