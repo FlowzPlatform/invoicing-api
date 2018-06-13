@@ -20,7 +20,6 @@ var validate= async function(context) {
       throw new BadRequest('owner_id text must exist');
     }
 
-  
     // Check if it is a string and not just whitespace
     if(typeof data.subscription_id !== 'string' || data.subscription_id.trim() === '') {
       throw new BadRequest('subscription_id text is invalid');
@@ -36,29 +35,31 @@ var validate= async function(context) {
     // Change the data to be only the text
     // This prevents people from adding other properties to our database
     context.data = {
-      created_at:new Date(),
-      subscriptionId: data.subscription_id,
-      websiteId: data.website_id,
-      websiteName: data.websiteName,
-      orderId: data.order_id,
-      order_unique_id: data.id,
-      settingId: data.setting_id,
-      quantity: data.quantity,
-      total: data.total,
-      products: data.products,
-      distributorId : data.owner_id,
-      special_information: data.special_information,
-      user_info: data.user_info    ,
-      user_billing_info:data.user_billing_info,
-       distributor_email : data.distributor_email,
-      isManual:data.isManual
-    }
+        created_at:new Date(),
+        subscriptionId: data.subscription_id,
+        websiteId: data.website_id,
+        websiteName: data.websiteName,
+        orderId: data.order_id,
+        order_unique_id: data.id,
+        settingId: data.setting_id,
+        quantity: data.quantity,
+        total: data.total,
+        products: data.products,
+        distributorId : data.owner_id,
+        special_information: data.special_information,
+        user_info: data.user_info    ,
+        user_billing_info:data.user_billing_info,
+        distributor_email : data.distributor_email,
+        distributor_info : data.distributor_info,
+        isManual:data.isManual
+    };
     return context;
 }; 
 
 var poGenerateCal=function(context)
 { 
     const { data } = context;
+    // console.log("data--------------",data);
     var poArray={};
     var date=new Date();
     var orderProductLIst=data.products;
@@ -68,12 +69,12 @@ var poGenerateCal=function(context)
             
         var supplier_id=items.product_description.supplier_id
         
-        console.log("data.subscription_id",data.subscriptionId)
-        console.log("supplier_id",supplier_id)
-        console.log("data.order_id",data.orderId)
+        // console.log("data.subscription_id",data.subscriptionId)
+        // console.log("supplier_id",supplier_id)
+        // console.log("data.order_id",data.orderId)
 
-        console.log('product qty', items.total_qty)
-        console.log('product unit_price', items.unit_price)
+        // console.log('product qty', items.total_qty)
+        // console.log('product unit_price', items.unit_price)
         if(supplier_id)
         {   
             var poNewId=generateCustomId("PO",[data.subscriptionId,supplier_id,data.orderId])
@@ -83,18 +84,22 @@ var poGenerateCal=function(context)
 
             if(posObj)
             {    
-                qty += items.total_qty;
-                total += items.total_qty * items.unit_price
+                qty += parseFloat(items.total_qty);
+                total += parseFloat(items.total_qty) * parseFloat(items.unit_price)
                 //  posObj.PO_id=poNewId
                 //posObj.EmailStatus="Initiated"
                 posObj.quantity = qty;
                 posObj.total = total;
                 posObj.products.push(items)
             }else{
-                qty = items.total_qty;
-                total = qty * items.unit_price;
+                qty = parseFloat(items.total_qty);
+                total = qty * parseFloat(items.unit_price);
+                let supplier_info = items.product_description.supplier_info;
+                // console.log("distributor_info", data.distributor_info)
+                supplier_info.supplier_id = items.product_description.supplier_id;
+                // supplier_info['supplier_id'] = items.supplier_id;
 
-                var product= {
+                var product = {
                     PO_id:poNewId,
                     created_at:date,
                     subscriptionId: data.subscriptionId,
@@ -112,13 +117,16 @@ var poGenerateCal=function(context)
                     EmailStatus:"Initiated",
                     user_billing_info:data.user_billing_info,
                     isManual:data.isManual,
-                    distributor_email : data.distributor_email
+                    distributor_email : data.distributor_email,
+                    distributor_info: data.distributor_info,
+                    supplier_info: supplier_info
                 }
                 poArray[supplier_id]=product
             }
         }
         
     });
+    // console.log("poArray", poArray)
     context.data=poArray;
     return context
 }
@@ -183,8 +191,6 @@ var checkPOSettingValidation = async function(context) {
         }
         if (poArray.length > 0) {
             context.data = poArray;
-            let con= poEmailSent(context)
-            return con
         }
     } else {
         console.log("subscription_id",subscriptionId,distId , websiteId)
@@ -226,9 +232,6 @@ var checkPOSettingValidation = async function(context) {
 
                 if (poArray.length > 0) {
                     context.data = poArray;
-
-                    let con= poEmailSent(context)
-                    return con
                 }
                 else
                 context.result={"status":404,"message":"PO setting not found"}  
@@ -237,72 +240,103 @@ var checkPOSettingValidation = async function(context) {
     }
 }
 
-  var poEmailSent=async function(context)
-  {
-    const { data } = context;
+var poEmailSent = async function(context)
+{
+    console.log('-------------context',context.EmailStatus, context.PO_id);
+    // const { data } = context;
     // console.log("Auto Email Config",data)
     let emailUrl=config.emailConfig.emailUrl;
                 
-  
-
     // if (data.constructor === arrayConstructor){
-        console.log("<----Array--------->");
+        // console.log("<----Array--------->",data);
         let axiosArray=[]
-      
+        
+    //---------------------------------------------------
+    let { product_description: { supplier_info: { email: toMail, supplier_name: supplierName } } } = context.products[0];
 
-        data.forEach(el => {
-            let { product_description: { supplier_info: { email: toMail, supplier_name: supplierName } } } = el.products[0];
+    let { websiteName: websiteName, website_id: websiteId, distributor_email: distributorEmail = '' } = context;
 
-            let { websiteName: websiteName, website_id: websiteId, distributor_email: distributorEmail = '' } = el;
-
-            let emailBody = `<div ref="email">
+    let emailBody = `<div ref="email">
             <h3>Dear ${(supplierName && supplierName.length > 0) ? supplierName : toMail}</h3>
             <p style="font-size:16px">You have received purchase order for website <b>${(websiteName && websiteName.length > 0) ? websiteName : websiteId}</b> for distributor <b>${distributorEmail}</b></p>
             <p style="font-size:16px">To view the Purchase order detail:</p>
-            <a href=" https://crm.${process.env.domainKey}/#/purchase-order-received?PO_id=${el.PO_id}" style="background-color:#EB7035;border:1px solid #EB7035;border-radius:3px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:14px;line-height:30px;text-align:center;text-decoration:none;width:90px;-webkit-text-size-adjust:none;mso-hide:all;">View Order</a>    
+            <a href=" https://crm.${process.env.domainKey}/#/purchase-order-received?PO_id=${context.PO_id}" style="background-color:#EB7035;border:1px solid #EB7035;border-radius:3px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:14px;line-height:30px;text-align:center;text-decoration:none;width:90px;-webkit-text-size-adjust:none;mso-hide:all;">View Order</a>    
             <p style="font-size:16px">Regards</p>
             </div>`;
-            let body = { "to": toMail, "cc": el.distributor_email, "from": "obsoftcare@gmail.com", "subject": `Purchase order for website`, "body": emailBody }
-            // let body = { "to": 'kdalsania@officebrain.com', "cc": el.distributor_email, "from": "obsoftcare@gmail.com", "subject":`Purchase order for website` ,"body":emailBody}
-            axiosArray.push(axios.post(emailUrl, body))
-        });
-        if(axiosArray.length>0){
-            return await axios.all(axiosArray).then(values=>{
-                console.log("<----Email Successfully--------->");
-                // console.log("Values:---",values)
-                let counter=0;
-                values.forEach(value => {
-                    context.data[counter].EmailStatus="Sent"
-                    counter++;                
-                });
-                    // console.log("context.data--------->",context.data);
-                    return context;    
-            }).catch(error=>{
-                console.log("Email error--------->",error.message);
+    let body = { "to": toMail, "cc": context.distributor_email, "from": "obsoftcare@gmail.com", "subject": `Purchase order for website`, "body": emailBody }
+    await axios.post(emailUrl, body)
+    .then(function(response) {
+        context.EmailStatus = "Sent";
+        console.log("inside then context",context.EmailStatus);
+        // console.log()
+        // return context;
+    })
+    .catch(function(error) {
+        console.log("inside catch context", context);
+        // return context;
+    })
+    return context;
+    //---------------------------------------------------
+
+
+    // context.forEach(el => {
+    //         let { product_description: { supplier_info: { email: toMail, supplier_name: supplierName } } } = el.products[0];
+
+    //         let { websiteName: websiteName, website_id: websiteId, distributor_email: distributorEmail = '' } = el;
+
+    //         let emailBody = `<div ref="email">
+    //         <h3>Dear ${(supplierName && supplierName.length > 0) ? supplierName : toMail}</h3>
+    //         <p style="font-size:16px">You have received purchase order for website <b>${(websiteName && websiteName.length > 0) ? websiteName : websiteId}</b> for distributor <b>${distributorEmail}</b></p>
+    //         <p style="font-size:16px">To view the Purchase order detail:</p>
+    //         <a href=" https://crm.${process.env.domainKey}/#/purchase-order-received?PO_id=${el.PO_id}" style="background-color:#EB7035;border:1px solid #EB7035;border-radius:3px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:14px;line-height:30px;text-align:center;text-decoration:none;width:90px;-webkit-text-size-adjust:none;mso-hide:all;">View Order</a>    
+    //         <p style="font-size:16px">Regards</p>
+    //         </div>`;
+    //         let body = { "to": toMail, "cc": el.distributor_email, "from": "obsoftcare@gmail.com", "subject": `Purchase order for website`, "body": emailBody }
+    //         // let body = { "to": 'kdalsania@officebrain.com', "cc": el.distributor_email, "from": "obsoftcare@gmail.com", "subject":`Purchase order for website` ,"body":emailBody}
+    //         axiosArray.push(axios.post(emailUrl, body))
+    //     });
+    //     if(axiosArray.length>0){
+    //         return await axios.all(axiosArray).then(values=>{
+    //             console.log("<----Email Successfully--------->");
+    //             // console.log("Values:---",values)
+    //             let counter=0;
+    //             values.forEach(value => {
+    //                 context.data[counter].EmailStatus="Sent"
+    //                 counter++;                
+    //             });
+    //                 // console.log("context.data--------->",context.data);
+    //                 return context;    
+    //         }).catch(error=>{
+    //             console.log("Email error--------->",error.message);
             
-                return context;
-            })
-        }    
-  }
-  var POUpdateInMyOrder=async function(context)
-  {
-    var { data } = context
+    //             return context;
+    //         })
+    //     }    
+}
+var POUpdateInMyOrder=async function(context)
+{
+    let { data } = context
     if(data.id){
-            axios({
-                method: 'PATCH',
-                // url: " http://172.16.160.229:3032/myOrders/d578a83e-7f5f-47ae-b64f-e4bdc019826b",//+data.order_id
-                url:    "https://api."+process.env.domainKey+"/serverapi/myOrders/"+data.order_unique_id,
-                data: { "po_detail":{ [data.products[0].product_description.supplier_id] : {PO_id:data.PO_id}}}
-            })  
-            .then(function (response) {
-                // console.log('response------------------------>',response)
-            
-            })
-            .catch(function (error) {
-                console.log('error',error.message)
-            })
+        data.PO_id = data.PO_id + '_' + data.id.substr(-5);
+        console.log("--------data.id",data.id);
+        let mail = await poEmailSent(data);
+        console.log('email status',mail);
+        await app.service('purchase-order').patch(data.id, { 'PO_id': data.PO_id, 'EmailStatus': mail.EmailStatus });
+        axios({
+            method: 'PATCH',
+            // url: " http://172.16.160.229:3032/myOrders/d578a83e-7f5f-47ae-b64f-e4bdc019826b",//+data.order_id
+            url:    "https://api."+process.env.domainKey+"/serverapi/myOrders/"+data.order_unique_id,
+            data: { "po_detail":{ [data.products[0].product_description.supplier_id] : {PO_id:data.PO_id}}}
+        })  
+        .then(function (response) {
+            // console.log('response------------------------>',response)
+        
+        })
+        .catch(function (error) {
+            console.log('error',error.message)
+        })
     }
-  }
+}
 module.exports.validateObj = validate;
 module.exports.checkPOSettingValidationObj = checkPOSettingValidation;
 module.exports.poEmailSentObj = poEmailSent;
