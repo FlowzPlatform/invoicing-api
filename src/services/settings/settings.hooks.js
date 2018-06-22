@@ -193,7 +193,7 @@ beforepatch = async hook =>{
 						console.log("data.online_payment[gateway][rowIndex]",data.online_payment[gateway])
 						data.online_payment[gateway][hook.data.rowIndex] = hook.data.online_payment[gateway]
 						console.log("-------------------",data.online_payment[gateway])
-						//delete hook.data.rowIndex;
+						delete hook.data.rowIndex;
 						// // data.online_payment[gateway].push(hook.data.online_payment[gateway][0]);
             hook.data.online_payment[gateway] = data.online_payment[gateway]
             console.log("hook.data.online_payment[gateway]",hook.data.online_payment[gateway])
