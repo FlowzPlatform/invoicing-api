@@ -186,16 +186,17 @@ async function afterCreate(hook){
         console.log(">>>>>>>>>>>>>> " , hook.result.responseData[0])
       }
       
-      axios({
-        method: 'PATCH',
-        url: baseUrl + "/supplier-payment-config/" + hook.result.responseData[0].id,
-        data: hook.result.responseData[0]
-      })  
-      .then(function (response) {
-        //console.log(response)
-      }).catch(function (error) {
-        //console.log(error)
-      })
+    await app.service('supplier-payment-config').patch(hook.result.responseData[0].id, hook.result.responseData[0]);
+      // axios({
+      //   method: 'PATCH',
+      //   url: baseUrl + "/supplier-payment-config/" + hook.result.responseData[0].id,
+      //   data: hook.result.responseData[0]
+      // })  
+      // .then(function (response) {
+      //   //console.log(response)
+      // }).catch(function (error) {
+      //   //console.log(error)
+      // })
   }
   
  
