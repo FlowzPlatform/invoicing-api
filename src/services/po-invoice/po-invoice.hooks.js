@@ -113,13 +113,9 @@ function afterCreate(hook) {
                       </div>`;
         }
 
-        let body = { 
-              'to': "igandhi@officebrain.com",
-              'from': hook.data.supplier_email, 
-              'subject': `Invoice for  PO Id :- ${hook.data.PO_id}`, 
-              'body': emailbody
-            }
-  
+        let body = { 'to': hook.data.distributor_email, 'from': hook.data.supplier_email, 'subject': `Invoice for  PO Id :- ${hook.data.PO_id}`, 'body': emailbody };
+        // console.log('config.emailConfig.emailUrl',config.emailConfig.emailUrl);
+
               axios({
                 method: 'POST',
                 url: config.emailConfig.emailUrl,
@@ -127,8 +123,7 @@ function afterCreate(hook) {
               }).then(function (response) {
                 console.log("Email respnse:--",response);
               })
-        // let body = {'to':'kdalsania@officebrain.com', 'from':hook.data.supplier_email, 'subject':`Invoice Generated for PO Id :- ${hook.data.PO_id}`, 'body':emailbody}
-        // console.log('config.emailConfig.emailUrl',config.emailConfig.emailUrl);
+        
         
         // let POPDF=poPdf(res)
         // console.log("POPDF-->",POPDF)
