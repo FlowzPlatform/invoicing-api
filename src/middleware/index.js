@@ -13,8 +13,6 @@ module.exports = async function () {
   
 
   
-
-  
   let totalSettings = 6
   subscription.moduleResource.moduleName = 'crm'
   let registerAppModule = {

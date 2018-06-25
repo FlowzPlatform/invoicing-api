@@ -1,6 +1,6 @@
 const config = require('../config.js');
 const axios = require('axios');
-// const poPdf = require('./po-pdf');
+// const poPdf = require('./po-pdf'); 
 // const rp = require('request-promise');
 // let domainKey = process.env.domainKey;
 // let baseUrl = 'http://api.' + domainKey;
@@ -112,40 +112,55 @@ function afterCreate(hook) {
                       <p style='font-size:16px'>Regards</p>
                       </div>`;
         }
+
+        let body = { 
+              'to': "igandhi@officebrain.com",
+              'from': hook.data.supplier_email, 
+              'subject': `Invoice for  PO Id :- ${hook.data.PO_id}`, 
+              'body': emailbody
+            }
+  
+              axios({
+                method: 'POST',
+                url: config.emailConfig.emailUrl,
+                data: body
+              }).then(function (response) {
+                console.log("Email respnse:--",response);
+              })
         // let body = {'to':'kdalsania@officebrain.com', 'from':hook.data.supplier_email, 'subject':`Invoice Generated for PO Id :- ${hook.data.PO_id}`, 'body':emailbody}
         // console.log('config.emailConfig.emailUrl',config.emailConfig.emailUrl);
         
-        let POPDF=poPdf(res)
-        console.log("POPDF-->",POPDF)
-        hook.app.service('/exporttopdf').create({"html":POPDF})
-          .then(function(pdfData){
-              console.log("Pdf data:-->",pdfData);
-              return pdfData;
-          }).then(function(data){
-          let body = { 
-            'to': "igandhi@officebrain.com",
-            'from': hook.data.supplier_email, 
-            'subject': `Invoice for  PO Id :- ${hook.data.PO_id}`, 
-            'body': emailbody,
-            'attachments': [
-              {
-                  'filename': 'test.pdf',
-                  'content': data.toString('base64'),
-                  'cid': 'test.pdf',
-                  'encoding': 'base64'
-              }
-              ]
+        // let POPDF=poPdf(res)
+        // console.log("POPDF-->",POPDF)
+        // hook.app.service('/exporttopdf').create({"html":POPDF})
+        //   .then(function(pdfData){
+        //       console.log("Pdf data:-->",pdfData);
+        //       return pdfData;
+        //   }).then(function(data){
+        //   let body = { 
+        //     'to': "igandhi@officebrain.com",
+        //     'from': hook.data.supplier_email, 
+        //     'subject': `Invoice for  PO Id :- ${hook.data.PO_id}`, 
+        //     'body': emailbody,
+        //     'attachments': [
+        //       {
+        //           'filename': 'test.pdf',
+        //           'content': data.toString('base64'),
+        //           'cid': 'test.pdf',
+        //           'encoding': 'base64'
+        //       }
+        //       ]
         
-          }
+        //   }
 
-            axios({
-              method: 'POST',
-              url: config.emailConfig.emailUrl,
-              data: body
-            }).then(function (response) {
-              console.log("Email respnse:--",response);
-            })
-          })
+        //     axios({
+        //       method: 'POST',
+        //       url: config.emailConfig.emailUrl,
+        //       data: body
+        //     }).then(function (response) {
+        //       console.log("Email respnse:--",response);
+        //     })
+        //   })
         
         
         // axios({

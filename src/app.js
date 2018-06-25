@@ -23,18 +23,12 @@ const appHooks = require('./app.hooks');
 
 const rethinkdb = require('./rethinkdb');
 
-
-
 const subscription = require('flowz-subscription')
-
 
 const app = feathers();
 
 function errorHandler (err, req, res, next) {
-    // console.log("---error---",res.headersSent)
-    if (res.headersSent) {
-      return next(err)
-    }
+    
     if(err instanceof TypeError){
        let error= {
             "name": "GeneralError",
@@ -49,9 +43,6 @@ function errorHandler (err, req, res, next) {
     }else{
         next(err)
     }
-    
-    // err.message
-    // res.json({error:"hello error"})
   }
 
 
