@@ -21,17 +21,18 @@ class Xero1 {
      */
 
     authentication(config) {
-      return new Promise(function(resolve, reject) {
-        let keybuffer = new Buffer(config.certificate, 'base64');
-        let credentials = {
-            "userAgent" : config.useragent,
-            "consumerKey": config.consumerKey,
-            "consumerSecret": config.consumerSecret,
-            "privateKey": keybuffer
-        }
-        const xeroClient = new xero.PrivateApplication(credentials);
-        resolve(xeroClient);
-      })
+        return new Promise(function(resolve, reject) {
+            let keybuffer = new Buffer(config.certificate, 'base64');
+            let credentials = {
+                "userAgent" : config.useragent,
+                "consumerKey": config.consumerKey,
+                "consumerSecret": config.consumerSecret,
+                "privateKey": keybuffer
+            }
+            const xeroClient = new xero.PrivateApplication(credentials);
+            console.log('---------------------------xeroClient', xeroClient)
+            resolve(xeroClient);
+        })
     }
 
     async getAllContacts (config,data) {
@@ -51,8 +52,8 @@ class Xero1 {
         console.log("############filter",filter);
         return new Promise((resolve, reject) => {
             xeroClient.core.contacts.getContacts({ where : filter})
-            .then(function(invoices) {
-                resolve(invoices)
+            .then(function(contacts) {
+                resolve(contacts)
             })
             .catch(function(err) {
                 console.log("Error", typeof(err));
@@ -88,8 +89,10 @@ class Xero1 {
                     resolve(contacts.entities);
                 })
                 .catch(function(err) {
-                    console.log("Error", err.data.Elements[0].ValidationErrors[0].Message);
-                    resolve(err.data.Elements[0].ValidationErrors[0].Message);
+                    console.log('errror in post contact',err)
+                    reject(err)
+                    // console.log("Error", err.data.Elements[0].ValidationErrors[0].Message);
+                    // resolve(err.data.Elements[0].ValidationErrors[0].Message);
                     // data = { err: 'Authentication error!!! Check your connection and credentials.' };
                 })
         })

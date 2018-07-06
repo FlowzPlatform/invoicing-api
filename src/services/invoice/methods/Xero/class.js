@@ -241,9 +241,9 @@ class Xero1 {
             resolve(invoice_arr)
         })
         .catch(function(err) {
-            console.log("Error", typeof(err));
+            console.log("Error", err);
             // data = {err:'Authentication error!!! Check your connection and credentials.'};
-            resolve(err);
+            reject(err);
         })
       })
     }
@@ -255,6 +255,7 @@ class Xero1 {
             paid_amt = 0;
         // console.log("-----------------------------",invoice_arr);
         console.log("draft_amt",draft_amt,"authorize_amt",authorize_amt,"paid_amt",paid_amt);
+
         invoice_arr.forEach(function(invoice) {
           // console.log("@@@@@@@@@@@@@@arr",invoice[0]._obj.Status);
           invoice.forEach(function(inv) {
