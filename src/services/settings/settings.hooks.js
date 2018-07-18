@@ -86,8 +86,8 @@ async function  beforecreate (hook) {
  async function beforeGet(hook){
   //hook.result = "any data"
   //console.log(hook)
-  console.log(hook.params)
-  console.log("someone called me get")
+  console.log("hook.params inside setting get",hook.params)
+  // console.log("someone called me get")
 }
 
 async function errorGet(hook) {
@@ -193,7 +193,7 @@ beforepatch = async hook =>{
 						console.log("data.online_payment[gateway][rowIndex]",data.online_payment[gateway])
 						data.online_payment[gateway][hook.data.rowIndex] = hook.data.online_payment[gateway]
 						console.log("-------------------",data.online_payment[gateway])
-						//delete hook.data.rowIndex;
+						delete hook.data.rowIndex;
 						// // data.online_payment[gateway].push(hook.data.online_payment[gateway][0]);
             hook.data.online_payment[gateway] = data.online_payment[gateway]
             console.log("hook.data.online_payment[gateway]",hook.data.online_payment[gateway])
@@ -290,19 +290,30 @@ function alreadyAvailable(hook , res) {
       port: config.get("rdb_port"),
       db: 'invoicing_api'
     }, function(err, conn) {
-      // if (err) throw err;
-      connection = conn
+       if (err) {
+         console.log("err", err)
+         reject (err);
+       }else{
+         connection = conn;
+         r.table('settings')
+        .filter({subscriptionId : apiHeaders.subscriptionid , domain:"custom"}).run(connection , function(error , cursor){
+         if (error){
+            console.log(">>>>>>>>>>>>>>>>>>>>>>>>>>> " , error)
+            reject(error);
+         }else{
+          cursor.toArray(function(err, results) {
+            // if (err) throw err;
+  
+            // console.log("<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>> "  , results.length)
+            resolve(results.length)
+        });
+         }
+        
     })
-    r.table('settings')
-    .filter({subscriptionId : apiHeaders.subscriptionid , domain:"custom"}).run(connection , function(error , cursor){
-        // if (error) throw error;
-        cursor.toArray(function(err, results) {
-          // if (err) throw err;
-
-          // console.log("<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>> "  , results.length)
-          resolve(results.length)
-      });
+       };
+      
     })
+    
     // app.service('settings').find({query: {userId : res.data.data._id, domain:"custom"}}).then(settings => {
     //       console.log(">>>>>>>>>>>>>>>>> " , settings)
 

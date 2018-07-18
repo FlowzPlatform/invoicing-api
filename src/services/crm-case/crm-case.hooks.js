@@ -51,53 +51,74 @@ module.exports = {
   }
 };
 
-var getCrmCaseOldData = async( function(id) {
-  console.log(serviceUrl, id)
-  var data = await (axios.get(serviceUrl + '/crm-case/' + id))
-  return data.data
-})
+function getCrmCaseOldData(hook){
+  return new Promise((resolve , reject) => {
+      var data = hook.app.service('crm-case').get(hook.id).then(res => {
+        resolve (res.data)
+      }).catch(err => {
+        console.log("------------------>>>>>>>",err.message, err.name)
+        // err.message = "RethinkDB service unavailable"
+        if(err.name == 'ReqlDriverError'){
+          console.log("@@@@@@@@@@@@@@", err.message)
+          //throw err
+          resolve ({error: err.name, message:'RethinkDB service unavailable'})
+
+          // throw new  errors.GeneralError("RethinkDB service unavailable");
+        } else {
+          resolve (err)
+          } 
+      })
+  /* var data = await (axios.get(serviceUrl + '/crm-case/' + hook.id).then(res => {
+  }).catch(err=>{
+  })) */
+  })
+}
 
 // var postToHistory = async( function(data) {
 //   var res = await (axios.post(serviceUrl + '/crm-history', data))
 //   return res.data
 // })
 
-var beforeUpdate = async hook => {
+async function beforeUpdate(hook){
   console.log("inside before upload")
   let res = await validateUser(hook);
   res = JSON.parse(res);
    if(res.code == 401){
     throw new errors.NotAuthenticated('Invalid token');
   }else{
-    var oldData = await (getCrmCaseOldData(hook.id))
+    var oldData = await getCrmCaseOldData(hook)
   // var postHistory = await (postToHistory(oldData))
   console.log('oldData', oldData)
   console.log('hook.data..........', hook.data, hook.id)
-  if(hook.data.fileupload != undefined){
-    var indexforUrl = hook.data.fileupload.length
-    var urlforCloudinary = hook.data.fileupload[indexforUrl-1].url
-    var res1 = await app.service('cloudinaryupload').create({file :hook.data.fileupload[indexforUrl-1], folder:"crm/relationship/"+res.data.email})   
-    console.log('res1-------->',res1.url)    
-    var fileobj = {
-      "filename":hook.data.fileupload[indexforUrl-1].filename,
-      "url":res1.secure_url,
-      "public_id":res1.public_id
-    };
-    console.log('res1-------->',res1.url)
-    hook.data.fileupload[indexforUrl-1] = fileobj;
-    
-  }
-  if(hook.data.filename != undefined){
-    console.log('hook.data.filename',hook.data.filename)
-    oldData.fileupload.forEach((item,index) => {
-      if(item.url == hook.data.url){
-        oldData.fileupload.splice(index, 1);
-      }
-    })
-    console.log('___________________________',oldData)
-    var res1 = await(hook.app.service("/crm-case").update(hook.id,oldData))
-    console.log("res.....",res1)
-    hook.result = res1;
+  if(oldData.error != 'ReqlDriverError'){
+    if(hook.data.fileupload != undefined){
+      var indexforUrl = hook.data.fileupload.length
+      var urlforCloudinary = hook.data.fileupload[indexforUrl-1].url
+      var res1 = await app.service('cloudinaryupload').create({file :hook.data.fileupload[indexforUrl-1], folder:"crm/relationship/"+res.data.email})   
+      console.log('res1-------->',res1.url)    
+      var fileobj = {
+        "filename":hook.data.fileupload[indexforUrl-1].filename,
+        "url":res1.secure_url,
+        "public_id":res1.public_id
+      };
+      console.log('res1-------->',res1.url)
+      hook.data.fileupload[indexforUrl-1] = fileobj;
+      
+    }
+    if(hook.data.filename != undefined){
+      console.log('hook.data.filename',hook.data.filename)
+      oldData.fileupload.forEach((item,index) => {
+        if(item.url == hook.data.url){
+          oldData.fileupload.splice(index, 1);
+        }
+      })
+      console.log('___________________________',oldData)
+      var res1 = await(hook.app.service("/crm-case").update(hook.id,oldData))
+      console.log("res.....",res1)
+      hook.result = res1;
+    }
+  }else{
+    console.log("Error.......___________Dweepp",oldData)
   }
   }
 }

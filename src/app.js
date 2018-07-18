@@ -23,16 +23,34 @@ const appHooks = require('./app.hooks');
 
 const rethinkdb = require('./rethinkdb');
 
-
-
 const subscription = require('flowz-subscription')
-
 
 const app = feathers();
 
+function errorHandler (err, req, res, next) {
+    
+    if(err instanceof TypeError){
+       let error= {
+            "name": "GeneralError",
+            "message": "Something went wrong,Please try again",
+            "code": 500,
+            "className": "general-error",
+            "data": {},
+            "errors": {}
+        }
+        res.status(500)
+        res.json(error)
+    }else{
+        next(err)
+    }
+  }
+
+
+
+
 app.use(function(req, res, next) {
     //req.feathers.headers = req.headers;
-    //  console.log("???????????????????????? " , req.headers)
+     console.log("???????????????????????? " )
      this.app = app;
      this.apiHeaders = req.headers ;
      res.header("Access-Control-Allow-Origin", "*");
@@ -47,8 +65,8 @@ app.configure(configuration());
 app.use(cors());
 app.use(helmet());
 app.use(compress());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: '100mb' }));
+app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
 app.use(favicon(path.join(app.get('public'), 'favicon.ico')));
 // Host the public folder
 app.use('/', feathers.static(app.get('public')));
@@ -71,7 +89,7 @@ app.use(subscription.featherSubscription)
 //app.use(subscription.subscription)
 app.configure(services);
 app.configure(middleware);
-
+app.use(errorHandler)
 
 app.use(notFound());
 app.use(handler());

@@ -1,6 +1,7 @@
 const handler = require('feathers-errors/handler');
 const notFound = require('feathers-errors/not-found');
 const subscription = require('flowz-subscription')
+const flowzError = require('flowz-error-handler');
 module.exports.subscription = subscription
 
 
@@ -9,8 +10,6 @@ module.exports = async function () {
   // in Express the order matters, `notFound` and
   // the error handler have to go last.
   const app = this;
-  
-
   
 
   
@@ -50,5 +49,6 @@ module.exports = async function () {
       
   //   })
   // }
+  app.use(flowzError());
 };
 

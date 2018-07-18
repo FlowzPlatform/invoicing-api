@@ -58,16 +58,20 @@ class Service {
 
     async find (params) {
          
-        let schemaName1 = schema1.findGetCreate ;
+        let schemaName1 = schema1.findGetCreate;
         this.validateSchema(params.query, schemaName1)
 
         let configdata = [];
        
         configdata.push(await this.getConfig(params.query));
          //console.log("setting response inside invoice find----------->",configdata);
-        
-        let response =  await this.getInvoice(configdata,params);
-        return(response);
+        if (configdata !== null && configdata.length != 0) {
+            let response =  await this.getInvoice(configdata,params);
+            return(response);
+        }
+        else {
+            throw new errors.NotFound("Account is not available")
+        }
     }
 
     async get (id, params) {
@@ -80,24 +84,29 @@ class Service {
         let configdata = [];
         configdata.push(await this.getConfig(params.query));
 
-        console.log("config.domain",configdata[0].domain);
-        let schema = require("./methods/"+configdata[0].domain+"/schema.js")
-        let class1 = require("./methods/"+configdata[0].domain+"/class.js")
+        if (configdata !== null && configdata.length != 0) {
+            console.log("config.domain",configdata[0].domain);
+            let schema = require("./methods/"+configdata[0].domain+"/schema.js")
+            let class1 = require("./methods/"+configdata[0].domain+"/class.js")
 
-        
-        let obj = new class1();
+            
+            let obj = new class1();
 
-        let schemaName = schema.get ;
-        this.validateSchema(params.query, schemaName)
+            let schemaName = schema.get ;
+            this.validateSchema(params.query, schemaName);
 
-        response = await obj.getInvoiceById(configdata[0], id);
-        //  console.log("response by id",response);
-        response1.push({
-            "configName": configdata[0].configName,
-            "configId": configdata[0].id,
-            "data": response
-        })
-        return(response1);
+            response = await obj.getInvoiceById(configdata[0], id);
+            //  console.log("response by id",response);
+            response1.push({
+                "configName": configdata[0].configName,
+                "configId": configdata[0].id,
+                "data": response
+            })
+            return(response1);
+        }
+        else {
+            throw new errors.NotFound("Account is not available")
+        }
     }
 
     async create (data, params) {
@@ -108,21 +117,26 @@ class Service {
 
         let configdata = [];
         configdata.push(await this.getConfig(data));
-    
-         let schema = require("./methods/"+configdata[0].domain+"/schema.js")
-         let class1 = require("./methods/"+configdata[0].domain+"/class.js")
-        
-        let obj = new class1();
 
-        let schemaName = schema.create ;
-        this.validateSchema(data, schemaName)
+        if (configdata !== null && configdata.length != 0) {
+            let schema = require("./methods/"+configdata[0].domain+"/schema.js");
+            let class1 = require("./methods/"+configdata[0].domain+"/class.js");
+            
+            let obj = new class1();
 
-        let contactResponse = await this.getContact(configdata[0],data);
-        // console.log("contact response",contactResponse);
+            let schemaName = schema.create ;
+            this.validateSchema(data, schemaName)
 
-        let response = await obj.createInvoice(configdata[0],data,contactResponse);
-        // console.log("create Invoice ", response)
-        return(response);
+            let contactResponse = await this.getContact(configdata[0],data);
+            // console.log("contact response",contactResponse);
+
+            let response = await obj.createInvoice(configdata[0],data,contactResponse);
+            // console.log("create Invoice ", response)
+            return(response);
+        }
+        else {
+            throw new errors.NotFound("Account is not available")
+        }
     }
 
     update (id, data, params) {
@@ -181,7 +195,7 @@ class Service {
         //             throw new errors.NotFound(err)
         //         });
 
-         console.log("invoice id inside params ////// connection",connection)
+        //  console.log("invoice id inside params ////// connection",connection)
         // console.log("config.get('rdb_host'),config.get('rdb_host'),config.get('rdb_host'),config.get('rdb_host'), " , config.get('rdb_host'))
         r.connect({
             host: config.get('rdb_host'),
@@ -193,15 +207,12 @@ class Service {
           })
         await r.table('settings')
         .get(data.settingId).run(connection , function(error , cursor){
-
-           if (error){
-            console.log("error               " , error)
-           } 
-           //throw error;
-
-            // console.log(cursor)
-            resp = cursor
-            
+            if (error){
+                console.log("error               " , error)
+            } 
+            //throw error;
+            // console.log("==========================================",cursor)
+            resp = cursor 
         })
         return resp;
     }
