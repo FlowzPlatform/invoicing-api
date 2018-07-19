@@ -8,7 +8,9 @@ const axios = require('axios');
 module.exports = {
   before: {
     all: [],
-    find: [],
+    find: [
+      hook => beforeFind(hook)
+    ],
     get: [],
     create: [
       hook => beforeCreate(hook)
@@ -42,6 +44,11 @@ module.exports = {
   }
 };
 
+function beforeFind(hook) {
+  if(hook.params.query.websiteId == undefined) {
+    hook.result = {status:400, message: "Please pass websiteId"}
+  }
+}
 
 function beforeCreate(hook) {
   // console.log('hook------------->',hook.data);
