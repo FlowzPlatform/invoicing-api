@@ -54,7 +54,7 @@ module.exports = {
 function getCrmCaseOldData(hook){
   return new Promise((resolve , reject) => {
       var data = hook.app.service('crm-case').get(hook.id).then(res => {
-        resolve (res.data)
+        resolve (res)
       }).catch(err => {
         console.log("------------------>>>>>>>",err.message, err.name)
         // err.message = "RethinkDB service unavailable"
