@@ -7,7 +7,9 @@ const  POUpdateInMyOrder  = require('./purchase-order-validation').POUpdateInMyO
 module.exports = {
   before: {
     all: [],
-    find:[],
+    find:[
+      hook => beforeFind(hook)
+    ],
     get:[],
     create:[ hook=>Validation(hook),hook=>PoGenerateCal(hook),hook=>POSettingValidation(hook)],
     update: [],
@@ -36,3 +38,8 @@ module.exports = {
   }
 };
 
+function beforeFind(hook) {
+  if(hook.params.query.websiteId == undefined) {
+    hook.result = {status:400, message: "Please pass websiteId"}
+  }
+}
