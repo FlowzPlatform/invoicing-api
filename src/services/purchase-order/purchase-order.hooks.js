@@ -39,7 +39,7 @@ module.exports = {
 };
 
 function beforeFind(hook) {
-  if(hook.params.query.websiteId == undefined) {
-    hook.result = {status:400, message: "Please pass websiteId"}
-  }
+  // if(hook.params.query.websiteId == undefined) {
+  //   hook.result = {status:400, message: "Please pass websiteId"}
+  // }
 }
