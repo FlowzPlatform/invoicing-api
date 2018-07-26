@@ -2,7 +2,7 @@ const contacts = require('./contacts/contacts.service.js');
 const settings = require('./settings/settings.service.js');
 const invoice = require('./invoice/invoice.service.js');
 const upload = require('./upload/upload.service.js');
-  
+
 
 const crmService = require('./crm-service/crm-service.service.js');
 const crmCase = require('./crm-case/crm-case.service.js');
@@ -40,6 +40,8 @@ const supplierPaymentConfig = require('./supplier-payment-config/supplier-paymen
 
 const poInvoice = require('./po-invoice/po-invoice.service.js');
 
+const faq = require('./faq/faq.service.js');
+
 module.exports = function () {
   const app = this; // eslint-disable-line no-unused-vars
   app.configure(contacts);
@@ -72,4 +74,5 @@ module.exports = function () {
   app.configure(poSettings);
   app.configure(supplierPaymentConfig);
   app.configure(poInvoice);
+  app.configure(faq);
 };
