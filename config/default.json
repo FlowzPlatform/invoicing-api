@@ -3,8 +3,8 @@
   "port": 3037,
   "public": "../public/",
   "paginate": {
-    "default": 10,
-    "max": 50
+    "default": 100,
+    "max": 100
   },
   "rethinkdb": {
     "db": "invoicing_api",
