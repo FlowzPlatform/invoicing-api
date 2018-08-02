@@ -139,9 +139,22 @@ async function errorGet(hook) {
     // console.log(">>>>>>>>>>>>>>>> "  , res)
     
     //hook.params.query.userId = res.data.data._id;
+    let subscriptionId;
 
+    console.log('apiHeaders.subscriptionid',apiHeaders.subscriptionid)
+    console.log('hook.params.headers.subscriptionid',hook.params.query)
     
-    hook.params.query.subscriptionId = hook.params.headers.subscriptionid
+    if (hook.params.query != undefined) {
+      subscriptionId = hook.params.query.subscriptionid
+    }
+    if (hook.params.params != undefined) {
+      subscriptionId = hook.params.params.subscriptionid
+    }
+    if (apiHeaders.subscriptionid != undefined) {
+      subscriptionId = apiHeaders.subscriptionid
+    }
+    console.log('final subscriptionId',subscriptionId)
+    hook.params.query.subscriptionId = subscriptionId
     
     hook.params.query.isDeleated = false;
     if(hook.params.query.isActive == "true")
