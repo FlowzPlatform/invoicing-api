@@ -6,7 +6,7 @@ let _ = require('lodash');
 let r = require('rethinkdb');
 const config = require("config");
 let config1 = require('../../customConfig.js');
-
+const appHooks = require('../../app.hooks');
 
 let connection;
 let response;
@@ -51,9 +51,7 @@ module.exports = {
   error: {
     all: [],
     find: [],
-    get: [
-      hook => errorGet(hook)
-    ],
+    get: [],
     create: [],
     update: [],
     patch: [],
@@ -83,15 +81,11 @@ async function  beforecreate (hook) {
   }
 }
 
- async function beforeGet(hook){
+async function beforeGet(hook){
   //hook.result = "any data"
   //console.log(hook)
   console.log("hook.params inside setting get",hook.params)
   // console.log("someone called me get")
-}
-
-async function errorGet(hook) {
-
 }
 
 
@@ -139,21 +133,21 @@ async function errorGet(hook) {
     // console.log(">>>>>>>>>>>>>>>> "  , res)
     
     //hook.params.query.userId = res.data.data._id;
-    let subscriptionId;
-
-    console.log('apiHeaders.subscriptionid',apiHeaders.subscriptionid)
-    console.log('hook.params.headers.subscriptionid',hook.params.query)
+    console.log('appHooks.apiHeaders.subscriptionid',appHooks.apiHeaders.subscriptionid)
+    let subscriptionId = appHooks.apiHeaders.subscriptionid;
+    // console.log('apiHeaders.subscriptionid',apiHeaders.subscriptionid)
+    // console.log('hook.params.headers.subscriptionid',hook.params.query)
     
-    if (hook.params.query != undefined) {
-      subscriptionId = hook.params.query.subscriptionid
-    }
-    if (hook.params.params != undefined) {
-      subscriptionId = hook.params.params.subscriptionid
-    }
-    if (apiHeaders.subscriptionid != undefined) {
-      subscriptionId = apiHeaders.subscriptionid
-    }
-    console.log('final subscriptionId',subscriptionId)
+    // if (hook.params.query != undefined) {
+    //   subscriptionId = hook.params.query.subscriptionid
+    // }
+    // if (hook.params.headers != undefined) {
+    //   subscriptionId = hook.params.headers.subscriptionid
+    // }
+    // if (apiHeaders.subscriptionid != undefined) {
+    //   subscriptionId = apiHeaders.subscriptionid
+    // }
+    // console.log('final subscriptionId',subscriptionId)
     hook.params.query.subscriptionId = subscriptionId
     
     hook.params.query.isDeleated = false;
