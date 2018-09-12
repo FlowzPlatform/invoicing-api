@@ -24,6 +24,9 @@ then
     BACKEND_HOST="$BACKEND_HOST_MASTER";
     RDB_HOST="$RDB_HOST_MASTER";
     RDB_PORT="$RDB_PORT_MASTER";
+    CLOUDINARY_CLOUD_NAME:"$CLOUDINARY_CLOUD_NAME_MASTER";
+    CLOUDINARY_API_KEY:"$CLOUDINARY_API_KEY_MASTER";
+    CLOUDINARY_API_SECRET:"$CLOUDINARY_API_SECRET_MASTER";    
   }
 elif [ "$TRAVIS_BRANCH" = "develop" ]
 then
@@ -41,6 +44,9 @@ then
       BACKEND_HOST="$BACKEND_HOST_DEVELOP";
       RDB_HOST="$RDB_HOST_DEVELOP";
       RDB_PORT="$RDB_PORT_DEVELOP";
+      CLOUDINARY_CLOUD_NAME:"$CLOUDINARY_CLOUD_NAME_DEVELOP";
+      CLOUDINARY_API_KEY:"$CLOUDINARY_API_KEY_DEVELOP";
+      CLOUDINARY_API_SECRET:"$CLOUDINARY_API_SECRET_DEVELOP";
   }
 elif [ "$TRAVIS_BRANCH" = "staging" ]
 then
@@ -58,6 +64,9 @@ then
       BACKEND_HOST="$BACKEND_HOST_STAGING";
       RDB_HOST="$RDB_HOST_STAGING";
       RDB_PORT="$RDB_PORT_STAGING";
+      CLOUDINARY_CLOUD_NAME:"$CLOUDINARY_CLOUD_NAME_STAGING";
+      CLOUDINARY_API_KEY:"$CLOUDINARY_API_KEY_STAGING";
+      CLOUDINARY_API_SECRET:"$CLOUDINARY_API_SECRET_STAGING";
   }  
 else
   {
@@ -74,6 +83,9 @@ else
       BACKEND_HOST="$BACKEND_HOST_QA";
       RDB_HOST="$RDB_HOST_QA";
       RDB_PORT="$RDB_PORT_QA";
+      CLOUDINARY_CLOUD_NAME:"$CLOUDINARY_CLOUD_NAME_QA";
+      CLOUDINARY_API_KEY:"$CLOUDINARY_API_KEY_QA";
+      CLOUDINARY_API_SECRET:"$CLOUDINARY_API_SECRET_QA";
   }
 fi
 
@@ -85,5 +97,5 @@ curl -u ""$RANCHER_ACCESSKEY":"$RANCHER_SECRETKEY"" \
 -H 'Accept: application/json' \
 -H 'Content-Type: application/json' \
 -d '{
-     "inServiceStrategy":{"launchConfig": {"imageUuid":"docker:'$USERNAME'/invoicing_api_backend_flowz:'$TAG'","kind": "container","labels":{"io.rancher.container.pull_image": "always","io.rancher.scheduler.affinity:host_label": "'"$BACKEND_HOST"'"},"ports": ["3037:3037/tcp"],"environment": {"RDB_HOST": "'"$RDB_HOST"'","RDB_PORT": "'"$RDB_PORT"'","domainKey":"'"$DOMAINKEY"'","cloudinary_cloud_name":"'"$cloudinary_cloud_name"'","cloudinary_api_key":"'"$cloudinary_api_key"'","cloudinary_api_secret":"'"$cloudinary_api_secret"'"},"healthCheck": {"type": "instanceHealthCheck","healthyThreshold": 2,"initializingTimeout": 60000,"interval": 2000,"name": null,"port": 3037,"recreateOnQuorumStrategyConfig": {"type": "recreateOnQuorumStrategyConfig","quorum": 1},"reinitializingTimeout": 60000,"responseTimeout": 60000,"strategy": "recreateOnQuorum","unhealthyThreshold": 3},"networkMode": "managed"}},"toServiceStrategy":null}' \
+     "inServiceStrategy":{"launchConfig": {"imageUuid":"docker:'$USERNAME'/invoicing_api_backend_flowz:'$TAG'","kind": "container","labels":{"io.rancher.container.pull_image": "always","io.rancher.scheduler.affinity:host_label": "'"$BACKEND_HOST"'"},"ports": ["3037:3037/tcp"],"environment": {"RDB_HOST": "'"$RDB_HOST"'","RDB_PORT": "'"$RDB_PORT"'","domainKey":"'"$DOMAINKEY"'","cloudinary_cloud_name":"'"$CLOUDINARY_CLOUD_NAME"'","cloudinary_api_key":"'"$CLOUDINARY_API_KEY"'","cloudinary_api_secret":"'"$CLOUDINARY_API_SECRET"'"},"healthCheck": {"type": "instanceHealthCheck","healthyThreshold": 2,"initializingTimeout": 60000,"interval": 2000,"name": null,"port": 3037,"recreateOnQuorumStrategyConfig": {"type": "recreateOnQuorumStrategyConfig","quorum": 1},"reinitializingTimeout": 60000,"responseTimeout": 60000,"strategy": "recreateOnQuorum","unhealthyThreshold": 3},"networkMode": "managed"}},"toServiceStrategy":null}' \
 $RANCHER_URL/v2-beta/projects/$ENV_ID/services/$SERVICE_ID?action=upgrade
