@@ -10,6 +10,8 @@ module.exports = function () {
   console.log(ssl);
   let aconfig = {
     "db": "invoicing_api",
+    "buffer":20,
+    "timeoutGb":60000,
     "servers": [
       {
         "host": process.env.RDB_HOST,
