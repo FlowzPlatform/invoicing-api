@@ -3,7 +3,9 @@ const logger = require('./hooks/logger');
 
 module.exports = {
   before: {
-    all: [],
+    all: [
+      hook => before_all_service(hook)
+    ],
     find: [],
     get: [],
     create: [],
@@ -32,3 +34,9 @@ module.exports = {
     remove: []
   }
 };
+
+function before_all_service(hook) {
+
+  module.exports.apiHeaders = this.apiHeaders;
+  
+}
