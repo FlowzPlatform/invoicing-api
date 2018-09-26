@@ -1,11 +1,11 @@
-var moment = require('moment');
-// const config = require("../../../config.js");
-const paymentConfig = require("../../../payment-plugin.json");
+let moment = require('moment');
 
 //For quickbook
-var TokenProvider = require('refresh-token');
-var request = require('request')
-let api_uri="https://sandbox-quickbooks.api.intuit.com/v3/company/"
+let TokenProvider = require('refresh-token');
+let request = require('request')
+let api_uri="https://sandbox-quickbooks.api.intuit.com/v3/company/";
+let token_uri = "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer";
+
 class QB1 {
     /**
      * constructor
@@ -24,47 +24,46 @@ class QB1 {
 
     //Qb functions
     getToken(config) {
-      console.log("inside get token");
-      // var tokenProvider = new TokenProvider(config.qbcredentials.tokenUrl, {
-      //   refresh_token: config.qbcredentials.refresh_token,
-      //   client_id:     config.qbcredentials.client_id,
-      //   client_secret: config.qbcredentials.client_secret
-      // });
-      var tokenProvider = new TokenProvider('https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer', {
-        refresh_token: config.refresh_token,
-        // refresh_token: config.refresh_token,
-        client_id:     config.client_id,
-        client_secret: config.client_secret
-      });
-      // console.log("tokenProvider",tokenProvider);
-      return new Promise(function(resolve, reject) {
-        tokenProvider.getToken(function (err, newToken) {
-          resolve(newToken)
+        console.log("inside get token");
+        let tokenProvider = new TokenProvider(token_uri, {
+            refresh_token: config.refresh_token,
+            client_id:     config.client_id,
+            client_secret: config.client_secret
         });
-      })
+        // console.log("tokenProvider",tokenProvider);
+        return new Promise(function(resolve, reject) {
+            tokenProvider.getToken(function (err, newToken) {
+                if (newToken == undefined) {
+                    reject(err)
+                }
+                else {
+                    resolve(newToken)
+                }
+            });
+        })
     }
 
     getRequestObj(url, token) {
-      var getReqObj = {
+      let getReqObj = {
         url: url,
         headers: {
           'Authorization': 'Bearer ' + token,
           'Accept': 'application/json'
         }
-      }
+      };
       // console.log("requestObj",getReqObj);
       return getReqObj;
     }
 
     postRequestObj(url, body, token) {
-      var postReqObj = {
+      let postReqObj = {
         url: url,
         method: 'POST',
         body: body,
         headers: {
-          'Authorization': 'Bearer ' + token ,
-          'Accept': 'application/json',
-          'Content-Type' : 'application/json'
+            'Authorization': 'Bearer ' + token ,
+            'Accept': 'application/json',
+            'Content-Type' : 'application/json'
         }
       }
       return postReqObj;
@@ -78,54 +77,67 @@ class QB1 {
             resolve(response);
           }, function (err) {
             // console.log("Error",err);
-            resolve({isError:true, err:err});
+            resolve(err);
         })
       })
     }
 
     async getAllContacts(config,data) {
-      let token = await this.getToken(config);
-       console.log("token >>>>>>>>>>  ",token);
-       let arrcustomer = [];
-      let url = api_uri + config.realmId + "/query?query=select * from Customer "
-      if (data.Name) {
-        url += "Where DisplayName = '" + data.Name + "'"
-      }
-      console.log('Making API call to: ' + url)
-  
-      let requestObj = await this.getRequestObj (url , token)
-      let result = await this.make_api_call (requestObj)
-      return new Promise(async function(resolve, reject) {
-        // console.log("@@@@@@@@@@@inside get invoice method");
-        
-        let jsondata = JSON.parse(result.body);
-        console.log("@@@@@@@@@@@@@@@@@@@@@jsondata",jsondata);
-        if (jsondata.QueryResponse == undefined) {
+        let token = await this.getToken(config);
+        let arrcustomer = [];
+        let url = api_uri + config.realmId + "/query?query=select * from Customer "
+        // if (data.Name || data.EmailAddress) {
+        //     url += "Where"
+        // }
+       
 
-        }
-        else {
-          let len = JSON.stringify(jsondata.QueryResponse.maxResults, null, 2);
-          console.log("Length of Customer",len);
-          
-          for (let i=0; i<len; i++) {
-            let data1 =jsondata.QueryResponse.Customer[i];
+        if(data.Name && data.EmailAddress ){
+            url += "Where PrimaryEmailAddr = '" + data.EmailAddress + "'"
+        }else if (data.EmailAddress) {
+            url += "Where PrimaryEmailAddr = '" + data.EmailAddress + "'"
+        }else if (data.Name) {
+            url += "Where DisplayName = '" + data.Name + "'"
+        }else{
             
-            // console.log("data:",arrdata)
-            arrcustomer.push(data1);
-          }
-          // console.log("Customer Get Data",arrcustomer[0]);
         }
-        resolve (arrcustomer);
-      })
+        console.log('Making API call to: ' + url)
+    
+        let requestObj = await this.getRequestObj (url , token)
+        let result = await this.make_api_call (requestObj)
+        return new Promise(async function(resolve, reject) {
+            // console.log("@@@@@@@@@@@inside get contacts method",result);
+            let jsondata = JSON.parse(result.body);
+            // console.log("@@@@@@@@@@@@@@@@@@@@@jsondata",jsondata);
+            if (jsondata.QueryResponse == undefined) {
+                // console.log("error in get contact",jsondata.fault.error[0])
+                if (jsondata.fault) {
+                    resolve(jsondata.fault.error[0].message)
+                }
+                if (jsondata.Fault) {
+                    resolve(jsondata.Fault.Error[0].Message)
+                }
+            }
+            else {
+                let len = JSON.stringify(jsondata.QueryResponse.maxResults, null, 2);
+                console.log("Length of Customer",len);
+                
+                for (let i=0; i<len; i++) {
+                    let data1 =jsondata.QueryResponse.Customer[i];
+                    arrcustomer.push(data1);
+                }
+                // console.log("Customer Get Data",arrcustomer[0]);
+                resolve (arrcustomer);
+            }
+        })
     }
 
     async createContact(config,data) { 
-      var token = await this.getToken(config);
+      let token = await this.getToken(config);
 
-      var url = api_uri + config.realmId + '/customer'
+      let url = api_uri + config.realmId + '/customer'
       console.log('Making API call to: ' + url)
 
-      var body = JSON.stringify({
+      let body = JSON.stringify({
             'BillAddr': {
               'Line1': data.AddressLine1,
               'City': data.City,
@@ -142,11 +154,26 @@ class QB1 {
             }
           });
       
-      var postrequestObj = await this.postRequestObj (url,body, token)
-      var result = await this.make_api_call (postrequestObj)
-      let resp = [];
-      resp.push((JSON.parse(result.body)).Customer);
-      return resp;
+      let postrequestObj = await this.postRequestObj (url,body, token)
+      let result = await this.make_api_call (postrequestObj)
+      let jsondata = JSON.parse(result.body);
+      if (jsondata.Customer) {
+        // console.log("####################### result in post contact QB",(JSON.parse(result.body)).Customer)
+        let resp = [];
+        resp.push((JSON.parse(result.body)).Customer);
+        return resp;
+      }
+      else {
+          if (jsondata.fault) {
+            // console.log("####################### result in post contact QB@@@@@@@@@@@@@",jsondata.fault.error[0].message)
+            return(jsondata.fault.error[0].message);
+          }
+          if (jsondata.Fault) {
+            // console.log("####################### result in post contact QB@@@@@@@@@@@@@",jsondata.Fault.Error[0].Message)
+            return(jsondata.Fault.Error[0].Message);
+          }
+
+      }
     }
 }
 
